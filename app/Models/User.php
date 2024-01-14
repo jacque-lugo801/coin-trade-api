@@ -12,15 +12,27 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $primaryKey = 'usu_idUser';
+    
+    const CREATED_AT = 'usu_created_date';
+    const UPDATED_AT = 'usu_updated_date';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        // 'name',
+        // 'email',
+        // 'password',
+        'usu_username',
+        'usu_email',
+        'usu_email2',
+        'usu_pswd',
+        // 'usu_verification_code',
+        'urol_idRol',
+        'usts_idStatus',
     ];
 
     /**
@@ -28,9 +40,12 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+
+     //Datos que estaran bkloqueados en la base de datos para no mostrarlos en los arrays
     protected $hidden = [
-        'password',
-        'remember_token',
+        // 'usu_idUser',
+        'usu_pswd',
+        // 'usu_verification_code',
     ];
 
     /**
@@ -42,4 +57,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+    // Relacion uno a muhcos
+    // obtiene todos los productos de ese usuario
+    public function products() {
+        return $this->HasMany('App\Models\Products');
+    }
 }
