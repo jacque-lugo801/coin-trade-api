@@ -9,6 +9,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\MailController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -45,12 +46,12 @@ Route::get('/test-orm', [TestController::class, 'testOrm']);
 Route::get('/user/pruebas', [UserController::class, 'pruebas']);
 Route::get('/product/pruebas', [ProductController::class, 'pruebas']);
 Route::get('/product-type/pruebas', [ProductTypeController::class, 'pruebas']);
+Route::get('/send-mail', [MailController::class, 'index']);
 
 
 
 
 // Rutas controlador usuario
-
 
 Route::post('api/user/signup', [UserController::class, 'signup']);
 Route::post('api/user/signin', [UserController::class, 'signin']);

@@ -35,6 +35,7 @@ class JwtAuth {
         // Generar tokenc con los datos del usuario identificado
         if($signin) {
             $token = array(
+                'idUser' => $user->usu_idUser,
                 'username' => $user->usu_username,
                 'mail' => $user->usu_email,
                 'mail2' => $user->usu_email2,
@@ -49,14 +50,18 @@ class JwtAuth {
             $decoded = JWT::decode($jwt, new Key($this->key, 'HS256'));
 
             // Devolver los datos decodificados o el token, en funcion de un parametro
-            if(is_null($getToken)) {
-                //si es nulo solo devuelve el token
-                $data = $jwt;
-            }
-            else {
-                //si no es nulo, que devuelva la decodificacion del token
-                $data = $decoded;
-            }
+            // if(is_null($getToken)) {
+            //     //si es nulo solo devuelve el token
+            //     $data = $jwt;
+            // }
+            // else {
+            //     //si no es nulo, que devuelva la decodificacion del token
+            //     $data = $decoded;
+            // }
+            $data = array(
+                'token' => $jwt,
+                'identity' => $decoded
+            );
         }
         else {
             $data = array(

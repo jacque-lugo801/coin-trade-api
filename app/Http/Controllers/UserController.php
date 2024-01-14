@@ -19,8 +19,6 @@ class UserController extends Controller
 
     // Registro usuarios
     public function signup(Request $request) {
-
-
         // Recoger datos usuario}
         $json = $request->input('json', null);
 
@@ -28,9 +26,6 @@ class UserController extends Controller
         $params = json_decode($json); //objeto
         $params_array = json_decode($json, true);   //array
 
-        // var_dump($params_array);
-        //  die();
-        
         // comprueba si tiene fallos
         if(!empty($params) && !empty($params_array)) {
             //Limpiar datos
@@ -54,7 +49,6 @@ class UserController extends Controller
                     'message'=> 'Ha ocurrido un error en el registro.',
                     'errors' => $validate->errors()
                 );
-                // return response()->json($validate->errors(), 400);
             }
             else {
                 // Cifrar contraseña
@@ -72,17 +66,9 @@ class UserController extends Controller
                 $user->usu_pswd = $pwd;
                 $user->usts_idStatus =  $params_array['status'];
                 $user->urol_idRol =  $params_array['rol'];
-                // $user->usu_created_date = $params_array['rol'];
-                // $user->usu_updated_date = $params_array['rol'];
-
-
-                // var_dump($user);
-                // die();
-
 
                 // Guardar usuario
                 $user->save();
-
 
                 $data = array(
                     'status' => 'success',
@@ -92,37 +78,11 @@ class UserController extends Controller
                 );
             }
         }
-/*
-        // Cifrar contraseña
-        $pwd = password_hash($params->pwd, PASSWORD_BCRYPT, ['cost' => 4] ); /// este algoritmo no genera siempre las mismas contraseñas cifra
-        // $pwd = hash('sha256', $params->password);   //la contraseña que cifre, la cifrara 4 veces 
-
-        // comprobar is el usuario existe
-        // con unique:{table_name} especifica que sera unico
-        
-
-        // Crear usuario
-        $user = new User();
-        $user->username = $params_array['username'];
-        $user->mail = $params_array['mail'];
-        $user->mail2 = $params_array['mail2'];
-        $user->pwd = $pwd;
-        $user->status = $params_array['status'];
-        $user->rol = $params_array['rol'];
-
-
-        // Guardar usuario
-        $user->save();
-
-        // Devolver datos en json
-
-*/
 
         return response()->json($data, $data['code']);  //devolvemos la respuesta en formato json, pasando lo que queremos devolver y el codigo http
     }
 
     
-
     // Login usuarios
     public function signin(Request $request) {
         // $jwtAuth = new \JwtAuth(); //llamando al alias con la barra delante
@@ -150,7 +110,6 @@ class UserController extends Controller
                 'message'=> 'El usuario no se ha podido loggear',
                 'errors' => $validate->errors()
             );
-            // return response()->json($validate->errors(), 400);
         }
         else {
 
@@ -160,20 +119,12 @@ class UserController extends Controller
             $pwd =  hash('sha256', $params->pwd);
 
             // Devolver token o datos
-
             $signin = $jwtAuth->signin($params->mail, $pwd);
+
             if(!empty($params->getToken)) {
-            // if(isset($params->getToken)) {
                 $signin = $jwtAuth->signin($params->mail, $pwd, true);
             }
         }
-
-
-
-        // return $jwtAuth->signin($mail, $pwd, true);
-
-        // $sign =  $jwtAuth->signin($mail, $pwd, true);
-        // return response()->json($sign)
 
         // return response()->json( $jwtAuth->signin($mail, $pwd, true), 200);
         return response()->json($signin, 200);
@@ -194,4 +145,5 @@ class UserController extends Controller
 
 
     }
+
 }
