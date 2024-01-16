@@ -21,6 +21,109 @@ class UserController extends Controller
     public function signup(Request $request) {
         // Recoger datos usuario}
         $json = $request->input('json', null);
+        
+        $params = json_decode($json); //objeto
+        $params_array = json_decode($json, true);   //array
+
+        if(!empty($params) && !empty($params_array)) {
+            $params_array = array_map('trim', $params_array);   //Limpiar datos del array
+
+            $validate = \Validator::make($params_array, [
+                'name' => 'required',
+                'lastname' => 'required',
+                'identity' => 'required',
+                'mail' => 'required | email | unique:users,usu_email',
+                'phone' => 'required | numeric',
+                'phoneLocal' => 'required | numeric',
+                'birthDate' => 'required',
+                'country' => 'required',
+                'state' => 'required',
+                'city' => 'required',
+                'address' => 'required',
+                'denomination' => 'required',
+                'rfc' => 'required',
+                'countryFiscal' => 'required',
+                'stateFiscal' => 'required',
+                'cityFiscal' => 'required',
+                'addressFiscal' => 'required',
+                'username' => 'required | alpha_num | unique:users,usu_username',
+                'pwd' => 'required',
+                'mailAccount' => 'required | email',
+                'rol' => 'required ',
+            ],
+            [
+                'mail.unique' => 'El email ya ha sido registrado.',
+                'username.unique' => 'El nombre de usuario ya existe.',
+            ]);
+            
+            // die();
+            if($validate->fails()) {
+                $data = array(
+                    'status' => 'error',
+                    'code' => 402,
+                    'message'=> 'Ha ocurrido un error en el registro',
+                    'errors' => $validate->errors()
+                );
+            }
+            else {
+                $pwd = hash('sha256', $params->pwd);    //Cifrado de contraseña
+                
+                switch (strtolower($params->rol)) {
+                    case 'vendedor':
+                        $rol = 1;
+                        break;
+                    case 'comprador':
+                        $rol = 2;
+                        break;
+                    
+                    default:
+                        break;
+                }
+                
+                $code = $this->setCode();
+
+                //Creacion usuario
+                $user = new User();
+                $user->usu_username = $params_array['username'];
+                $user->usu_email = $params_array['mail'];
+                $user->usu_pswd = $pwd;
+                // $user->urol_idRol =  $params_array['rol'];
+                $user->urol_idRol =  $rol;
+                $user->usu_verification_code =  $code;
+                $user->usts_idStatus = 3;
+
+                // var_dump($user);
+                // die();
+                //Guardar usuario
+                $user->save();
+
+                
+                $data = array(
+                    'status' => 'success',
+                    'code' => 200,
+                    'message'=> 'El usuario se ha creado correctamente',
+                    // // 'user' => $user //Arreglo con datos del usuario creado -QUITAR  
+                    // 'user' => array(
+                    //     'id' => $user->usu_idUser,
+                    //     'username' => $user->usu_username,
+                    //     'email' => $user->usu_email,
+                    //     // 'verification_code' => $user->usu_verification_code
+
+                    // )
+                );
+
+
+            }
+
+        }
+
+        return response()->json($data, $data['code']);
+    }
+
+    // Registro usuarios
+    public function signup2(Request $request) {
+        // Recoger datos usuario}
+        $json = $request->input('json', null);
 
         // decodificar los datos y los convierte a datos de php
         $params = json_decode($json); //objeto
@@ -146,4 +249,16 @@ class UserController extends Controller
 
     }
 
+
+    public function setCode() {
+        // return random_int(100000, 999999);
+
+        do {
+            $code = random_int(100000, 999999);
+            // $code = random_int(1, 4);
+            // echo $code .' | ';
+        } while (User::where("usu_verification_code", "=", $code)->first());
+  
+        return $code;
+    }
 }

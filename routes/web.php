@@ -46,8 +46,10 @@ Route::get('/test-orm', [TestController::class, 'testOrm']);
 Route::get('/user/pruebas', [UserController::class, 'pruebas']);
 Route::get('/product/pruebas', [ProductController::class, 'pruebas']);
 Route::get('/product-type/pruebas', [ProductTypeController::class, 'pruebas']);
-Route::get('/send-mail', [MailController::class, 'index']);
 
+
+
+Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
 
 
 
