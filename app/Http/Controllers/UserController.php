@@ -8,15 +8,6 @@ use App\Models\User;
 
 class UserController extends Controller
 {
-    //
-
-    
-
-    // Se pasan datos que se envian desde formulario
-    public function pruebas(Request $request) {
-        return 'Acción de pruebas de USER-CONTROLLER';
-    }
-
     // Registro usuarios
     public function signup(Request $request) {
         // Recoger datos usuario}
@@ -24,7 +15,7 @@ class UserController extends Controller
         
         $params = json_decode($json); //objeto
         $params_array = json_decode($json, true);   //array
-
+        
         if(!empty($params) && !empty($params_array)) {
             $params_array = array_map('trim', $params_array);   //Limpiar datos del array
 
@@ -98,6 +89,7 @@ class UserController extends Controller
                 $user->save();
 
                 
+                // var_dump($request);
                 $data = array(
                     'status' => 'success',
                     'code' => 200,

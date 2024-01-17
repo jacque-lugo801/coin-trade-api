@@ -10,27 +10,6 @@ use App\Models\User;
 
 class MailController extends Controller
 {
-    //
-    public function index() {
-        $mailData = [
-            'title' => 'Mail from Coin Trade',
-            'body' => 'This is for testing app'
-        ];
-
-        Mail::to('jacque.lugo801@gmail.com')->send(new DemoMail($mailData));
-
-        // var_dump($response);
-
-        // dd('Email send successfully.');
-        $data = array(
-            'status' => 'success',
-            'code' => 200,
-            'message'=> 'Se ha enviado el mail de verificación.'
-        );
-
-       return $data;
-    }
-
     public function userVerificationCode(Request $request) {
         // echo 'testing
         // ';
@@ -50,7 +29,7 @@ class MailController extends Controller
             $mail = $params->mail;
             $mailAccount = $params->mailAccount;
             // $code = $params->code;
-
+            
             $user = User::where([
                 ['usu_username', '=', $username],
                 ['usu_email', '=', $mail]
@@ -60,7 +39,9 @@ class MailController extends Controller
             // var_dump($code);
             // die();
 
-            Mail::to($mailAccount)->send(new UserVerificationCodeMail($name, $lastname, $code));
+            Mail::to($mailAccount)
+                ->send(new UserVerificationCodeMail($name, $lastname, $code));
+                // ->queue(new UserVerificationCodeMail($name, $lastname, $code));
         
             $data = array(
                 'status' => 'success',

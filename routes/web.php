@@ -3,9 +3,6 @@
 use Illuminate\Support\Facades\Route;
 
 // use App\Http\Controllers;
-// // use App\Http\Controllers\PruebasController;
-use App\Http\Controllers\TestController;
-
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
@@ -34,27 +31,19 @@ Route::get('/welcome', function () {
 
 
 
+// // Rutas de prueba
+// Route::get('/user/pruebas', [UserController::class, 'pruebas']);
+// Route::get('/product/pruebas', [ProductController::class, 'pruebas']);
+// Route::get('/product-type/pruebas', [ProductTypeController::class, 'pruebas']);
 
 
 
-// TEST
-Route::get('/test-orm', [TestController::class, 'testOrm']);
-// Con el @ hace referencia a que llama a la funcion
-
-
-// Rutas de prueba
-Route::get('/user/pruebas', [UserController::class, 'pruebas']);
-Route::get('/product/pruebas', [ProductController::class, 'pruebas']);
-Route::get('/product-type/pruebas', [ProductTypeController::class, 'pruebas']);
-
-
-
-Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
 
 
 
 // Rutas controlador usuario
-
 Route::post('api/user/signup', [UserController::class, 'signup']);
 Route::post('api/user/signin', [UserController::class, 'signin']);
 Route::post('api/user/update', [UserController::class, 'update']);
+
+Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);

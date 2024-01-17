@@ -35,7 +35,9 @@ class UserVerificationCodeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new Address('cointrade@sending.com', 'Coin Trade'),
             subject: 'Verification Code',
+            tags: ['verification', 'code'],
         );
     }
 
