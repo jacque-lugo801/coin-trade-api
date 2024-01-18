@@ -47,3 +47,5 @@ Route::post('api/user/signin', [UserController::class, 'signin']);
 Route::post('api/user/update', [UserController::class, 'update']);
 
 Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
+Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
+Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);

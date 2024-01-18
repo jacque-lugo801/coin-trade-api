@@ -16,9 +16,10 @@
 
 
     <br>
-    <small>Este e-mail no puede ser respondido.</small>
     <!-- <small>Para más información sobre la recepcion</small> -->
-    <br>
     <small>Si usted no ha solicitado el código de verificación ignore este correo electrónico y pongase en contacto con el administrador.</small>
+    <br>
+    <small>Este correo electrónico ha sido enviado desde una dirección que no puede recibir correos electrónicos. No respondas este correo electrónico.</small>
+
 </body>
 </html>
