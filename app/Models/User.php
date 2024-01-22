@@ -28,7 +28,6 @@ class User extends Authenticatable
         'usu_email',
         'usu_email2',
         'usu_pswd',
-        // 'usu_verification_code',
         'urol_idRol',
         'usts_idStatus',
     ];
@@ -41,9 +40,7 @@ class User extends Authenticatable
 
      //Datos que estaran bkloqueados en la base de datos para no mostrarlos en los arrays
     protected $hidden = [
-        // 'usu_idUser',
         'usu_pswd',
-        // 'usu_verification_code',
     ];
 
     /**
@@ -53,7 +50,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password'          => 'hashed',
     ];
 
 

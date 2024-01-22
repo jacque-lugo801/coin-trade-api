@@ -12,8 +12,6 @@
     <br>
     <p>Hola, {{ $name }} {{$lastName}}, gracias por unirte a Coin Trade. Este correo electrónico ha sido enviado para verificar tu cuenta con nosotros.</p>
     <p>Copie y pegue el código anterior para completar el proceso de creación de su cuenta.</p>
-    <!-- <p>Este codigo es válido durante 5 minutos.</p> -->
-
 
     <br>
     <!-- <small>Para más información sobre la recepcion</small> -->

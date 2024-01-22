@@ -3,62 +3,70 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
 use App\Models\User;
+use App\Models\Country;
+use App\Models\State;
+use App\Models\City;
+
+use App\Models\UserShippingAddress;
+use App\Models\UserFiscalData;
+use App\Http\Controllers\UserShippingAddressController;
+use App\Http\Controllers\UserFiscalDataController;
 
 class UserController extends Controller
 {
-    // Registro usuarios
+    // Registro de una nueva cuenta para el sitio
     public function signup(Request $request) {
-        // Recoger datos usuario}
+        // Recoger datos usuarios
         $json = $request->input('json', null);
         
-        $params = json_decode($json); //objeto
-        $paramsArray = json_decode($json, true);   //array
+        $params         = json_decode($json); //objeto
+        $paramsArray    = json_decode($json, true);   //array
         
         if(!empty($params) && !empty($paramsArray)) {
             $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
             $validate = \Validator::make($paramsArray, [
-                'name' => 'required',
-                'lastname' => 'required',
-                'identity' => 'required',
-                'mail' => 'required | email | unique:users,usu_email',
-                'phone' => 'required | numeric',
-                'phoneLocal' => 'required | numeric',
-                'birthDate' => 'required',
-                'country' => 'required',
-                'state' => 'required',
-                'city' => 'required',
-                'address' => 'required',
-                'denomination' => 'required',
-                'rfc' => 'required',
+                'name'          => 'required',
+                'lastname'      => 'required',
+                'identity'      => 'required',
+                'mail'          => 'required | email | unique:users,usu_email',
+                'phone'         => 'required',
+                'phoneLocal'    => 'required',
+                'birthDate'     => 'required',
+                'country'       => 'required',
+                'state'         => 'required',
+                'city'          => 'required',
+                'address'       => 'required',
+                'denomination'  => 'required',
+                'rfc'           => 'required',
                 'countryFiscal' => 'required',
-                'stateFiscal' => 'required',
-                'cityFiscal' => 'required',
+                'stateFiscal'   => 'required',
+                'cityFiscal'    => 'required',
                 'addressFiscal' => 'required',
-                'username' => 'required | alpha_num | unique:users,usu_username',
-                'pwd' => 'required',
-                'mailAccount' => 'required | email',
-                'rol' => 'required ',
+                'username'      => 'required | alpha_num | unique:users,usu_username',
+                'pwd'           => 'required',
+                'mailAccount'   => 'required | email',
+                'rol'           => 'required ',
+                'terms'         => 'required ',
             ],
             [
-                'mail.unique' => 'El email ya ha sido registrado.',
-                'username.unique' => 'El nombre de usuario ya existe.',
+                'mail.unique'       => 'El email ya ha sido registrado.',
+                'username.unique'   => 'El nombre de usuario ya existe.',
             ]);
-            
-            // die();
+
             if($validate->fails()) {
                 $data = array(
-                    'status' => 'error',
-                    'code' => 402,
-                    'message'=> 'Ha ocurrido un error en el registro',
-                    'errors' => $validate->errors()
+                    'status'    => 'error',
+                    'code'      => 402,
+                    'message'   => 'Ha ocurrido un error en el registro',
+                    'errors'    => $validate->errors()
                 );
             }
             else {
                 $pwd = hash('sha256', $params->pwd);    //Cifrado de contraseña
                 
+                // Tipo de usuario
                 switch (strtolower($params->rol)) {
                     case 'vendedor':
                         $rol = 1;
@@ -70,48 +78,77 @@ class UserController extends Controller
                     default:
                         break;
                 }
-                
+
                 $code = $this->setCode();
 
-                //Creacion usuario
+                //Creacion de usuario
                 $user = new User();
-                $user->usu_username = $paramsArray['username'];
-                $user->usu_email = $paramsArray['mail'];
-                $user->usu_pswd = $pwd;
-                // $user->urol_idRol =  $paramsArray['rol'];
-                $user->urol_idRol =  $rol;
-                $user->usu_verification_code =  $code;
-                $user->usts_idStatus = 3;
+                $user->usu_name                 = $paramsArray['name'];
+                $user->usu_lastname             = $paramsArray['lastname'];
+                $user->usu_identity             = $paramsArray['identity'];
+                $user->usu_email                = $paramsArray['mail'];
+                $user->usu_phone                = $paramsArray['phone'];
+                $user->usu_phone_local          = $paramsArray['phoneLocal'];
+                $user->usu_birth_date           = $paramsArray['birthDate'];
+                $user->usu_username             = $paramsArray['username'];
+                $user->usu_pswd                 = $pwd;
+                $user->usu_mail_account         = $paramsArray['mailAccount'];
+                $user->urol_idRol               =  $rol;
+                $user->usu_isTerms              = $paramsArray['terms'];
+                $user->usu_isAuthorized         = 0;
+                $user->usu_verification_code    = $code;
+                // $user->usts_idStatus            = 3;
 
-                // var_dump($user);
-                // die();
-                //Guardar usuario
                 $user->save();
-
+                $idUser = $user->usu_idUser;
                 
-                // var_dump($request);
+
+                //Guardar datos de envio
+                $shippingParams = array(
+                    'country'   => $paramsArray['country'],
+                    'state'     => $paramsArray['state'],
+                    'city'      => $paramsArray['city'],
+                    'address'   => $paramsArray['address'],
+                    'idUser'    => $idUser,
+                );
+
+                $shipping = (new UserShippingAddressController)
+                    ->saveSignupAddress($shippingParams);
+
+                    
+                //Guardar datos de información fiscal
+                $fiscalParams = array(
+                    'denomination'  => $paramsArray['denomination'],
+                    'rfc'           => $paramsArray['rfc'],
+                    'country'       => $paramsArray['countryFiscal'],
+                    'state'         => $paramsArray['stateFiscal'],
+                    'city'          => $paramsArray['cityFiscal'],
+                    'address'       => $paramsArray['addressFiscal'],
+                    'idUser'        => $idUser,
+                );
+
+                //Guardar datos de envio
+                $fiscal = (new UserFiscalDataController)
+                    ->saveSignupFiscalData($fiscalParams);
+
                 $data = array(
-                    'status' => 'success',
-                    'code' => 200,
-                    'message'=> 'El usuario se ha creado correctamente',
+                    'status'    => 'success',
+                    'code'      => 200,
+                    'message'   => 'El usuario se ha creado correctamente',
                     // // 'user' => $user //Arreglo con datos del usuario creado -QUITAR  
                     // 'user' => array(
                     //     'id' => $user->usu_idUser,
                     //     'username' => $user->usu_username,
                     //     'email' => $user->usu_email,
                     //     // 'verification_code' => $user->usu_verification_code
-
                     // )
                 );
-
-
             }
-
         }
-
         return response()->json($data, $data['code']);
     }
 
+    // Validar codigo enviado para email
     public function validateVerificationCode(Request $request ) {
 
         // Recoger datos usuario}
@@ -175,6 +212,7 @@ class UserController extends Controller
                         //     // 'verification_code' => $user->usu_verification_code
     
                         // )
+
                     );
                 }
                 else {
@@ -193,87 +231,15 @@ class UserController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    // Registro usuarios
-    public function signup2(Request $request) {
-        // Recoger datos usuario}
-        $json = $request->input('json', null);
-
-        // decodificar los datos y los convierte a datos de php
-        $params = json_decode($json); //objeto
-        $paramsArray = json_decode($json, true);   //array
-
-        // comprueba si tiene fallos
-        if(!empty($params) && !empty($paramsArray)) {
-            //Limpiar datos
-            $paramsArray = array_map('trim', $paramsArray);   //limpia los datos del array con la funcion trim especial de php
-
-            // Validar datos
-            // con unique:{table_name} especifica que sera unico
-            $validate = \Validator::make($paramsArray, [
-                'username' => 'required|alpha_num|unique:users,usu_username',
-                'mail' => 'required|email|unique:users,usu_email',
-                'mail2' => 'email',
-                'pwd' => 'required',
-                'status' => 'required',
-                'rol' => 'required',
-            ]);
-
-            if($validate->fails()){
-                $data = array(
-                    'status' => 'error',
-                    'code' => 404,
-                    'message'=> 'Ha ocurrido un error en el registro.',
-                    'errors' => $validate->errors()
-                );
-            }
-            else {
-                // Cifrar contraseña
-                // $pwd = password_hash($params->pwd, PASSWORD_BCRYPT, ['cost' => 4] ); /// este algoritmo no genera siempre las mismas contraseñas cifra
-                $pwd = hash('sha256', $params->pwd);   //la contraseña que cifre, la cifrara 4 veces 
-
-                // comprobar is el usuario existe
-                // con unique:{table_name} especifica que sera unico
-
-                // Crear usuario  
-                $user = new User();
-                $user->usu_username = $paramsArray['username'];
-                $user->usu_email = $paramsArray['mail'];
-                $user->usu_email2 = $paramsArray['mail2'];
-                $user->usu_pswd = $pwd;
-                $user->usts_idStatus =  $paramsArray['status'];
-                $user->urol_idRol =  $paramsArray['rol'];
-
-                // Guardar usuario
-                $user->save();
-
-                $data = array(
-                    'status' => 'success',
-                    'code' => 200,
-                    'message'=> 'El usuario se ha creado correctamente.',
-                    'user' => $user //Arreglo con datos del usuario creado -QUITAR  
-                );
-            }
-        }
-
-        return response()->json($data, $data['code']);  //devolvemos la respuesta en formato json, pasando lo que queremos devolver y el codigo http
-    }
-
-    
-    // Login usuarios
+    // Login de usuarios
     public function signin(Request $request) {
-        // $jwtAuth = new \JwtAuth(); //llamando al alias con la barra delante
-        $jwtAuth = new \App\Helpers\JwtAuth();
-
-                //         $sign =  $jwtAuth->signup($email, $password);
-                // return response()->json($sign);
+        $jwtAuth = new \App\Helpers\JwtAuth(); // Llamando al alias con la barra delante
         
-        // Recibir datos por post
         $json = $request->input('json', null);
+        
         $params = json_decode($json);
         $paramsArray = json_decode($json, true);
 
-        // Validar datos
-        // con unique:{table_name} especifica que sera unico
         $validate = \Validator::make($paramsArray, [
             'mail' => 'required|email',
             'pwd' => 'required',
@@ -288,10 +254,6 @@ class UserController extends Controller
             );
         }
         else {
-
-            // Cifrar password
-            // $pwd =  password_hash($pass, PASSWORD_BCRYPT, ['cost' => 4] );
-            // $pwd =  hash('sha256', $pass);
             $pwd =  hash('sha256', $params->pwd);
 
             // Devolver token o datos
@@ -301,11 +263,16 @@ class UserController extends Controller
                 $signin = $jwtAuth->signin($params->mail, $pwd, true);
             }
         }
-
-        // return response()->json( $jwtAuth->signin($mail, $pwd, true), 200);
+        // return response()->json($signin, 200);
         return response()->json($signin, 200);
-
     }
+
+
+
+
+    // falta
+
+    
 
     public function update(Request $request){
         $token = $request->header('Authorization');
@@ -323,15 +290,11 @@ class UserController extends Controller
     }
 
 
+    // Generación de codigo para validacion de e-mail
     public function setCode() {
-        // return random_int(100000, 999999);
-
         do {
             $code = random_int(100000, 999999);
-            // $code = random_int(1, 4);
-            // echo $code .' | ';
         } while (User::where("usu_verification_code", "=", $code)->first());
-  
         return $code;
     }
 }

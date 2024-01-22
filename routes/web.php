@@ -7,6 +7,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
 use App\Http\Controllers\MailController;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\StateController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,28 +19,10 @@ use App\Http\Controllers\MailController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-/*
+
 Route::get('/', function () {
     return view('welcome');
 });
-*/
-Route::get('/', function () {
-    return view('welcome');
-});
-Route::get('/welcome', function () {
-    return view('welcome');
-});
-
-
-
-// // Rutas de prueba
-// Route::get('/user/pruebas', [UserController::class, 'pruebas']);
-// Route::get('/product/pruebas', [ProductController::class, 'pruebas']);
-// Route::get('/product-type/pruebas', [ProductTypeController::class, 'pruebas']);
-
-
-
-
 
 
 // Rutas controlador usuario
@@ -46,6 +30,12 @@ Route::post('api/user/signup', [UserController::class, 'signup']);
 Route::post('api/user/signin', [UserController::class, 'signin']);
 Route::post('api/user/update', [UserController::class, 'update']);
 
+// Envio de e-mail con código de verificación
 Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
 Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
 Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);
+
+// Territorios
+Route::get('/api/countries', [CountryController::class, 'getCountries']);
+Route::get('/api/states', [StateController::class, 'getStatesFmCountry']);
+// Route::get('/api/states/{code}', [StateController::class, 'getStatesFmCountry']);

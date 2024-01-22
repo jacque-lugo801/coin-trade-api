@@ -18,62 +18,80 @@ class JwtAuth {
     }
 
     public function signin($mail, $pwd, $getToken = null) {
-
-        // Buscar si existe el usuario con la credencial
+        // Buscar si existe el usuarios con las credenciales
         $user = User::where([
             'usu_email' => $mail,
-            'usu_pswd' => $pwd
-        ])->first(); //Obtener el primer registro
-            
-        // Comprobar si son correctas (objeto)
+            'usu_pswd'  => $pwd
+        ])->first();
+
+        
+        // Comprobar si las credenciales son correctas 
         $signin = false;
 
         if(is_object($user)) {
             $signin = true;
         }
-
-        // Generar tokenc con los datos del usuario identificado
+        
+        
         if($signin) {
-            $token = array(
-                'idUser' => $user->usu_idUser,
-                'username' => $user->usu_username,
-                'mail' => $user->usu_email,
-                'mail2' => $user->usu_email2,
-                'status' => $user->usts_idStatus,
-                'rol' => $user->urol_idRol,
-                'iat'      => time(),//fecha en que se ha creado el token
-                'exp'      => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
-            );
-
-            $jwt = JWT::encode($token, $this->key, 'HS256'); //HS256 algoritmo de cifrado
-            // $decoded = JWT::decode($jwt, $this->key, ['HS256']);
-            $decoded = JWT::decode($jwt, new Key($this->key, 'HS256'));
-
-            // Devolver los datos decodificados o el token, en funcion de un parametro
-            // if(is_null($getToken)) {
-            //     //si es nulo solo devuelve el token
-            //     $data = $jwt;
-            // }
-            // else {
-            //     //si no es nulo, que devuelva la decodificacion del token
-            //     $data = $decoded;
-            // }
-            $data = array(
-                'token' => $jwt,
-                'identity' => $decoded
-            );
+            if($user->usu_isAuthorized === 0 && $user->usts_idStatus === 3) {
+                $data = array(
+                    'status' => 'error',
+                    'code' => 403,
+                    'message'=> 'La cuenta aún no ha sido aprobada por el administrador.'
+                );
+            }
+            else {
+                // Generar token con los datos del usuario identificado
+                $token = array(
+                    'idUser'    => $user->usu_idUser,
+                    'username'  => $user->usu_username,
+                    'mail'      => $user->usu_email,
+                    'mail2'     => $user->usu_email2,
+                    'status'    => $user->usts_idStatus,
+                    'rol'       => $user->urol_idRol,
+                    'iat'      => time(),//fecha en que se ha creado el token
+                    'exp'      => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
+                );
+    
+                $jwt = JWT::encode($token, $this->key, 'HS256'); // HS256 algoritmo de cifrado
+                $decoded = JWT::decode($jwt, new Key($this->key, 'HS256'));
+    
+                // if(is_null($getToken)) {
+                //     //si es nulo solo devuelve el token
+                //     $data = $jwt;
+                // }
+                // else {
+                //     //si no es nulo, que devuelva la decodificacion del token
+                //     $data = $decoded;
+                // }
+                
+                // Devolver los datos decodificados o el token, en funcion de un parametro
+                $data = array(
+                    'token'     => $jwt,
+                    'identity'  => $decoded
+                );
+            }
         }
         else {
             $data = array(
                 'status' => 'error',
-                // 'code' => 404,
-                'message'=> 'Login incorrecto'
+                'code' => 404,
+                'message'=> 'Las credenciales son incorrectas.'
             );
         }
 
         return  $data;
     }
 
+
+    
+
+
+
+
+
+    // falta
     public function checkToken($jwt, $getIdentity = false) {
         $auth = false;
         

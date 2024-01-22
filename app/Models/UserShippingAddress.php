@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class UserShippingAddress extends Model
+{
+    use HasFactory;
+
+    protected $table        = "users_shipping_address";
+    protected $primaryKey   = 'usad_idAddress';
+    
+    const CREATED_AT = 'usad_created_date';
+    const UPDATED_AT = 'usad_updated_date';
+
+    protected $fillable = [
+        'usad_country',
+        'usad_state',
+        'usad_city',
+        'usad_address',
+        'usad_isDefault',
+        'usu_idUser',
+    ];
+}
