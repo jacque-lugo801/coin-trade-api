@@ -11,7 +11,11 @@ class ProductType extends Model
 
     protected $table = "product_type";
     protected $primaryKey = 'ptpe_idType';
+    
+    // const CREATED_AT = 'prod_created_date';
+    // const UPDATED_AT = 'prod_updated_date';
 
+    // public function get
 
     // relacion de uno a muchos, obtiene todos los productos que poertenecen a una categoria
     public function products() {

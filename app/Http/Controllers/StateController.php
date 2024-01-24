@@ -20,9 +20,9 @@ class StateController extends Controller
                 ['sta_isActive', '=', 1]
             ])
             ->select(
-                'sta_renapo as codeRENAPO',
-                'sta_name as nombre',
-                'sta_clave as claveEstado',
+                'sta_renapo     as codeRENAPO',
+                'sta_name       as nombre',
+                'sta_clave      as claveEstado',
                 'sta_iso_alpha2 as codeISO2',
             )
             ->get();

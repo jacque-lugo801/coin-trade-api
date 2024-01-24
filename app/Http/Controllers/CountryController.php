@@ -11,8 +11,8 @@ class CountryController extends Controller
     public function getCountries() {
         $countries = Country::where("coun_isActive", "=", 1)
             ->select(
-                'coun_iso_alpha2 as codeISO2',
-                'coun_name as nombre'
+                'coun_iso_alpha2    as codeISO2',
+                'coun_name          as nombre'
             )
             ->get();
             // ->get(

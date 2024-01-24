@@ -10,12 +10,14 @@ class Product extends Model
     use HasFactory;
 
     protected $table = "products";
-    // protected $primaryKey = 'prod_idProducto';
-    // Relacion
-    // Uno a muchos inversa ó muchos a uno normal
-    // Muchos productos pueden pértenecer a un usuario
+    protected $primaryKey = 'prod_idProducto';
+    
+    const CREATED_AT = 'prod_created_date';
+    const UPDATED_AT = 'prod_updated_date';
 
-    // muchos productos pertenecen a un typo
+    protected $hidden = [
+        'prod_isActive',
+    ];
 
 
     public function user() {
