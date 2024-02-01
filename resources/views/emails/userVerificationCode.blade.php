@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Código de verificación</title>
 </head>
 <body>
     <h1>Verificacion e-mail de Coin Trade</h1>
     <hr>
     <h2>Código de Verificacion: {{$code}} </h2>
     <br>
-    <p>Hola, {{ $name }} {{$lastName}}, gracias por unirte a Coin Trade. Este correo electrónico ha sido enviado para verificar tu cuenta con nosotros.</p>
+    <p>Hola {{ $name }} 
+        <!-- {{$lastName}} -->
+        , gracias por unirte a Coin Trade.</p>
+    <p>Este correo electrónico ha sido enviado para verificar tu cuenta con nosotros.</p>
     <p>Copie y pegue el código anterior para completar el proceso de creación de su cuenta.</p>
 
     <br>

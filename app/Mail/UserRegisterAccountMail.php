@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UserVerificationCodeMail extends Mailable
+class UserRegisterAccountMail extends Mailable
 {
     use Queueable, SerializesModels;
     public $mailData;
@@ -20,13 +20,10 @@ class UserVerificationCodeMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname, $code)
+    public function __construct($name, $lastname)
     {
-        // $this->mailData = $mailData;
-        // $this->code = $code;
         $this->name = $name;
         $this->lastName = $lastname;
-        $this->code = $code;
     }
 
     /**
@@ -35,9 +32,8 @@ class UserVerificationCodeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            // from: new Address('cointrade@example.com', 'Jeffrey Way'),
-            subject: 'Código de verificacíon para CoinTrade',
-            tags: ['código', 'verificación'],
+            subject: 'Hola ¡Te damos la bienvenida a CoinTrade!',
+            tags: ['bienvenida', 'cointrade'],
         );
     }
 
@@ -47,7 +43,7 @@ class UserVerificationCodeMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.userVerificationCode',
+            view: 'emails.userRegisterAccount',
         );
     }
 
