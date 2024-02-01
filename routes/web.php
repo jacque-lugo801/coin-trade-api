@@ -31,10 +31,13 @@ Route::post('api/user/signup', [UserController::class, 'signup']);
 Route::post('api/user/signin', [UserController::class, 'signin']);
 Route::post('api/user/update', [UserController::class, 'update']);
 
+Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);
+
+
 // Envio de e-mail con código de verificación
 Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
 Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
-Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);
+Route::post('/api/user/register-account', [MailController::class, 'userRegisterAccount']);
 
 // Territorios
 Route::get('/api/countries', [CountryController::class, 'getCountries']);
