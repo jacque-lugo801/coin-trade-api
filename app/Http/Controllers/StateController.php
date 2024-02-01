@@ -20,11 +20,13 @@ class StateController extends Controller
                 ['sta_isActive', '=', 1]
             ])
             ->select(
-                'sta_renapo     as codeRENAPO',
-                'sta_name       as nombre',
-                'sta_clave      as claveEstado',
-                'sta_iso_alpha2 as codeISO2',
+                'sta_renapo         as codeRENAPO',
+                'sta_name           as nombre',
+                'sta_clave          as claveEstado',
+                'sta_iso_alpha2     as codeISO2',
+                'sta_abbreviation   as abreviacion',
             )
+            ->orderBy('sta_name', 'asc')
             ->get();
         }
         else {

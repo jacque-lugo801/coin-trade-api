@@ -3,27 +3,27 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\City;
 
 class CityController extends Controller
 {
     // Obtiene un listado con las ciudades pertenecientes a un esdato con {code} especifico
-    public function getStatesFmCountry(Request $request) {
+    public function getCitiesFmState(Request $request) {
         
         // Recoger datos de code
         $code = $request->input('code', null);
         if(isset($code) ) {
             $code = str_replace('"', '', $code);
             
-            $cities = State::where([
-                ['coun_iso_alpha2', '=', $code],
-                ['sta_isActive', '=', 1]
+            $cities = cITY::where([
+                ['sta_iso_alpha2', '=', $code],
+                ['cit_isActive', '=', 1]
             ])
             ->select(
-                'sta_renapo as codeRENAPO',
-                'sta_name as nombre',
-                'sta_clave as claveEstado',
-                'sta_iso_alpha2 as codeISO2',
+                'cit_clave  as cveCiudad',
+                'cit_nombre as nombre'
             )
+            ->orderBy('cit_nombre', 'asc')
             ->get();
         }
         else {

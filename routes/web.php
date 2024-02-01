@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MailController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\StateController;
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
 /*
@@ -39,6 +40,7 @@ Route::post('/api/user/validate-code', [UserController::class, 'validateVerifica
 Route::get('/api/countries', [CountryController::class, 'getCountries']);
 Route::get('/api/states', [StateController::class, 'getStatesFmCountry']);
 // Route::get('/api/states/{code}', [StateController::class, 'getStatesFmCountry']);
+Route::get('/api/cities', [CityController::class, 'getCitiesFmState']);
 
 
 // Productos
@@ -46,3 +48,4 @@ Route::get('/api/states', [StateController::class, 'getStatesFmCountry']);
 Route::get('/api/categories-coins', [ProductTypeController::class, 'getAllCoinCategories']);
 Route::get('/api/categories-bills', [ProductTypeController::class, 'getAllMoneyBillCategories']);
 Route::get('/api/products', [ProductController::class, 'getAllProducts']);
+Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
