@@ -10,6 +10,13 @@ use App\Http\Controllers\StateController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\UserRolController;
+
+// Middlewares
+// use App\Http\Middleware\ApiAuthMiddleware;
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -29,15 +36,27 @@ Route::get('/', function () {
 // Rutas controlador usuario
 Route::post('api/user/signup', [UserController::class, 'signup']);
 Route::post('api/user/signin', [UserController::class, 'signin']);
-Route::post('api/user/update', [UserController::class, 'update']);
+// Route::put('api/user/update', [UserController::class, 'updateUser']);
+
+// // Route::post('/api/user/upload',[UserController::class, 'upload'])->middleware(ApiAuthMiddleware::class); Sin alias
+// Route::post('/api/user/upload',[UserController::class, 'upload'])->middleware('api.auth'); //Con alias
+
+// Route::post('api/user/update-profile', [UserController::class, 'updateProfile']);
+
 
 Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);
+
+
 
 
 // Envio de e-mail con código de verificación
 Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
 Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
 Route::post('/api/user/register-account', [MailController::class, 'userRegisterAccount']);
+
+
+// Route::get('/api/cities', [CityController::class, 'getCitiesFmState']);
+
 
 // Territorios
 Route::get('/api/countries', [CountryController::class, 'getCountries']);
@@ -52,3 +71,47 @@ Route::get('/api/categories-coins', [ProductTypeController::class, 'getAllCoinCa
 Route::get('/api/categories-bills', [ProductTypeController::class, 'getAllMoneyBillCategories']);
 Route::get('/api/products', [ProductController::class, 'getAllProducts']);
 Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
+
+
+// Si definimos un middleware para varias rutas, podría añadirse a cada uno, pero en la documentación de laravel tenemos un sistema para englobar varias rutas dentro de uno o más middlewares:
+// Route::middleware(['api.auth'])->group(function(){
+//     Route::post('/user/upload', [UserController::class, 'upload']);
+// });
+
+// Autenthicate is required
+// Route::middleware([ApiAuthMiddleware::class])->group(function () { //Sin alias
+    // All
+Route::middleware(['api.auth'])->group(function () { //Con alias
+    Route::put('api/user/update-profile', [UserController::class, 'updateProfile']);
+    // Route::post('/api/user/upload', [UserController::class, 'upload']);
+ 
+    // Route::get('/profile', function () {
+    //     // ...
+    // })->withoutMiddleware([EnsureTokenIsValid::class]);
+
+    // Admin
+    // Route::get('/api/user/get-users', [UserController::class, 'getAllUsers']);
+});
+
+
+
+// Admin Autenthicate
+Route::middleware(['api.auth.admin'])->group(function () { //Con alias
+    Route::get('/api/user/all-users', [UserController::class, 'getAllUsers']);
+    Route::post('/api/user/register-user', [UserController::class, 'addNewUser']);
+
+    Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles']);
+ 
+    // Route::get('/profile', function () {
+    //     // ...
+    // })->withoutMiddleware([EnsureTokenIsValid::class]);
+
+    // Admin
+    // Route::get('/api/user/get-users', [UserController::class, 'getAllUsers']);
+});
+
+
+
+// Admin Authenticate
+
+// Route::get('/api/user/all-users', [UserController::class, 'getAllUsers'])->middleware('api.auth.admin'); //Con alias

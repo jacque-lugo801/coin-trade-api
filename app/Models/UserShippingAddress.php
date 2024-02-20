@@ -23,4 +23,8 @@ class UserShippingAddress extends Model
         'usad_isDefault',
         'usu_idUser',
     ];
+    
+    protected $hidden = [
+        'usu_idUser',
+    ];
 }

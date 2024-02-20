@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -41,6 +43,7 @@ class User extends Authenticatable
      //Datos que estaran bkloqueados en la base de datos para no mostrarlos en los arrays
     protected $hidden = [
         'usu_pswd',
+        'usu_verification_code',
     ];
 
     /**
@@ -56,7 +59,30 @@ class User extends Authenticatable
 
     // Relacion uno a muhcos
     // obtiene todos los productos de ese usuario
-    public function products() {
-        return $this->HasMany('App\Models\Products');
+    // public function products() {
+    //     return $this->HasMany('App\Models\Products');
+    // }
+
+    public function userRol() {
+        // return $this->HasOne('App\Models\UserRol', 'urol_idRol');
+        // return $this->HasOne(UserRol::class, 'urol_idRol');
+        return $this->belongsTo(UserRol::class, 'urol_idRol');
+    }
+
+    // STATUS
+    public function userStatus() {
+        // return $this->HasOne('App\Models\UserStatus', 'usts_idStatus');
+        return $this->belongsTo(UserStatus::class, 'usts_idStatus');
+    }
+    
+
+
+    public function userAddress() {
+        // return $this->HasMany('App\Models\UserShippingAddress', 'usad_idAddress');
+        return $this->HasMany(UserShippingAddress::class, 'usad_idAddress');
+    }
+    public function userFiscal() {
+        // return $this->HasMany('App\Models\UserFiscalData', 'ufdt_idData');
+        return $this->HasOne(UserFiscalData::class, 'ufdt_idData');
     }
 }

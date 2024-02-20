@@ -24,4 +24,8 @@ class UserFiscalData extends Model
         'ufdt_address',
         'usu_idUser',
     ];
+    
+    protected $hidden = [
+        'usu_idUser',
+    ];
 }
