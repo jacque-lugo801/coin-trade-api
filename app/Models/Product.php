@@ -35,4 +35,13 @@ class Product extends Model
     public function productType() {
         return $this->BelongsTo('App\Models\ProductType', 'ptpe_idType');
     }
+
+
+    
+    public function productsUser() {
+        // return $this->HasOne('App\Models\UserStatus', 'usts_idStatus');
+        return $this->BelongsTo(User::class, 'usu_idUser');
+    }
+
+
 }

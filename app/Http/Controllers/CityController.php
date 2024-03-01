@@ -19,10 +19,10 @@ class CityController extends Controller
                 ['sta_iso_alpha2', '=', $code],
                 ['cit_isActive', '=', 1]
             ])
-            ->select(
-                'cit_clave  as cveCiudad',
-                'cit_nombre as nombre'
-            )
+            // ->select(
+            //     'cit_clave  as cveCiudad',
+            //     'cit_nombre as nombre'
+            // )
             ->orderBy('cit_nombre', 'asc')
             ->get();
         }

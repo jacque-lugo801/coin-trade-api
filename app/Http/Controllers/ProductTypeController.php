@@ -9,14 +9,18 @@ use App\Models\ProductCategory;
 
 class ProductTypeController extends Controller
 {
-    //
-    
-    public function pruebas(Request $request) {
-        return 'Acción de pruebas de PRODUCT_TYPE-CONTROLLER';
+
+    public function getProductTypes() {
+        $types = ProductType::all();
+
+        
+        return response()->json([
+            'types' => $types
+        ]);
     }
 
+    
     public function getAllCategories() {
-       
 
         $categoriesCoins        = $this->getAllCoinCategories();
         $categoriesMoneyBills   = $this->getAllMoneyBillCategories();
@@ -40,6 +44,7 @@ class ProductTypeController extends Controller
         }
         return $types;
     }
+
 
     public function getAllCoinCategories() {
         // $types = ProductType::join('product_group', 'product_type.ptpe_idType', '=', 'product_group.ptpe_idType' )

@@ -59,119 +59,123 @@ class JwtAuth {
                 );
             }
             else {
-                // Obtener el rol del ususario
-                $rol = UserRol::where([
-                    'urol_idRol' => $user->urol_idRol,
-                ])->first();
-                $status = UserStatus::where([
-                    'usts_idStatus' => $user->usts_idStatus,
-                ])->first();
-                $address = UserShippingAddress::where([
-                    'usu_idUser' => $user->usu_idUser,
-                    // 'usu_idUser' => '3',
-                ])->first();
+
+                $token = $this->generateToken($user);
+                // var_dump($token);
+                // die();
+                // // Obtener el rol del ususario
+                // $rol = UserRol::where([
+                //     'urol_idRol' => $user->urol_idRol,
+                // ])->first();
+                // $status = UserStatus::where([
+                //     'usts_idStatus' => $user->usts_idStatus,
+                // ])->first();
+                // $address = UserShippingAddress::where([
+                //     'usu_idUser' => $user->usu_idUser,
+                //     // 'usu_idUser' => '3',
+                // ])->first();
 
 
                 // var_dump($address);
 
-                if($address){
+                // if($address){
 
-                    $country = Country::where([
-                        'coun_iso_alpha2' => $address->usad_country,
-                        // 'usu_idUser' => '3',
-                    ])->first();
+                //     $country = Country::where([
+                //         'coun_iso_alpha2' => $address->usad_country,
+                //         // 'usu_idUser' => '3',
+                //     ])->first();
                     
-                    // $state = State::where([
-                    //     'sta_iso_alpha2' => $address->usad_state,
-                    //     // 'usu_idUser' => '3',
-                    // ])->first();
+                //     // $state = State::where([
+                //     //     'sta_iso_alpha2' => $address->usad_state,
+                //     //     // 'usu_idUser' => '3',
+                //     // ])->first();
 
-                    // $city = State::where([
-                    //     'sta_iso_alpha2' => $address->usad_state,
-                    //     // 'usu_idUser' => '3',
-                    // ])->first();
+                //     // $city = State::where([
+                //     //     'sta_iso_alpha2' => $address->usad_state,
+                //     //     // 'usu_idUser' => '3',
+                //     // ])->first();
 
 
-                    // var_dump($city);
-                    // die();
-                }
-                else {
+                //     // var_dump($city);
+                //     // die();
+                // }
+                // else {
 
-                }
+                // }
                 // die();
 
                 // Generar token con los datos del usuario identificado
 
-                $token = array(
-                    'usu_idUser'        => $user->usu_idUser,
-                    'usu_name'          => $user->usu_name,
-                    'usu_middle_name'    => $user->usu_middle_name,
-                    'usu_lastname'      => $user->usu_lastname,
-                    'usu_lastname2'     => $user->usu_lastname2,
-                    'usu_phone'         => $user->usu_phone,
-                    'usu_phone_local'         => $user->usu_phone_local,
-                    'usu_birth_date'     => $user->usu_birth_date,
+                // $token = array(
+                //     'usu_idUser'        => $user->usu_idUser,
+                //     'usu_name'          => $user->usu_name,
+                //     'usu_middle_name'    => $user->usu_middle_name,
+                //     'usu_lastname'      => $user->usu_lastname,
+                //     'usu_lastname2'     => $user->usu_lastname2,
+                //     'usu_phone'         => $user->usu_phone,
+                //     'usu_phone_local'         => $user->usu_phone_local,
+                //     'usu_birth_date'     => $user->usu_birth_date,
 
-                    'usu_username'      => $user->usu_username,
-                    'usu_email'          => $user->usu_email,
-                    'usu_isTerms'          => $user->usu_isTerms,
-                    'usu_isAuthorized'          => $user->usu_isAuthorized,
-                    'usu_created_date'          => $user->usu_created_date,
-                    'usu_updated_date'          => $user->usu_updated_date,
+                //     'usu_username'      => $user->usu_username,
+                //     'usu_email'          => $user->usu_email,
+                //     'usu_isTerms'          => $user->usu_isTerms,
+                //     'usu_isAuthorized'          => $user->usu_isAuthorized,
+                //     'usu_created_date'          => $user->usu_created_date,
+                //     'usu_updated_date'          => $user->usu_updated_date,
 
-                    'urol_idRol'          => $rol->urol_idRol,
-                    'urol_name'          => $rol->urol_name,
-                    'urol_description'          => $rol->urol_description,
+                //     'urol_idRol'          => $rol->urol_idRol,
+                //     'urol_name'          => $rol->urol_name,
+                //     'urol_description'          => $rol->urol_description,
 
-                    'usts_idStatus'          => $status->usts_idStatus,
-                    'usts_name'          => $status->usts_name,
-                    'usts_description'          => $status->usts_description,
+                //     'usts_idStatus'          => $status->usts_idStatus,
+                //     'usts_name'          => $status->usts_name,
+                //     'usts_description'          => $status->usts_description,
 
-                    // 'usad_country'          => $address->usad_country,
-                    // 'usad_state'          => $address->usad_state,
-                    // 'usad_city'          => $address->usad_city,
-                    // 'usad_address'          => $address->usad_address,
-                    // 'usad_isDefault'          => $address->usad_isDefault,
+                //     // 'usad_country'          => $address->usad_country,
+                //     // 'usad_state'          => $address->usad_state,
+                //     // 'usad_city'          => $address->usad_city,
+                //     // 'usad_address'          => $address->usad_address,
+                //     // 'usad_isDefault'          => $address->usad_isDefault,
 
-                    // 'usts_idStatus'          => $rol->usts_idStatus,
+                //     // 'usts_idStatus'          => $rol->usts_idStatus,
 
-                    // 'usu_mail_account'         => $user->usu_mail_account,
+                //     // 'usu_mail_account'         => $user->usu_mail_account,
 
-                    // 'status'        => $user->usts_idStatus,
-                    // 'status'        => $status->usts_name,
-                    // 'rol'           => $user->urol_idRol,
-                    // 'rol'           => $rol->urol_name,
-                    'iat'           => time(),//fecha en que se ha creado el token
-                    'exp'           => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
-                );
+                //     // 'status'        => $user->usts_idStatus,
+                //     // 'status'        => $status->usts_name,
+                //     // 'rol'           => $user->urol_idRol,
+                //     // 'rol'           => $rol->urol_name,
+                //     'iat'           => time(),//fecha en que se ha creado el token
+                //     'exp'           => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
+                // );
 
-                if($address){
-                    // echo 'Hay data';
-                    // $token['usad_country']    = $address->usad_country;
-                    // $token['usad_state']      = $address->usad_state;
-                    // $token['usad_city']       = $address->usad_city;
-                    // $token['usad_address']    = $address->usad_address;
-                    // $token['usad_isDefault']  = $address->usad_isDefault;
+                // if($address){
+                //     // echo 'Hay data';
+                //     // $token['usad_country']    = $address->usad_country;
+                //     // $token['usad_state']      = $address->usad_state;
+                //     // $token['usad_city']       = $address->usad_city;
+                //     // $token['usad_address']    = $address->usad_address;
+                //     // $token['usad_isDefault']  = $address->usad_isDefault;
 
-                    $token['coun_name']         = $country->coun_name;
-                    $token['coun_iso_alpha2']   = $country->coun_iso_alpha2;
+                //     $token['coun_name']         = $country->coun_name;
+                //     $token['coun_iso_alpha2']   = $country->coun_iso_alpha2;
 
-                    // $token['sta_name']         = $state->sta_name;
-                    // $token['sta_iso_alpha2']   = $state->sta_iso_alpha2;
+                //     // $token['sta_name']         = $state->sta_name;
+                //     // $token['sta_iso_alpha2']   = $state->sta_iso_alpha2;
 
-                    // $token['sta_name']         = $state->sta_name;
-                    // $token['sta_iso_alpha2']   = $state->sta_iso_alpha2;
+                //     // $token['sta_name']         = $state->sta_name;
+                //     // $token['sta_iso_alpha2']   = $state->sta_iso_alpha2;
 
-                }
-                else {
-                    // echo 'no hay data';
+                // }
+                // else {
+                //     // echo 'no hay data';
                     
-                    // $token['usad_country']    = NULL;
-                    // $token['usad_state']      = NULL;
-                    // $token['usad_city']       = NULL;
-                    // $token['usad_address']    = NULL;
-                    // $token['usad_isDefault']  = NULL;
-                }
+                //     // $token['usad_country']    = NULL;
+                //     // $token['usad_state']      = NULL;
+                //     // $token['usad_city']       = NULL;
+                //     // $token['usad_address']    = NULL;
+                //     // $token['usad_isDefault']  = NULL;
+                // }
 
 
                 // print_r('<pre>');
@@ -185,8 +189,14 @@ class JwtAuth {
                 // $token->exp = time() + (7 * 24 * 60 * 60);  //cuando va a caducar el token (aqui caduca en una semana)
 
 
-                $jwt = JWT::encode($token, $this->key, 'HS256'); // HS256 algoritmo de cifrado
-                $decoded = JWT::decode($jwt, new Key($this->key, 'HS256'));
+                // $jwt = JWT::encode($token, $this->key, 'HS256'); // HS256 algoritmo de cifrado
+                $jwt = $this->encode($token);
+                // var_dump($jwt);
+
+                $identity = $this->decode($jwt);
+                // var_dump($identity);
+
+                // die();
 
                 // if(is_null($getToken)) {
                 //     //si es nulo solo devuelve el token
@@ -200,7 +210,7 @@ class JwtAuth {
                 // Devolver los datos decodificados o el token, en funcion de un parametro
                 $data = array(
                     'token'     => $jwt,
-                    'identity'  => $decoded
+                    'identity'  => $identity
                 );
             }
         }
@@ -218,13 +228,133 @@ class JwtAuth {
 
 
     public function generateToken($user) {
+        // echo 'generating token';
 
+        // Obtener el rol del ususario
+        $rol = UserRol::where([
+            'urol_idRol' => $user->urol_idRol,
+        ])->first();
+        $status = UserStatus::where([
+            'usts_idStatus' => $user->usts_idStatus,
+        ])->first();
+        $address = UserShippingAddress::where([
+            'usu_idUser' => $user->usu_idUser,
+            // 'usu_idUser' => '3',
+        ])->first();
+
+        
+        if($address){
+
+            $country = Country::where([
+                'coun_iso_alpha2' => $address->usad_country,
+                // 'usu_idUser' => '3',
+            ])->first();
+            
+            // $state = State::where([
+            //     'sta_iso_alpha2' => $address->usad_state,
+            //     // 'usu_idUser' => '3',
+            // ])->first();
+
+            // $city = State::where([
+            //     'sta_iso_alpha2' => $address->usad_state,
+            //     // 'usu_idUser' => '3',
+            // ])->first();
+
+
+            // var_dump($city);
+            // die();
+        }
+        else {
+
+        }
+
+        
+        // Generar token con los datos del usuario identificado
+
+        $token = array(
+            'usu_idUser'        => $user->usu_idUser,
+            'usu_name'          => $user->usu_name,
+            'usu_middle_name'    => $user->usu_middle_name,
+            'usu_lastname'      => $user->usu_lastname,
+            'usu_lastname2'     => $user->usu_lastname2,
+            'usu_phone'         => $user->usu_phone,
+            'usu_phone_local'         => $user->usu_phone_local,
+            'usu_birth_date'     => $user->usu_birth_date,
+
+            'usu_username'      => $user->usu_username,
+            'usu_email'          => $user->usu_email,
+            'usu_isTerms'          => $user->usu_isTerms,
+            'usu_isAuthorized'          => $user->usu_isAuthorized,
+            'usu_created_date'          => $user->usu_created_date,
+            'usu_updated_date'          => $user->usu_updated_date,
+
+            'urol_idRol'          => $rol->urol_idRol,
+            'urol_name'          => $rol->urol_name,
+            'urol_description'          => $rol->urol_description,
+
+            'usts_idStatus'          => $status->usts_idStatus,
+            'usts_name'          => $status->usts_name,
+            'usts_description'          => $status->usts_description,
+
+            // 'usad_country'          => $address->usad_country,
+            // 'usad_state'          => $address->usad_state,
+            // 'usad_city'          => $address->usad_city,
+            // 'usad_address'          => $address->usad_address,
+            // 'usad_isDefault'          => $address->usad_isDefault,
+
+            // 'usts_idStatus'          => $rol->usts_idStatus,
+
+            // 'usu_mail_account'         => $user->usu_mail_account,
+
+            // 'status'        => $user->usts_idStatus,
+            // 'status'        => $status->usts_name,
+            // 'rol'           => $user->urol_idRol,
+            // 'rol'           => $rol->urol_name,
+            'iat'           => time(),//fecha en que se ha creado el token
+            'exp'           => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
+        );
+
+        if($address){
+            // echo 'Hay data';
+            // $token['usad_country']    = $address->usad_country;
+            // $token['usad_state']      = $address->usad_state;
+            // $token['usad_city']       = $address->usad_city;
+            // $token['usad_address']    = $address->usad_address;
+            // $token['usad_isDefault']  = $address->usad_isDefault;
+
+            $token['coun_name']         = $country->coun_name;
+            $token['coun_iso_alpha2']   = $country->coun_iso_alpha2;
+
+            // $token['sta_name']         = $state->sta_name;
+            // $token['sta_iso_alpha2']   = $state->sta_iso_alpha2;
+
+            // $token['sta_name']         = $state->sta_name;
+            // $token['sta_iso_alpha2']   = $state->sta_iso_alpha2;
+
+        }
+        else {
+            // echo 'no hay data';
+            
+            // $token['usad_country']    = NULL;
+            // $token['usad_state']      = NULL;
+            // $token['usad_city']       = NULL;
+            // $token['usad_address']    = NULL;
+            // $token['usad_isDefault']  = NULL;
+        }
+
+
+        return $token;
 
 
     }
 
+    public function encode($data) {
+        return JWT::encode($data, $this->key, 'HS256'); // HS256 algoritmo de cifrado
+    }
 
-
+    public function decode($data) {
+        return JWT::decode($data, new Key($this->key, 'HS256'));
+    }
 
     // falta
     // Comprobar que el token es correcto y devolver dtos del usuario identificado
@@ -233,7 +363,8 @@ class JwtAuth {
 
         try {
             $jwt = str_replace('"', '', $jwt);
-            $decoded = JWT::decode($jwt, new Key($this->key, 'HS256'));
+            // $decoded = JWT::decode($jwt, new Key($this->key, 'HS256'));
+            $decoded =  $this->decode($jwt);
         } catch (\UnexpectedValueException $e){
             $auth = false;
         } catch (\DomainException $e) {

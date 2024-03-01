@@ -364,6 +364,7 @@ class UserController extends Controller
     public function updateProfile(Request $request) {
         $token = $request->header('Authorization');
         $jwtAuth = new \App\Helpers\JwtAuth();
+
         $user = $jwtAuth->checkToken($token, true);
 
         // Recoger datos por post
@@ -397,14 +398,64 @@ class UserController extends Controller
                 );
             }
             else {
-                var_dump(
-                    $paramsArray['middlename']
-                );
-                var_dump(
-                    $paramsArray['lastname']
-                );
+                // var_dump(
+                //     $paramsArray['middlename']
+                // );
+                // var_dump(
+                //     $paramsArray['lastname']
+                // );
 
-                die();
+                // die();
+
+                
+                $paramsUserUpdate = array (
+                    "usu_name"          => $params->name,
+                    "usu_middle_name"   => $params->middlename,
+                    "usu_lastname"      => $params->lastname,
+                    "usu_lastname2"     => $params->lastname2,
+                    "usu_birth_date"    => $params->birthdate,
+                    "usu_email"         => $params->mail,
+                    "usu_phone"         => $params->phone,
+                    // "" => $params->country,
+                );
+                // $paramsShippingUpdate = array(
+                //     "usad_country"         => $params->phone,
+                // );
+
+                // var_dump($paramsUserUpdate);
+                // var_dump($paramsUserUpdate['usu_middle_name']);
+                // var_dump($user->usu_idUser);
+                // die();
+                $userUpdate = User::where('usu_idUser', $user->usu_idUser)
+                    // ->update([
+                    //     'usu_birth_date' => $params->birthdate
+                    // ]);
+                    ->update($paramsUserUpdate);
+
+                // var_dump($user);
+                $newUser = User::where([
+                    'usu_idUser' => $user->usu_idUser,
+                    'usu_email'  => $user->usu_email,
+                ])
+                ->first();
+                // var_dump($newUser);
+
+
+                $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
+                // var_dump($newToken);
+                $newIdentity = $jwtAuth->decode($newToken);
+                // var_dump($newIdentity);
+                // die();
+                // Devolver array con resultado
+                $data = array(
+                    'status'    => 'success',
+                    'code'      => 200,
+                    'message'   => 'Los datos se han actualizado exitosamente',
+                    'user'      => $user,
+                    // 'changes'   => $paramsArray
+                    'token'      => $newToken,
+                    'identity'   => $newIdentity
+                );
             }
         }
         else {

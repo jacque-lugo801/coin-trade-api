@@ -16,6 +16,6 @@ class Country extends Model
     protected $hidden = [
         'coun_iso_alpha3',
         'coun_iso_numerico',
-        'coun_isActive',
+        // 'coun_isActive',
     ];
 }

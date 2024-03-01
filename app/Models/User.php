@@ -66,13 +66,13 @@ class User extends Authenticatable
     public function userRol() {
         // return $this->HasOne('App\Models\UserRol', 'urol_idRol');
         // return $this->HasOne(UserRol::class, 'urol_idRol');
-        return $this->belongsTo(UserRol::class, 'urol_idRol');
+        return $this->BelongsTo(UserRol::class, 'urol_idRol');
     }
 
     // STATUS
     public function userStatus() {
         // return $this->HasOne('App\Models\UserStatus', 'usts_idStatus');
-        return $this->belongsTo(UserStatus::class, 'usts_idStatus');
+        return $this->BelongsTo(UserStatus::class, 'usts_idStatus');
     }
     
 

@@ -15,6 +15,10 @@ class ProductType extends Model
     // const CREATED_AT = 'prod_created_date';
     // const UPDATED_AT = 'prod_updated_date';
 
+    protected $hidden = [
+        'ptpe_isActive',
+    ];
+
     // public function get
 
     // relacion de uno a muchos, obtiene todos los productos que poertenecen a una categoria

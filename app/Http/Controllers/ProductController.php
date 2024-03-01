@@ -123,4 +123,52 @@ class ProductController extends Controller
             'products' => $product
         ]);
     }
+
+
+    // new
+    public function getProductsFmUser(Request $request) {
+
+        
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+
+        
+        $user = $jwtAuth->checkToken($token, true);
+
+        // var_dump($user);
+        // die();
+
+
+        $products = Product::
+            where(
+                "usu_idUser", "=", $user->usu_idUser
+            )
+
+        
+        ->
+        get()
+        // ->load('productsUser')
+        ;
+
+        if(!empty($products)){
+
+            $data = array(
+                // 'status'    => 'error',
+                // 'code'      => 400,
+                // 'message'   => 'Error al subir imagen',
+                'products' => $products,
+            );
+        }
+        else {
+            
+            $data = array(
+                // 'status'    => 'error',
+                // 'code'      => 400,
+                // 'message'   => 'Error al subir imagen',
+                'products' => [],
+            );
+        }
+
+        return response()->json($data);
+    }
 }
