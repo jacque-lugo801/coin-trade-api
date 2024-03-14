@@ -240,15 +240,36 @@ class JwtAuth {
         $address = UserShippingAddress::where([
             'usu_idUser' => $user->usu_idUser,
             // 'usu_idUser' => '3',
-        ])->first();
+        ])->get();
 
+        // print_r($address);
+        
+        // var_dump(count($address));
+        // print_r('<pre>');
+        // print_r($address);
+        // print_r('</pre>');
+        // die();
         
         if($address){
+            
+            foreach($address as $ads){
+                // echo '--------';
+                // print_r('<pre>');
+                // print_r($ads);
+                // print_r('</pre>');
+                // echo '--------';
+                // // .push();
+                if($ads->usad_isDefault == 1) {
+                    // echo '<h2>HERE</h2>';
+                    $country = Country::where([
+                        'coun_iso_alpha2' => $ads->usad_country,
+                        // 'usu_idUser' => '3',
+                    ])->first();
+                }
+                // if(!empty($coin)){
+                //     // array_push($types, $coin);
 
-            $country = Country::where([
-                'coun_iso_alpha2' => $address->usad_country,
-                // 'usu_idUser' => '3',
-            ])->first();
+            }
             
             // $state = State::where([
             //     'sta_iso_alpha2' => $address->usad_state,
@@ -268,6 +289,7 @@ class JwtAuth {
 
         }
 
+        // die();
         
         // Generar token con los datos del usuario identificado
 
