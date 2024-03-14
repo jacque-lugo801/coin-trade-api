@@ -79,10 +79,33 @@ class User extends Authenticatable
 
     public function userAddress() {
         // return $this->HasMany('App\Models\UserShippingAddress', 'usad_idAddress');
-        return $this->HasMany(UserShippingAddress::class, 'usad_idAddress');
+        return $this->HasMany(UserShippingAddress::class, 'usu_idUser');
     }
     public function userFiscal() {
         // return $this->HasMany('App\Models\UserFiscalData', 'ufdt_idData');
-        return $this->HasOne(UserFiscalData::class, 'ufdt_idData');
+        return $this->HasOne(UserFiscalData::class, 'usu_idUser');
     }
+
+    public function userAddressShipping() {
+        // return $this->HasOne(UserShippingAddress::class, 'ufdt_idData');
+        
+        // return $this->HasMany(UserShippingAddress::class, 'usu_idUser', 'usu_idUser')
+        return $this->HasMany(UserShippingAddress::class, 'usu_idUser', 'usu_idUser')
+        
+        ;
+    }
+    public function userFiscalData() {
+        // return $this->HasOne(UserShippingAddress::class, 'ufdt_idData');
+        
+        // return $this->HasMany(UserShippingAddress::class, 'usu_idUser', 'usu_idUser')
+        return $this->HasMany(UserFiscalData::class, 'usu_idUser', 'usu_idUser')
+        
+        ;
+    }
+
+    public function userState () {
+        
+        // return $this->HasOne(S::class, 'usu_idUser');
+    }
+
 }

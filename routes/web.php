@@ -10,6 +10,8 @@ use App\Http\Controllers\StateController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\ProductGroupController;
+use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\UserRolController;
 
 // Middlewares
@@ -53,14 +55,37 @@ Route::get('/api/cities', [CityController::class, 'getCitiesFmState']);
 
 
 // Productos
+Route::get('/api/categories', [ProductTypeController::class, 'getAllCategories']);
+
+
+Route::get('/api/categories/group-categories', [ProductTypeController::class, 'getGroupCategories']);
+Route::get('/api/categories/metal-categories', [ProductCategoryController::class, 'getMetalCategories']);
+
+
+
+
 Route::get('/api/categories-coins', [ProductTypeController::class, 'getAllCoinCategories']);
 Route::get('/api/categories-bills', [ProductTypeController::class, 'getAllMoneyBillCategories']);
 
 
+
+
 Route::get('/api/products', [ProductController::class, 'getAllProducts']);
+Route::get('/api/products/coins', [ProductController::class, 'getAllCoins']);
+Route::get('/api/products/bills', [ProductController::class, 'getAllBills']);
+
 Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
 
 Route::get('/api/products/product-type', [ProductTypeController::class, 'getProductTypes']);
+
+
+
+
+Route::get('/api/products/image/{filename}', [ProductController::class, 'getImage']);
+
+
+
+
 
 // Si definimos un middleware para varias rutas, podría añadirse a cada uno, pero en la documentación de laravel tenemos un sistema para englobar varias rutas dentro de uno o más middlewares:
 // Route::middleware(['api.auth'])->group(function(){
@@ -75,7 +100,12 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 
     //products
     Route::get('/api/products/products-user', [ProductController::class, 'getProductsFmUser']);
- 
+
+    
+    Route::post('/api/products/upload', [ProductController::class, 'uploadImage']);
+
+    Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct']);
+    
     // Route::get('/profile', function () {
     //     // ...
     // })->withoutMiddleware([EnsureTokenIsValid::class]);

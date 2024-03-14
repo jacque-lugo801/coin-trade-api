@@ -19,8 +19,64 @@ class ProductTypeController extends Controller
         ]);
     }
 
+
     
     public function getAllCategories() {
+
+        $categories = ProductType
+        ::with('typeGroup', 'typeGroup.groupCategory')
+        ->where('ptpe_isActive', '=', 1)
+        ->get()
+        ;
+
+        return  response()->json([
+            // 'categories' => $types
+            'categories' => $categories
+        ]);
+    }
+
+
+    public function getMetalCategories() {
+        
+        $categories = ProductType
+        ::with('typeGroup', 'typeGroup.groupCategory')
+        ->where([
+            ['ptpe_isActive', '=', 1],
+            ['ptpe_idType', '=', 1],
+            ['pgrp_idGroup', '=', 4],
+        ])
+        ->get()
+        ;
+
+        return  response()->json([
+            // 'categories' => $types
+            'metal' => $categories
+        ]);
+    }
+
+    
+    public function getGroupCategories(Request $request) {
+        
+        $categories = ProductType
+        ::with([
+            'typeGroup',
+            'typeGroup.groupCategory',
+
+        ])
+        ->where([
+            ['ptpe_isActive', '=', 1],
+        ])
+        ->get()
+        ;
+
+
+        return  response()->json([
+            // 'categories' => $types
+            'groupCategories' => $categories
+        ]);
+    }
+
+    public function getAllCategories2() {
 
         $categoriesCoins        = $this->getAllCoinCategories();
         $categoriesMoneyBills   = $this->getAllMoneyBillCategories();

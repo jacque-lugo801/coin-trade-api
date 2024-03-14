@@ -23,11 +23,14 @@ class ApiAuthAdminMiddleware
         if($checkToken) {
             $user = $jwtAuth->checkToken($token, true);
 
+            // var_dump($user);
+            // die();
+
             if(
-                strtolower($user->rol) === strtolower('Vendedor') ||
-                strtolower($user->rol) === strtolower('Comprador') ||
-                $user->rol === 2 ||
-                $user->rol === 3
+                strtolower($user->urol_name) === strtolower('Vendedor') ||
+                strtolower($user->urol_name) === strtolower('Comprador') ||
+                $user->urol_idRol === 2 ||
+                $user->urol_idRol === 3
             ) {
                 $data = array(
                     'status'    => 'error',

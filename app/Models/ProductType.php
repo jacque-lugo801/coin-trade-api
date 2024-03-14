@@ -22,7 +22,20 @@ class ProductType extends Model
     // public function get
 
     // relacion de uno a muchos, obtiene todos los productos que poertenecen a una categoria
-    public function products() {
-        return $this->HasMany('App\Models\Product', 'prod_idProducto');
+    // public function products() {
+    //     return $this->HasMany('App\Models\Product', 'prod_idProducto');
+    // }
+    
+    public function typeHasGroup() {
+        return $this->BelongsTo(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
+        // return $this->BelongsTo(ProductGroup::class, 'ptpe_idType', 'ptpe_idType');
     }
+    
+    public function typeGroup() {
+        // return $this->BelongsTo(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
+        return $this->HasMany(ProductGroup::class, 'ptpe_idType', 'ptpe_idType');
+    }
+
+
+
 }

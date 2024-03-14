@@ -11,7 +11,7 @@ class City extends Model
     
     protected $table = "cities";
     protected $keyType = 'string';
-    protected $primaryKey = 'sta_iso_alpha2';
+    protected $primaryKey = 'cit_clave';
 
     
     protected $hidden = [

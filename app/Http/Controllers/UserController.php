@@ -344,7 +344,7 @@ class UserController extends Controller
                 $data = array(
                     'status'    => 'success',
                     'code'      => 200,
-                    'message'   => 'Los datos se han actualizado exitosamente',
+                    'message'   => 'El producto se ha agregado exitosamente',
                     'user'      => $user,
                     'changes'   => $paramsArray
                 );
@@ -509,75 +509,77 @@ class UserController extends Controller
         $user = $jwtAuth->checkToken($token, true);
 
         // var_dump($user);
+        // die();
         
         $users = User::
-            whereNot('usu_idUser', $user->idUser)
+            with(
+                [
+                    'userAddressShipping',
+                    'userAddressShipping.userShippingCountry', 
+                    'userAddressShipping.userShippingState', 
+                    'userAddressShipping.userShippingCity', 
 
-        // select(
-            // "usu_idUser             as idUser",
-            // "usu_name               as name",
-            // "usu_middle_name        as middle_name",
-            // "usu_lastname           as lastname",
-            // "usu_lastname2          as lastname2",
-            // "usu_identity           as identity",
-            // "usu_email              as email",
-            // "usu_phone              as phone",
-            // "usu_phone_local        as phone_local",
-            // "usu_birth_date         as birth_date",
-            // "usu_username           as username",
-            // "usu_verification_code  as verification_code",
-            // "usu_mail_account       as mail_account",
-            // "usu_isTerms            as isTerms",
-            // "usu_isAuthorized       as isAuthorized",
-            // "usu_created_date       as created_date",
-            // "usu_updated_date       as updated_date",
-            // "usts_idStatus          as idStatus",
-            // "urol_idRol             as rol",
-            // "usu_idUser            ",
-            // "usu_name              ",
-            // "usu_middle_name       ",
-            // "usu_lastname          ",
-            // "usu_lastname2         ",
-            // "usu_identity          ",
-            // "usu_email             ",
-            // "usu_phone             ",
-            // "usu_phone_local       ",
-            // "usu_birth_date        ",
-            // "usu_username          ",
-            // "usu_verification_code ",
-            // "usu_mail_account      ",
-            // "usu_isTerms           ",
-            // "usu_isAuthorized      ",
-            // "usu_created_date      ",
-            // "usu_updated_date      ",
-            // "usts_idStatus         ",
-            // "urol_idRol            ",
-        // )
+                    'userFiscalData',
+                    'userFiscalData.userFiscalCountry', 
+                    'userFiscalData.userFiscalState', 
+                    'userFiscalData.userFiscalCity', 
+
+                    // 'userAddressShipping.userShippingCountry.userState'
+                ],
+                [
+                    // 'userAddressShipping',
+
+                ]
+            )
         ->
+        //     whereNot('usu_idUser', $user->usu_idUser)
+        // ->
         get()
         ->load('userRol')
         ->load('userStatus')
-        ->load('userAddress')
-        ->load('userFiscal')
+        // ->load('userAddress')
+        // ->load('userFiscal')
+        // ->load('userShippingCountry')
+        // // ->with('userAddress.userShippingCountry')
         ;
+
+        // $users =  User::
+        // whereNot('usu_idUser', $user->usu_idUser)
+
+        // ->with()
+        // ->get()
+        // ;
+
 
         if(!empty($users)){
             foreach ($users as $user) {
                 if($user->usu_middle_name){
                     // $user->fullname = $user->usu_name. '' . $user->usu_middle_name .''. $user->usu_lastname . ''. $user->usu_lastname2;
-                    $user->fullname = trim($user->usu_name). ' ' . trim($user->usu_middle_name) . ' ' . trim($user->usu_lastname) . ' '. trim($user->usu_lastname2);
+                    $user->usu_fullname = trim($user->usu_name). ' ' . trim($user->usu_middle_name) . ' ' . trim($user->usu_lastname) . ' '. trim($user->usu_lastname2);
 
                 }
                 else {
                     $user->usu_fullname = trim($user->usu_name). ' ' . trim($user->usu_lastname) . ' '. trim($user->usu_lastname2);
                 }
 
-                if(empty($user->user_fiscal)){
-                    $user->user_fiscal = [];
-                }
-                if(empty($user->user_fiscal)){
-                    $user->user_fiscal = [];
-                }
+                // var_dump($user_fiscal);
+                // if(empty($user->userFiscal)){
+                //     $user->user_fiscal = [];
+                // }
+                // if(empty($user->user_fiscal)){
+                //     $user->user_fiscal = [];
+                // }
+
+
+                // $countryFIscal = $user->user_fiscal;
+                // var_dump($countryFIscal);
+                // die()
+                // var_dump(empty($user->user_fiscal));
+                // die();
+                // Get country, state, city
+                // $dataCSCFiscal = $this->getDataAddress();
+
+
             }
             $data = array(
                 // 'status'    => 'error',
@@ -605,6 +607,10 @@ class UserController extends Controller
         // );
 
         return response()->json($data);
+    }
+
+    public function getDataAddress($country, $state, $city) {
+
     }
 
     public function addNewUser(Request $request) {
@@ -677,6 +683,7 @@ class UserController extends Controller
         }
         return response()->json($data, $data['code']);
     }
+
 
 
 

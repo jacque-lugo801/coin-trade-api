@@ -19,4 +19,11 @@ class State extends Model
         'coun_iso_alpha2',
         'sta_isActive',
     ];
+
+    
+    public function userState() {
+        // Obtiene el usuario relqacionado por la propiedad usu_idUser
+        // Saca el objeto asignado en base al usu_idUser
+        return $this->BelongsTo(State::class, 'sta_iso_alpha2', 'usad_state');
+    }
 }

@@ -16,4 +16,14 @@ class ProductGroup extends Model
     public $incrementing = false;
     
     
+    public function typeProduct() {
+        // return $this->BelongsTo(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
+        return $this->BelongsTo(ProductType::class, 'ptpe_idType', 'ptpe_idType');
+    }
+
+    public function groupCategory() {
+        // return $this->BelongsTo(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
+        return $this->HasMany(ProductCategory::class, 'pgrp_idGroup', 'pgrp_idGroup');
+    }
+    
 }
