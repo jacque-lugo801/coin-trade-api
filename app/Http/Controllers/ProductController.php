@@ -19,57 +19,36 @@ class ProductController extends Controller
     }
 
     public function getAllProducts() {
-        $products = Product
-        // ::join(
-        //     (new ProductType)->getTable(),
-        //     (new Product)->getTable().'.'.(new ProductType)->getKeyName(),
-        //     '=',
-        //     (new ProductType)->getTable().'.'.(new ProductType)->getKeyName(),
-            // 'product_type',
-            // 'product_type.ptpe_idType',
-            // '=',
-            // 'products.ptpe_idType',
-        // )
-        // ->
-        // ::with('productGroup.typeProduct')
-        
-        // ->get()
-        // ;
-        // ->
-        ::where("prod_isActive", "=", 1)
-            // ->select(
-            //     'prod_idProducto            as idProducto',
-            //     'prod_name                  as name',
-            //     'prod_description           as description',
-            //     'prod_content               as content',
-            //     'prod_country               as country',
-            //     'prod_metal                 as metal',
-            //     'prod_diameter              as diameter',
-            //     'prod_condition             as condition',
-            //     'prod_date                  as date',
-            //     'prod_weight                as weight',
-            //     'prod_minting               as minting',
-            //     'prod_fineness              as fineness',
-            //     'prod_serie                 as serie',
-            //     'prod_denomination          as denomination',
-            //     'prod_number                as number',
-            //     'prod_rating                as rating',
-            //     'prod_unit_cost             as unit_cost',
-            //     'prod_commission            as commission',
-            //     'prod_total                 as total',
-            //     'prod_stock                 as stock',
-            //     'product_type.ptpe_idType   as typeID',
-            //     'product_type.ptpe_name     as typeName',
-            //     // (new ProductType)->getTable().'ptpe_idType as idType',
-            //     // 'usu_idUser         as dUser',
-            //     'prod_image                 as image',
-            // )
+        $products = Product::
+       
+        with(
+            [
+                'productCountry',
+                'productType',
+                // 'productType.productGroup',
+                'productGroup',
+                'productCategory',
+                // 'userAddressShipping.userShippingCountry', 
+
+                // 'userAddressShipping.userShippingCountry.userState'
+            ],
+            [
+                // 'userAddressShipping',
+
+            ]
+        )
+
+        ->
+        where([
+            ["prod_isActive", "=", 1],
+            ["prod_isAuthorized", "=", 1],
+        ])
             ->get()
-            ->load('productType')
-            // ->load('productGroup')
-            // ->load('productCategory')
+            // ->load('productType')
+            // // ->load('productGroup')
+            // // ->load('productCategory')
             ->load('productUser')
-            // ->load('productImages')
+            // // ->load('productImages')
             ->load('productCertifications')
 
             ;
@@ -114,7 +93,56 @@ class ProductController extends Controller
     }
 
     public function getProduct($id) {
+
+        if(isset($id)) {
+
+            $id = str_replace('"', '', $id);
+            $product = Product::
+            
+            with(
+                [
+                    'productCountry',
+                    'productType',
+                    // 'productType.productGroup',
+                    'productGroup',
+                    'productCategory',
+                    // 'userAddressShipping.userShippingCountry', 
+    
+                    // 'userAddressShipping.userShippingCountry.userState'
+                ],
+                [
+                    // 'userAddressShipping',
+    
+                ]
+            )
+            ->
+                
+                where([
+                    ["prod_idProducto", "=", $id],
+                    ["prod_isAuthorized", "=", 1],
+                ])
+                ->
+                get()
+                        
+                ->load('productCertifications')
+                ->load('productStatus')
+            ;
+
+        }
         
+        else {
+            $product = [];
+        }
+        
+        return response()->json([
+            'products' => $product
+        ]);
+
+
+
+        die();
+        // decode has
+
         if(isset($id) ) {
             $id = str_replace('"', '', $id);
 
@@ -195,7 +223,10 @@ class ProductController extends Controller
         with(
             [
                 'productCountry',
-                'productType'
+                'productType',
+                // 'productType.productGroup',
+                'productGroup',
+                'productCategory',
                 // 'userAddressShipping.userShippingCountry', 
 
                 // 'userAddressShipping.userShippingCountry.userState'
@@ -286,11 +317,10 @@ class ProductController extends Controller
 
         // devolver el resultado
 
-
-
-
         return response()->json($data, $data['code']);
     }
+
+
     public function uploadImage(Request $request) {
         // recoger datos de la peticion
         $image = $request->file('image');

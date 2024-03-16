@@ -23,9 +23,21 @@ class ProductTypeController extends Controller
     
     public function getAllCategories() {
 
+        // $categories = ProductType
+        // ::with('typeGroup', 'typeGroup.groupCategory')
+        // ->where('ptpe_isActive', '=', 1)
+        // ->get()
+        // ;
+        
         $categories = ProductType
-        ::with('typeGroup', 'typeGroup.groupCategory')
-        ->where('ptpe_isActive', '=', 1)
+        ::with([
+            'typeGroup',
+            'typeGroup.groupCategory',
+
+        ])
+        ->where([
+            ['ptpe_isActive', '=', 1],
+        ])
         ->get()
         ;
 
@@ -55,26 +67,26 @@ class ProductTypeController extends Controller
     }
 
     
-    public function getGroupCategories(Request $request) {
+    // public function getGroupCategories(Request $request) {
         
-        $categories = ProductType
-        ::with([
-            'typeGroup',
-            'typeGroup.groupCategory',
+    //     $categories = ProductType
+    //     ::with([
+    //         'typeGroup',
+    //         'typeGroup.groupCategory',
 
-        ])
-        ->where([
-            ['ptpe_isActive', '=', 1],
-        ])
-        ->get()
-        ;
+    //     ])
+    //     ->where([
+    //         ['ptpe_isActive', '=', 1],
+    //     ])
+    //     ->get()
+    //     ;
 
 
-        return  response()->json([
-            // 'categories' => $types
-            'groupCategories' => $categories
-        ]);
-    }
+    //     return  response()->json([
+    //         // 'categories' => $types
+    //         'groupCategories' => $categories
+    //     ]);
+    // }
 
     public function getAllCategories2() {
 

@@ -58,7 +58,7 @@ Route::get('/api/cities', [CityController::class, 'getCitiesFmState']);
 Route::get('/api/categories', [ProductTypeController::class, 'getAllCategories']);
 
 
-Route::get('/api/categories/group-categories', [ProductTypeController::class, 'getGroupCategories']);
+// Route::get('/api/categories/group-categories', [ProductTypeController::class, 'getGroupCategories']);
 Route::get('/api/categories/metal-categories', [ProductCategoryController::class, 'getMetalCategories']);
 
 

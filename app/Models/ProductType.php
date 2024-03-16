@@ -36,6 +36,13 @@ class ProductType extends Model
         return $this->HasMany(ProductGroup::class, 'ptpe_idType', 'ptpe_idType');
     }
 
+    
+    public function productGroup() {
+        // return $this->hasOne(Phone::class, 'foreign_key', 'local_key');
+        return $this->BelongsTo(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
+
+    }
+
 
 
 }

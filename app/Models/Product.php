@@ -52,6 +52,11 @@ class Product extends Model
 
     }
     // public function productGroup() {
+    //     // return $this->hasOne(Phone::class, 'foreign_key', 'local_key');
+    //     return $this->HasOne(ProductGroup::class, 'ptpe_idType', 'prod_idType_product');
+
+    // }
+    // public function productGroup() {
     //     return $this->HasOne(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
     //     // return $this->HasMany(ProductType::class, 'ptpe_idType', 'ptpe_idType');
     // }
@@ -60,6 +65,14 @@ class Product extends Model
     // }
 
 
+    public function productGroup() {
+        // return $this->hasOne(Phone::class, 'foreign_key', 'local_key');
+        return $this->HasOne(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
+    }
+    public function productCategory() {
+        // return $this->hasOne(Phone::class, 'foreign_key', 'local_key');
+        return $this->HasOne(ProductCategory::class, 'pcat_idCategory', 'prod_idCategory_product');
+    }
 
 
 
