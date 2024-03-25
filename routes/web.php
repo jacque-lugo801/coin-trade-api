@@ -12,6 +12,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
 use App\Http\Controllers\ProductGroupController;
 use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\ProductRatingController;
 use App\Http\Controllers\UserRolController;
 
 // Middlewares
@@ -105,6 +106,8 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
     Route::post('/api/products/upload', [ProductController::class, 'uploadImage']);
 
     Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct']);
+
+    Route::post('/api/products/rate-product', [ProductRatingController::class, 'ratingProduct']);
     
     // Route::get('/profile', function () {
     //     // ...
