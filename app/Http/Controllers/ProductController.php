@@ -472,6 +472,7 @@ class ProductController extends Controller
                 $product->prod_total                = $paramsArray['total'];
                 $product->prod_stock                = $paramsArray['stock'];
                 $product->prod_isTerms              = $paramsArray['terms'];
+                $product->psts_idStatus             = 2;
 
                 switch ($params->type) {
                     case 2:

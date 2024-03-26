@@ -14,6 +14,11 @@ class ProductGroup extends Model
     protected $keyType = 'int';
     
     public $incrementing = false;
+
+    
+    protected $hidden = [
+        'pgrp_isActive',
+    ];
     
     
     public function typeProduct() {

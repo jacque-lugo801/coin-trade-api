@@ -71,8 +71,7 @@ class ProductRatingController extends Controller
                 // var_dump($productRating);
                 if(!$productRating) {
                     //Si no se ha calificado aun el producto pór el usuario
-                    echo 'no';
-                        
+                    // echo 'no';
                     
                     $this->addRating($user, $paramsArray);
 
@@ -223,5 +222,52 @@ class ProductRatingController extends Controller
         // ]);
 
 
+    }
+
+
+    public function getProductsRatedFmUser(Request $request) {
+
+        
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+
+        
+        $user = $jwtAuth->checkToken($token, true);
+
+        // var_dump($user);
+        // die();
+
+        $productsRated = ProductRating::
+            where([
+                ["usu_idUser", "=", $user->usu_idUser],
+                // ["prod_idProducto", "=", $paramsArray['id']],
+                ["prat_isActive", "=", 1],
+            ])
+        ->
+        get()
+        ->load('productRated')
+        ;
+
+        
+        if(!empty($productsRated)){
+
+            $data = array(
+                // 'status'    => 'error',
+                // 'code'      => 400,
+                // 'message'   => 'Error al subir imagen',
+                'rated' => $productsRated,
+            );
+        }
+        else {
+            
+            $data = array(
+                // 'status'    => 'error',
+                // 'code'      => 400,
+                // 'message'   => 'Error al subir imagen',
+                'rated' => [],
+            );
+        }
+
+        return response()->json($data);
     }
 }

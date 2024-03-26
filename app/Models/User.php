@@ -44,6 +44,7 @@ class User extends Authenticatable
     protected $hidden = [
         'usu_pswd',
         'usu_verification_code',
+        'usu_isTerms',
     ];
 
     /**

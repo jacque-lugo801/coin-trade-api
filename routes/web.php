@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // use App\Http\Controllers;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserRolController;
 use App\Http\Controllers\MailController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\StateController;
@@ -13,7 +14,7 @@ use App\Http\Controllers\ProductTypeController;
 use App\Http\Controllers\ProductGroupController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductRatingController;
-use App\Http\Controllers\UserRolController;
+use App\Http\Controllers\ProductFavoriteController;
 
 // Middlewares
 // use App\Http\Middleware\ApiAuthMiddleware;
@@ -108,6 +109,11 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
     Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct']);
 
     Route::post('/api/products/rate-product', [ProductRatingController::class, 'ratingProduct']);
+    Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsRatedFmUser']);
+
+
+    Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct']);
+    // Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsFavoriteFmUser']);
     
     // Route::get('/profile', function () {
     //     // ...
