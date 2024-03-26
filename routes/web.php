@@ -113,7 +113,7 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 
 
     Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct']);
-    // Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsFavoriteFmUser']);
+    Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser']);
     
     // Route::get('/profile', function () {
     //     // ...

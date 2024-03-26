@@ -68,29 +68,72 @@ class ProductFavoriteController extends Controller
                 // die();
 
                 if(!$productFavorite) {
-                    
-                    // $this->updateFavoriteProduct($paramsArray);
-                    if($paramsArray['favorite'] == 0) {
-                        //Si no se ha agregado como favorito
+                    //Si no se ha agregado como favorito
 
+                    if($paramsArray['favorite'] == 1) {
+                        // echo 'agregar-----<br>';
+                        $this->addFavorite($user, $paramsArray);
+
+                    }
+                    /*
+                    if($paramsArray['favorite'] == 0) {
+                        // echo 'remover-----<br>';
                         $this->removeFavorite($productFavorite);
-                        // $this->addFavorite($user, $paramsArray, 1);
+                        //     //Si no se ha agregado como favorito
+                        //     // $this->addFavorite($user, $paramsArray);
+                        //     $this->removeFavorite($productFavorite);
+
                     }
                     else if($paramsArray['favorite'] == 1) {
+                        // echo 'agregar-----<br>';
+                        $this->addFavorite($user, $paramsArray);
 
-                        // $oldFavorite = ProductFavorite::
-                        //     where('ufav_idFavorite', $productFavorite->ufav_idFavorite)
-                        //     ->update([
-                        //         'ufav_isActive' => 0
-                        //     ]);
-                        
-                        // $this->removeFavorite($productFavorite);
-                        $this->addFavorite($user, $paramsArray, 1);
                     }
+
+                    */
+                    // // $this->updateFavoriteProduct($paramsArray);
+                    // if($paramsArray['favorite'] == 0) {
+
+                    //     $this->removeFavorite($productFavorite);
+                    //     // $this->addFavorite($user, $paramsArray, 1);
+                    // }
+                    // else if($paramsArray['favorite'] == 1) {
+
+                    //     // $oldFavorite = ProductFavorite::
+                    //     //     where('ufav_idFavorite', $productFavorite->ufav_idFavorite)
+                    //     //     ->update([
+                    //     //         'ufav_isActive' => 0
+                    //     //     ]);
+                        
+                    //     // $this->removeFavorite($productFavorite);
+                    //     $this->addFavorite($user, $paramsArray);
+                    // }
                 }
                 else {
                     //Si ya se agrego como favorito
+                    // echo 'ya agregado-----<br>';
+                    if($paramsArray['favorite'] == 0) {
+                        // echo 'remover-----<br>';
+                        $this->removeFavorite($productFavorite);
+                        //     //Si no se ha agregado como favorito
+                        //     // $this->addFavorite($user, $paramsArray);
+                        //     $this->removeFavorite($productFavorite);
 
+                    }
+                    else if($paramsArray['favorite'] == 1) {
+                        // echo 'agregar-----<br>';
+                        // $this->addFavorite($user, $paramsArray);
+
+                        if(!empty($productFavorite)) {
+
+                            $this->removeFavorite($productFavorite);
+                            $this->addFavorite($user, $paramsArray);
+                        }
+                        else {
+                            $this->addFavorite($user, $paramsArray);
+                        }
+
+                    }
                     // // echo 'ya agregado';
                     // $oldFavorite = ProductFavorite::
                     //     where('ufav_idFavorite', $productFavorite->ufav_idFavorite)
@@ -100,25 +143,25 @@ class ProductFavoriteController extends Controller
 
                         // if() {
                                 
-                        if($paramsArray['favorite'] == 0) {
-                            //Si no se ha agregado como favorito
-                            // $this->addFavorite($user, $paramsArray);
-                            $this->removeFavorite($productFavorite);
-
-                        }
-                        else if($paramsArray['favorite'] == 1) {
-
-                            // $this->removeFavorite($productFavorite);
-                            $this->addFavorite($user, $paramsArray);
-
-                            // $oldFavorite = ProductFavorite::
-                            //     where('ufav_idFavorite', $productFavorite->ufav_idFavorite)
-                            //     ->update([
-                            //         'ufav_isActive' => 0
-                            //     ]);
-                        }
+                        // if($paramsArray['favorite'] == 0) {
+                        //     //Si no se ha agregado como favorito
+                        //     // $this->addFavorite($user, $paramsArray);
+                        //     $this->removeFavorite($productFavorite);
 
                         // }
+                        // else if($paramsArray['favorite'] == 1) {
+
+                        //     // $this->removeFavorite($productFavorite);
+                        //     $this->addFavorite($user, $paramsArray);
+
+                        //     // $oldFavorite = ProductFavorite::
+                        //     //     where('ufav_idFavorite', $productFavorite->ufav_idFavorite)
+                        //     //     ->update([
+                        //     //         'ufav_isActive' => 0
+                        //     //     ]);
+                        // }
+
+                        // // }
                     
                     // $this->addFavorite($user, $paramsArray);
                 }
@@ -150,7 +193,54 @@ class ProductFavoriteController extends Controller
                 'ufav_isActive' => 0
             ]);
     }
-    // public function updateFavoriteProduct($paramsArray) {
+    
+    
 
-    // }
+    public function getProductsFavoriteFmUser(Request $request) {
+        // echo 'getting favs';
+        // die();
+
+        
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+
+        
+        $user = $jwtAuth->checkToken($token, true);
+
+        // var_dump($user);
+        // die();
+
+        $productsFavorites = ProductFavorite::
+            where([
+                ["usu_idUser", "=", $user->usu_idUser],
+                // ["prod_idProducto", "=", $paramsArray['id']],
+                ["ufav_isActive", "=", 1],
+            ])
+        ->
+        get()
+        ->load('productFavorite')
+        ;
+
+        
+        if(!empty($productsFavorites)){
+
+            $data = array(
+                // 'status'    => 'error',
+                // 'code'      => 400,
+                // 'message'   => 'Error al subir imagen',
+                'favorites' => $productsFavorites,
+            );
+        }
+        else {
+            
+            $data = array(
+                // 'status'    => 'error',
+                // 'code'      => 400,
+                // 'message'   => 'Error al subir imagen',
+                'favorites' => [],
+            );
+        }
+
+        return response()->json($data);
+    }
 }
