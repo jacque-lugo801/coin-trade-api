@@ -114,6 +114,8 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 
     Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct']);
     Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser']);
+
+    
     
     // Route::get('/profile', function () {
     //     // ...
@@ -128,6 +130,12 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     Route::post('/api/user/register-user', [UserController::class, 'addNewUser']);
 
     Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles']);
+    
+    
+    Route::get('/api/products/verify-products', [ProductController::class, 'getProductsForVerification']);
+
+
+
  
     // Route::get('/profile', function () {
     //     // ...

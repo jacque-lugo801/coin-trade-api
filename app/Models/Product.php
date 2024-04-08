@@ -27,7 +27,7 @@ class Product extends Model
 
     protected $hidden = [
         'prod_isActive',
-        'usu_isTerms',
+        'prod_isTerms',
         // 'prod_itType_product',
         // 'prod_idGroup_product',
         // 'prod_idCategory_product',

@@ -627,4 +627,52 @@ class ProductController extends Controller
         return $name;
     }
 
+
+
+    // ADMIN
+    
+    public function getProductsForVerification() {
+        echo'test verify products';
+        // die();
+        $products = Product::
+       
+        with(
+            [
+                'productCountry',
+                'productType',
+                // 'productType.productGroup',
+                'productGroup',
+                'productCategory',
+                // 'userAddressShipping.userShippingCountry', 
+
+                // 'userAddressShipping.userShippingCountry.userState'
+            ],
+            [
+                // 'userAddressShipping',
+
+            ]
+        )
+
+        ->
+        where([
+            // ["prod_isActive", "=", 1],
+            // ["prod_isAuthorized", "=", 1],
+        ])
+            ->get()
+            // ->load('productType')
+            // // ->load('productGroup')
+            // // ->load('productCategory')
+            ->load('productUser')
+            // // ->load('productImages')
+            ->load('productCertifications')
+
+            ;
+        //     // die();
+            
+        return response()->json([
+            'products' => $products
+        ]);
+
+    }
+
 }
