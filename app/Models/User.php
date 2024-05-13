@@ -44,7 +44,13 @@ class User extends Authenticatable
     protected $hidden = [
         'usu_pswd',
         'usu_verification_code',
+        'usu_verification_code_pass',
         'usu_isTerms',
+
+        'usu_isVerification',
+        'usu_isVerificated',
+
+
     ];
 
     /**
@@ -109,4 +115,8 @@ class User extends Authenticatable
         // return $this->HasOne(S::class, 'usu_idUser');
     }
 
+
+    public function userLog() {
+        return $this->HasOne(UserLog::class, 'usu_idUser', 'usu_idUser')->latest();
+    }
 }

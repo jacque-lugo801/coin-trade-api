@@ -11,17 +11,29 @@ use App\Models\User;
 use App\Models\UserRol;
 use App\Models\UserStatus;
 use App\Models\UserShippingAddress;
+use App\Models\UserLog;
 
 use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
 
+// use Jenssegers\Agent\Facades\Agent;
+use Jenssegers\Agent\Agent;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use Illuminate\Http\Request;
+
 class JwtAuth {
 
     public $key;
-
+    public $keyWeb;
+    public $keyWeb64;
+    
     public function __construct(){
         $this->key = '_#C01N-TR4D3#_';
+        $this->keyWeb = 'COIN_TRADE@2024';
+        $this->keyWeb64 = base64_encode($this->keyWeb);
+        // Q09JTl9UUkFERUAyMDI0
     }
 
     public function signin($mail, $pwd, $getToken = null) {
@@ -60,7 +72,16 @@ class JwtAuth {
             }
             else {
 
+                // echo 'testing';
+                // $platform = Agent::platform();
+
+                $this->saveLogInfo($user);
+                
                 $token = $this->generateToken($user);
+                
+
+
+
                 // var_dump($token);
                 // die();
                 // // Obtener el rol del ususario
@@ -225,6 +246,90 @@ class JwtAuth {
         return  $data;
     }
 
+    public function saveLogInfo($user) {
+        
+        $agent = new Agent();
+        
+        $device = $agent->device();
+        $os = $agent->platform();
+        $browser = $agent->browser();
+        $isDesktop = $agent->isDesktop();
+        $isPhone = $agent->isPhone();
+        $isRobot = $agent->isRobot();;
+        
+
+        try {
+            
+            $client = new Client();
+            $ipAddress = file_get_contents('https://api.ipify.org');
+            
+            $response =  $client->request('GET', "https://ipapi.co/{$ipAddress}/json/");
+
+            $data = json_decode($response->getBody(), true);
+
+            $ipCity = $data['city'];
+            $ipRegion = $data['region'];
+            $ipRegionCode = $data['region_code'];
+            // $ipCountry = $data['country'];
+            $ipCountrName = $data['country_name'];
+            $ipCountryCode = $data['country_code'];
+            // $ipCountryCodeISO3 = $data['country_code_iso3'];
+            $ipLatitude = $data['latitude'];
+            $ipLongitude = $data['longitude'];
+        }
+        catch(RequestException $e) {
+            // $ipAddress = null;
+            $ipCity = null;
+            $ipRegion = null;
+            $ipRegionCode = null;
+            // $ipCountry = $data['country'];
+            $ipCountrName = null;
+            $ipCountryCode = null;
+            // $ipCountryCodeISO3 = $data['country_code_iso3'];
+            $ipLatitude = null;
+            $ipLongitude = null;
+        }
+        catch(\Exception $e) {
+
+
+            // $ipAddress = file_get_contents('https://api.ipify.org');
+            $ipCity = null;
+            $ipRegion = null;
+            $ipRegionCode = null;
+            // $ipCountry = $data['country'];
+            $ipCountrName = null;
+            $ipCountryCode = null;
+            // $ipCountryCodeISO3 = $data['country_code_iso3'];
+            $ipLatitude = null;
+            $ipLongitude = null;
+        }
+        
+        // print_r($data);
+
+
+        
+        // die();
+        $userLog = new UserLog();
+        // $userLog->
+        $userLog->ulog_device = $device;
+        $userLog->ulog_os = $os;
+        $userLog->ulog_browser = $browser;
+        $userLog->ulog_isDesktop = $isDesktop;
+        $userLog->ulog_isPhone = $isPhone;
+        $userLog->ulog_isRobot = $isRobot;
+        $userLog->ulog_ip = $ipAddress;
+        $userLog->ulog_ip_city = $ipCity;
+        $userLog->ulog_ip_region = $ipRegion;
+        $userLog->ulog_ip_region_code = $ipRegionCode;
+        $userLog->ulog_ip_country_name = $ipCountrName;
+        $userLog->ulog_ip_country_code = $ipCountryCode;
+        $userLog->ulog_ip_latitude = $ipLatitude;
+        $userLog->ulod_ip_longitude = $ipLongitude;
+        // $userLog->ulog_fingerprint = ;
+        $userLog->usu_idUser = $user->usu_idUser;
+        $userLog->save();
+    }
+
 
 
     public function generateToken($user) {
@@ -242,6 +347,12 @@ class JwtAuth {
             // 'usu_idUser' => '3',
         ])->get();
 
+        $userLog = UserLog::where ([
+            'usu_idUser' => $user->usu_idUser,
+            // 'usu_idUser' => '3',
+        ])
+        ->orderBy('ulog_idLog', 'desc')
+        ->first();
         // print_r($address);
         
         // var_dump(count($address));
@@ -293,6 +404,8 @@ class JwtAuth {
         
         // Generar token con los datos del usuario identificado
 
+
+
         $token = array(
             'usu_idUser'        => $user->usu_idUser,
             'usu_name'          => $user->usu_name,
@@ -317,6 +430,13 @@ class JwtAuth {
             'usts_idStatus'          => $status->usts_idStatus,
             'usts_name'          => $status->usts_name,
             'usts_description'          => $status->usts_description,
+            'ulog_date_access'  => $userLog->ulog_date_access,
+            // 'device'          => $device,
+            // 'platform'          => $platform,
+            // 'browser'          => $browser,
+            // 'isDesktop'          => $isDesktop,
+            // 'isPhone'          => $isPhone,
+            // 'isRobot'          => $isRobot,
 
             // 'usad_country'          => $address->usad_country,
             // 'usad_state'          => $address->usad_state,
@@ -405,4 +525,6 @@ class JwtAuth {
         }
         return $auth;
     }
+
+
 }

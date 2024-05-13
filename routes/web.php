@@ -16,6 +16,11 @@ use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductRatingController;
 use App\Http\Controllers\ProductFavoriteController;
 
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CartItemController;
+
+use App\Http\Controllers\ImageController;
+
 // Middlewares
 // use App\Http\Middleware\ApiAuthMiddleware;
 
@@ -25,16 +30,27 @@ use App\Http\Controllers\ProductFavoriteController;
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
+|J
 | Here is where you can register web routes for your application. These
 | routes are loaded by the RouteServiceProvider and all of them will
 | be assigned to the "web" middleware group. Make something great!
 |
 */
 
+// Views
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/view-account-registration-admin', function () {
+    return view('emails/userRegisterAccountByAdmin');
+});
+Route::get('/view-verification-code', function () {
+    return view('emails/userVerificationCode');
+});
+// END Views
+
+// Image
+Route::get('/images/{imageName}', [ImageController::class, 'show'])->name('image.show');
 
 
 // Rutas controlador usuario
@@ -86,6 +102,10 @@ Route::get('/api/products/product-type', [ProductTypeController::class, 'getProd
 Route::get('/api/products/image/{filename}', [ProductController::class, 'getImage']);
 
 
+// Validate url
+Route::post('/api/user/validate-url', [UserController::class, 'validateUrl']);
+Route::post('/api/user/resend-code-account', [MailController::class, 'userResendVCodeVerification']);
+Route::post('/api/user/validate-code-account', [UserController::class, 'validateCodeAccount']);
 
 
 
@@ -117,9 +137,20 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 
     
     
+    // Cart
+
+    Route::get('/api/cart/', [CartController::class, 'getCart']);
+    Route::post('/api/cart/add-item', [CartItemController::class, 'addItemToCart']);
+    Route::post('/api/cart/remove-item', [CartItemController::class, 'removeItem']);
+    Route::post('/api/cart/update-item', [CartItemController::class, 'updateItem']);
+
     // Route::get('/profile', function () {
     //     // ...
     // })->withoutMiddleware([EnsureTokenIsValid::class]);
+
+    // Mail
+    
+    Route::post('/api/user/register-account-new', [MailController::class, 'userRegisterAccountByAdmin']);
 });
 
 

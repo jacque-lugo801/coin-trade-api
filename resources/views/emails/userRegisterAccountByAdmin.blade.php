@@ -262,7 +262,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt prelative" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Hola, {{$name}}, tu cuenta ha sido creada y registrada exitosamente.
+                                            Hola, {{$name}} {{$lastname}}.
                                           </td>
                                         </tr>
                                         <tr>
@@ -272,7 +272,50 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Espere la aprobación de la misma por parte del Administrador; en cuanto haya sido autorizado recibirá un email de confirmación.
+                                            Una cuenta ha sido creada en nuestro sitio por parte del Administrador, utilizando esta dirección de correo electrónico.
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            El rol que se le ha sido asignado es <span class="tbold">{{$rol}}</span>.
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            Para configurar su cuenta de acceso, de clic en el botón "Configurar cuenta" y continué con el proceso del sitio web.
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            <!-- <a href="{{ env('WEBSITE_URL') }}/validar-cuenta;mail={{$mailEnc}}"> -->
+                                            <a href="{{ env('WEBSITE_URL') }}/validar-cuenta;mail={{$mailEnc}};rol={{$rolEnc}}">
+                                                Configurar cuenta
+                                            </a>
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            Una vez finalizado el proceso, espere la autorización por parte del Administrador para poder usar su cuenta. En cuanto haya sido autorizado recibirá un email de confirmación.
                                           </td>
                                         </tr>
                                         <tr>
@@ -305,6 +348,16 @@
                                       <tbody>
                                         <tr>
                                           <td height="15" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_9pt" style="color: #6d6d6d; font-size: 9pt; line-height: 1.2;">
+                                            Si usted no ha solicitado el código de verificación ignore este correo electrónico.
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td height="10" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
                                         </tr>

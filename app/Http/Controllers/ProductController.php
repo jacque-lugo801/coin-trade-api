@@ -243,6 +243,8 @@ class ProductController extends Controller
             )
 
         
+            
+        ->orderBy('prod_idProducto', 'desc')
         ->
         get()
         

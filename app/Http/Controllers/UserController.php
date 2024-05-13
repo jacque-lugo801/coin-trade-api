@@ -14,6 +14,8 @@ use App\Models\UserFiscalData;
 use App\Http\Controllers\UserShippingAddressController;
 use App\Http\Controllers\UserFiscalDataController;
 
+use App\Http\Controllers\MailController;
+
 use App\Models\UserRol;
 
 use Illuminate\Validation\Rule;
@@ -133,6 +135,11 @@ class UserController extends Controller
                 //Guardar datos de envio
                 $fiscal = (new UserFiscalDataController)
                     ->saveSignupFiscalData($fiscalParams);
+
+                    
+                // Send email that its created
+
+                (new MailController)->userVerificationCode($paramsArray);
 
                 $data = array(
                     'status'    => 'success',
@@ -473,6 +480,189 @@ class UserController extends Controller
     }
 
 
+    public function validateUrl(Request $request) {
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+                
+        $params         = json_decode($json); //objeto
+        $paramsArray    = json_decode($json, true);   //array
+
+        if(!empty($params) && !empty($paramsArray)) {
+
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
+
+            $validate = \Validator::make($paramsArray, [
+                'mail'          => 'required | email',
+                'rol'           => 'required ',
+                'rolKey'        => 'required ',
+            ]);
+
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 402,
+                    'message'   => 'Ha ocurrido un error en el registro',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else{
+                // // $rol = 
+                // var_dump($params);
+                // die();
+                
+
+                
+                $userData = User::
+                    where('usu_email', '=', $paramsArray['mail'])
+                    ->where('urol_idRol', '=', $paramsArray['rolKey'])
+                    ->first();
+
+                if(!empty($userData)) {
+
+                    // var_dump($userData->usu_isVerification);
+                    // var_dump($userData->usu_isVerificated);
+                    if($userData->usu_isVerification == 1 && $userData->usu_isVerificated == 0) {
+                        // var_dump($userData->usu_isVerificated);
+                        $data = array(
+                            'status'    => 'success',
+                            'code'      => 200,
+                            'message'   => 'La URL es correcta',
+                            // 'errors'    => $validate->errors()
+                        );
+                    }
+                    else {
+
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 402,
+                            'message'   => 'El mail ya ha sido verificado',
+                            // 'errors'    => $validate->errors()
+                        );
+                    }
+                    // die();
+                }
+                else {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 401,
+                        'message'   => 'El mail no existe',
+                        // 'errors'    => $validate->errors()
+                    );
+                }
+
+                // print_r($userData);
+                // die();
+                            
+                // $securityED = new \App\Helpers\SecurityED();
+
+                
+                // $s = $securityED->getString($paramsArray['mail']);
+                // print_r($s);
+                // die();
+                // $rolName = $paramsArray['rol'];
+                // $rolID = $paramsArray['rolKey'];
+                // // var_dump($rolName);
+                // // $rol = UserRol::
+                // //     // where('urol_name', 'LIKE', '%'. strtolower($rolName) .'%')
+                // //     // where('urol_name', 'LIKE', '%'. $rolName .'%')
+                // //     where('urol_name', '=', $rolName)
+                // //     ->first()
+                // //     ;
+
+                // // var_dump($rol->urol_idRol);
+                // // die();
+                // $user = new User();
+                // $user->usu_name         = $paramsArray['name'];
+                // $user->usu_lastname     = $paramsArray['lastname'];
+                // $user->usu_email        = $paramsArray['mail'];
+                // // $user->urol_idRol       = $rol->urol_idRol;
+                // $user->urol_idRol       =  $paramsArray['rolKey'];
+                // $user->usu_isAuthorized = 0;
+
+                // // var_dump($paramsArray['rol']);
+                // // die();
+                // // var_dump($user);
+                // // die();
+                // $user->save();
+                // // $idUser = $user->usu_idUser;
+                
+                // $data = array(
+                //     'status'    => 'success',
+                //     'code'      => 200,
+                //     'message'   => 'El usuario se ha creado correctamente',
+                // );
+            }
+
+
+        }
+        return response()->json($data, $data['code']);
+    }
+
+    // Validar code for account by admin
+    
+    public function validateCodeAccount(Request $request ) {
+        // Recoger datos usuario}
+        $json = $request->input('json', null);
+        
+        $params = json_decode($json); //objeto
+        $paramsArray = json_decode($json, true);   //array
+        
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
+            
+            $validate = \Validator::make($paramsArray, [
+                // 'name'          => 'required',
+                // 'lastname'      => 'required',
+                'mail'          => 'required | email',
+                'rol'           => 'required ',
+                'rolKey'        => 'required ',
+            ]);
+                
+                $name           = $params->name;
+                $lastname       = $params->lastname;
+                $username       = $params->username;
+                $mail           = $params->mail;
+                $mailAccount    = $params->mailAccount;
+                $code           = $params->code;
+                
+
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 402,
+                    'message'   => 'Ha ocurrido un error en la validación.',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+
+                $userData = User::where([
+                    ['usu_username', '=', $username],
+                    ['usu_email', '=', $mail]
+                ])->first();
+
+                $dbUserCode = $userData->usu_verification_code;
+
+                if($code === $dbUserCode) {
+                    $data = array(
+                        'status'    => 'success',
+                        'code'      => 200,
+                        'message'   => 'Se ha validado correctamente el código de verificación.',
+                    );
+                }
+                else {
+
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 403,
+                        'message'   => 'El código de verificación es incorrecto.',
+                    );
+                }
+            }
+        }
+        return response()->json($data, $data['code']);
+    }
+
 
     // Tutorial UDEMY
 
@@ -532,11 +722,12 @@ class UserController extends Controller
                 ]
             )
         ->
-        //     whereNot('usu_idUser', $user->usu_idUser)
-        // ->
+            whereNot('usu_idUser', $user->usu_idUser)
+        ->
         get()
         ->load('userRol')
         ->load('userStatus')
+        ->load('userLog')
         // ->load('userAddress')
         // ->load('userFiscal')
         // ->load('userShippingCountry')
@@ -626,6 +817,7 @@ class UserController extends Controller
 
             $validate = \Validator::make($paramsArray, [
                 'name'          => 'required',
+                'lastname'      => 'required',
                 'mail'          => 'required | email | unique:users,usu_email',
                 'rol'           => 'required ',
                 'rolKey'        => 'required ',
@@ -645,7 +837,125 @@ class UserController extends Controller
             else{
                 // $rol = 
                 
+                // print_r($paramsArray);
+                            
+
+                // $securityED = new \App\Helpers\SecurityED();
+                
+                $jwtAuth = new \App\Helpers\JwtAuth();
+
+                $mail = array(
+                    // 'mail' => $paramsArray['mail']
+                    $paramsArray['mail']
+                );
+                
+                $mailEnc = $jwtAuth->encode($mail);
+                // var_dump($mailEnc);
+                $rol = array(
+                    'id' => $paramsArray['rolKey'],
+                    'name' => $paramsArray['rol'],
+                );
+                $rolEnc = $jwtAuth->encode($rol);
+
+
+                $paramsMail = array(
+                    'name'      => $paramsArray['name'],
+                    'lastname'  => $paramsArray['lastname'],
+                    'mail'      => $paramsArray['mail'],
+                    'mailEnc'   => $mailEnc,
+                    'rol'       => $paramsArray['rol'],
+                    'rolEnc'    => $rolEnc,
+                );
+
+                // Send email that its created
+                (new MailController)->userRegisterAccountByAdmin($paramsMail);
+
+                // var_dump($mail);
+
                 // die();
+                
+                // $rolName = $paramsArray['rol'];
+                // $rolID = $paramsArray['rolKey'];
+                // var_dump($rolName);
+                // $rol = UserRol::
+                //     // where('urol_name', 'LIKE', '%'. strtolower($rolName) .'%')
+                //     // where('urol_name', 'LIKE', '%'. $rolName .'%')
+                //     where('urol_name', '=', $rolName)
+                //     ->first()
+                //     ;
+
+                // var_dump($rol->urol_idRol);
+                // die();
+                $user = new User();
+                $user->usu_name         = $paramsArray['name'];
+                $user->usu_lastname     = $paramsArray['lastname'];
+                $user->usu_email        = $paramsArray['mail'];
+                // $user->urol_idRol       = $rol->urol_idRol;
+                $user->urol_idRol       =  $paramsArray['rolKey'];
+                $user->usu_isAuthorized = 0;
+                $user->usu_isVerification = 1;
+                $user->usu_isVerificated = 0;
+
+                // var_dump($paramsArray['rol']);
+                // die();
+                // var_dump($user);
+                // die();
+                $user->save();
+                // $idUser = $user->usu_idUser;
+
+                
+                // // Send email that its created
+                // $mail = (new MailController)
+                //     ->saveSignupAddress($shippingParams);
+
+                $data = array(
+                    'status'    => 'success',
+                    'code'      => 200,
+                    'message'   => 'El usuario se ha creado correctamente',
+                );
+            }
+
+
+        }
+        return response()->json($data, $data['code']);
+    }
+
+
+    public function unlockUser(Request $request) {
+        
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+                
+        $params         = json_decode($json); //objeto
+        $paramsArray    = json_decode($json, true);   //array
+
+        if(!empty($params) && !empty($paramsArray)) {
+
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
+
+            $validate = \Validator::make($paramsArray, [
+                'unlock'    => 'required',
+            ]);
+
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 402,
+                    'message'   => 'Ha ocurrido un error en el registro',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else{
+                // $rol = 
+                
+                // print_r($paramsArray);
+                            
+                $securityED = new \App\Helpers\SecurityED();
+
+                
+                $s = $securityED->getString($paramsArray['mail']);
+                print_r($s);
+                die();
                 $rolName = $paramsArray['rol'];
                 $rolID = $paramsArray['rolKey'];
                 // var_dump($rolName);
@@ -660,6 +970,7 @@ class UserController extends Controller
                 // die();
                 $user = new User();
                 $user->usu_name         = $paramsArray['name'];
+                $user->usu_lastname     = $paramsArray['lastname'];
                 $user->usu_email        = $paramsArray['mail'];
                 // $user->urol_idRol       = $rol->urol_idRol;
                 $user->urol_idRol       =  $paramsArray['rolKey'];
@@ -683,6 +994,7 @@ class UserController extends Controller
         }
         return response()->json($data, $data['code']);
     }
+
 
 
 
