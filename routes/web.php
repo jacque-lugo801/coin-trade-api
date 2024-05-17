@@ -141,7 +141,7 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 
     Route::get('/api/cart/', [CartController::class, 'getCart']);
     Route::post('/api/cart/add-item', [CartItemController::class, 'addItemToCart']);
-    Route::post('/api/cart/remove-item', [CartItemController::class, 'removeItem']);
+    Route::post('/api/cart/remove-item', [CartItemController::class, 'removeItemFromCart']);
     Route::post('/api/cart/update-item', [CartItemController::class, 'updateItem']);
 
     // Route::get('/profile', function () {
