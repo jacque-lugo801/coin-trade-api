@@ -47,6 +47,9 @@ Route::get('/view-account-registration-admin', function () {
 Route::get('/view-verification-code', function () {
     return view('emails/userVerificationCode');
 });
+Route::get('/view-authorized', function () {
+    return view('emails/userAuthorizedByAdmin');
+});
 // END Views
 
 // Image
@@ -58,7 +61,9 @@ Route::post('api/user/signup', [UserController::class, 'signup']);
 Route::post('api/user/signin', [UserController::class, 'signin']);
 
 // Envio de e-mail con código de verificación
-Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
+// Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
+// Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
+Route::post('/api/user/send-code', [UserController::class, 'userVerificationCode']);
 Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
 Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);
 
@@ -104,8 +109,8 @@ Route::get('/api/products/image/{filename}', [ProductController::class, 'getImag
 
 // Validate url
 Route::post('/api/user/validate-url', [UserController::class, 'validateUrl']);
-Route::post('/api/user/resend-code-account', [MailController::class, 'userResendVCodeVerification']);
-Route::post('/api/user/validate-code-account', [UserController::class, 'validateCodeAccount']);
+Route::post('/api/user/resend-code-account', [MailController::class, 'userResendVerificationCodeAccount']);
+// Route::post('/api/user/validate-code-account', [UserController::class, 'validateCodeAccount']);
 
 
 
@@ -118,38 +123,30 @@ Route::post('/api/user/validate-code-account', [UserController::class, 'validate
 // Route::middleware([ApiAuthMiddleware::class])->group(function () { //Sin alias
     // All
 Route::middleware(['api.auth'])->group(function () { //Con alias
+    // USER
     Route::put('/api/user/update-profile', [UserController::class, 'updateProfile']);
 
-    //products
+    // PRODUCTS
     Route::get('/api/products/products-user', [ProductController::class, 'getProductsFmUser']);
-
-    
     Route::post('/api/products/upload', [ProductController::class, 'uploadImage']);
-
     Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct']);
-
     Route::post('/api/products/rate-product', [ProductRatingController::class, 'ratingProduct']);
     Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsRatedFmUser']);
-
-
     Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct']);
     Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser']);
 
-    
-    
-    // Cart
-
+    // CART
     Route::get('/api/cart/', [CartController::class, 'getCart']);
     Route::post('/api/cart/add-item', [CartItemController::class, 'addItemToCart']);
     Route::post('/api/cart/remove-item', [CartItemController::class, 'removeItemFromCart']);
-    Route::post('/api/cart/update-item', [CartItemController::class, 'updateItem']);
+    // Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
+    Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
 
     // Route::get('/profile', function () {
     //     // ...
     // })->withoutMiddleware([EnsureTokenIsValid::class]);
 
-    // Mail
-    
+    // MAIL
     Route::post('/api/user/register-account-new', [MailController::class, 'userRegisterAccountByAdmin']);
 });
 
@@ -157,18 +154,18 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 
 // Admin Autenthicate
 Route::middleware(['api.auth.admin'])->group(function () { //Con alias
+    // USER
     Route::get('/api/user/all-users', [UserController::class, 'getAllUsers']);
     Route::post('/api/user/register-user', [UserController::class, 'addNewUser']);
+    Route::get('/api/user/{idUser}', [UserController::class, 'getUserByID']);
+    Route::put('/api/user/authorize', [UserController::class, 'authorizeUser']);
+    Route::put('/api/user/activate', [UserController::class, 'activateUser']);
+    Route::put('/api/user/update-user', [UserController::class, 'updateUser']);
+    // Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
 
+    // ROLES
     Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles']);
     
-    
+    // PRODUCTS
     Route::get('/api/products/verify-products', [ProductController::class, 'getProductsForVerification']);
-
-
-
- 
-    // Route::get('/profile', function () {
-    //     // ...
-    // })->withoutMiddleware([EnsureTokenIsValid::class]);
 });

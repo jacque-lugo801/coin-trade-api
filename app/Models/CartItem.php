@@ -15,8 +15,17 @@ class CartItem extends Model
     const UPDATED_AT = 'citm_updated_date';
 
     
+    protected $hidden = [
+        // 'citm_isActive',
+    ];
+
     public function itemsCart() {
         // return $this->HasMany('App\Models\UserShippingAddress', 'usad_idAddress');
         return $this->BelongsTo(Cart::class, 'cart_idCart');
+    }
+    public function itemProduct() {
+        // return $this->HasMany('App\Models\UserShippingAddress', 'usad_idAddress');
+        // return $this->BelongsTo(Product::class, 'prod_idProducto');
+        return $this->BelongsTo(Product::class, 'prod_idProducto');
     }
 }

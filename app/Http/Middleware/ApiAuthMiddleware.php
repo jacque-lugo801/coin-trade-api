@@ -23,7 +23,24 @@ class ApiAuthMiddleware
         $checkToken = $jwtAuth->checkToken($token);
 
         if($checkToken) {
-            return $next($request);
+            
+            $user = $jwtAuth->checkToken($token, true);
+
+            if(
+                $user->usts_idStatus != 1
+            ) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 403,
+                    // 'message'   => 'Error de identificación',
+                    'message'   => 'El usuario no cuenta con permisos suficiente para ejecutar esta acción',
+                );
+            }
+            else {
+                return $next($request);
+            }
+
+            // return $next($request);
         }
         else {
             $data = array(

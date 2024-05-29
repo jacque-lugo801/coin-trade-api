@@ -26,4 +26,10 @@ class State extends Model
         // Saca el objeto asignado en base al usu_idUser
         return $this->BelongsTo(State::class, 'sta_iso_alpha2', 'usad_state');
     }
+
+    public function city() {
+        // Obtiene el usuario relqacionado por la propiedad usu_idUser
+        // Saca el objeto asignado en base al usu_idUser
+        return $this->BelongsTo(City::class, 'sta_iso_alpha2', 'usad_state');
+    }
 }

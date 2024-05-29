@@ -15,7 +15,7 @@ class CityController extends Controller
         if(isset($code) ) {
             $code = str_replace('"', '', $code);
             
-            $cities = cITY::where([
+            $cities = City::where([
                 ['sta_iso_alpha2', '=', $code],
                 ['cit_isActive', '=', 1]
             ])

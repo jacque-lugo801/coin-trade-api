@@ -9,34 +9,22 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UserRegisterAccountMailByAdmin extends Mailable
+class UserActivatedByAdmin extends Mailable
 {
     use Queueable, SerializesModels;
-    // public $mailData;
-    // public $code;
     public $name;
     public $lastname;
-    public $account;
-    public $rol;
-    // public $rolEnc;
-    // public $mailEnc;
-    public $website;
-    // public $rol;
-
+    public $statusAccount;
 
     /**
      * Create a new message instance.
      */
-    // public function __construct($name, $lastname, $rol, $rolEnc, $mailEnc, $website)
-    public function __construct($name, $lastname, $rol, $account, $website)
+    public function __construct($name, $lastname, $statusAccount)
     {
+        //
         $this->name = $name;
         $this->lastname = $lastname;
-        $this->account = $account;
-        $this->rol = $rol;
-        // $this->rolEnc = $rolEnc;
-        // $this->mailEnc = $mailEnc;
-        $this->website = $website;
+        $this->statusAccount = $statusAccount;
     }
 
     /**
@@ -45,8 +33,8 @@ class UserRegisterAccountMailByAdmin extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Hola ¡Te damos la bienvenida a CoinTrade!',
-            tags: ['bienvenida', 'cointrade'],
+            subject: 'Su cuenta ha sido modificada',
+            tags: ['modificación', 'cointrade'],
         );
     }
 
@@ -56,7 +44,7 @@ class UserRegisterAccountMailByAdmin extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.userRegisterAccountByAdmin',
+            view: 'emails.userActivatedByAdmin',
         );
     }
 

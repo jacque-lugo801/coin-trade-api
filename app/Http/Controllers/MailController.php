@@ -2,57 +2,21 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Config;
+ 
 use Mail;
 use App\Mail\DemoMail;
 use App\Mail\UserVerificationCodeMail;
 use App\Mail\UserRegisterAccountMail;
 use App\Mail\UserRegisterAccountMailByAdmin;
+use App\Mail\userAuthorizedByAdmin;
+use App\Mail\userActivatedByAdmin;
 use App\Models\User;
 use App\Http\Controllers\UserController;
 
 class MailController extends Controller
 {
-    public function userVerificationCode_v1(Request $request) {
-        $json = $request->input('json', null);
     
-        $params = json_decode($json); //objeto
-        $paramsArray = json_decode($json, true);   //array
-
-        if(!empty($params) && !empty($paramsArray)) {
-            $paramsArray = array_map('trim', $paramsArray);
-            
-            $name           = $params->name;
-            $lastname       = $params->lastname;
-            $username       = $params->username;
-            $mail           = $params->mail;
-            $mailAccount    = $params->mailAccount;
-            
-            $user = User::where([
-                ['usu_username', '=', $username],
-                ['usu_email', '=', $mail]
-            ])->first();
-
-            $code = $user->usu_verification_code;
-
-            Mail::to($mailAccount)
-                ->send(new UserVerificationCodeMail($name, $lastname, $code));
-        
-            $data = array(
-                'status'    => 'success',
-                'code'      => 200,
-                'message'   => 'Se ha enviado el mail de verificación.'
-            );
-        }
-        else {
-            $data = array(
-                'status'    => 'error',
-                'code'      => 404,
-                'message'   => 'Ha ocurrido un error al enviar el código de verificación.'
-            );
-        }
-       return $data;
-    }
     public function userVerificationCode($params) {
 
         if(!empty($params)) {
@@ -91,6 +55,7 @@ class MailController extends Controller
        return $data;
     }
 
+    
     public function userResendVerificationCode(Request $request) {
         $json = $request->input('json', null);
     
@@ -187,6 +152,88 @@ class MailController extends Controller
        return $data;
     }
 
+    public function userVerificationCodeAccount(Request $request) {
+        $json = $request->input('json', null);
+    
+        $params = json_decode($json); //objeto
+        $paramsArray = json_decode($json, true);   //array
+
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);
+            
+            $name           = $params->name;
+            $lastname       = $params->lastname;
+            $username       = $params->username;
+            $mail           = $params->mail;
+            $mailAccount    = $params->mailAccount;
+            
+            $user = User::where([
+                ['usu_username', '=', $username],
+                ['usu_email', '=', $mail]
+            ])->first();
+
+            $code = $user->usu_verification_code;
+
+            Mail::to($mailAccount)
+                ->send(new UserVerificationCodeMail($name, $lastname, $code));
+        
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+                'message'   => 'Se ha enviado el mail de verificación.'
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el código de verificación.'
+            );
+        }
+       return $data;
+    }
+    public function userResendVerificationCodeAccount(Request $request) {
+        $json = $request->input('json', null);
+    
+        $params = json_decode($json); //objeto
+        $paramsArray = json_decode($json, true);   //array
+
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);
+            
+            $name           = $params->name;
+            $lastname       = $params->lastname;
+            $username       = $params->username;
+            $mail           = $params->mail;
+            $mailAccount    = $params->mailAccount;
+            
+            $user = User::where([
+                ['usu_username', '=', $username],
+                ['usu_email', '=', $mail]
+            ])->first();
+
+            $code = $user->usu_verification_code;
+
+            Mail::to($mailAccount)
+                ->send(new UserVerificationCodeMail($name, $lastname, $code));
+        
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+                'message'   => 'Se ha enviado el mail de verificación.'
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el código de verificación.'
+            );
+        }
+       return $data;
+    }
+
+
     // Mail cuando la cuenta es registrada por el admin
     
     public function userResendVCodeVerification(Request $request) {
@@ -261,12 +308,80 @@ class MailController extends Controller
             $name       = $params['name'];
             $lastname   = $params['lastname'];
             $mail       = $params['mail'];
-            $mailEnc    = $params['mailEnc'];
+            $account    = $params['info'];
+            // $mailEnc    = $params['mailEnc'];
             $rol        = $params['rol'];
-            $rolEnc        = $params['rolEnc'];
+            // $rolEnc     = $params['rolEnc'];
+
+            // var_dump($params);
+            // var_dump($lastname);
+            // var_dump($this->webURL);
+            $website = Config::get('app.web_url');
+            // $website = Config::get('app.web_url');
+            // var_dump($website);
+            // die();
 
             Mail::to($mail)
-                ->send(new UserRegisterAccountMailByAdmin($name, $lastname, $rol, $rolEnc, $mailEnc));
+                // ->send(new UserRegisterAccountMailByAdmin($name, $lastname, $rol, $rolEnc, $mailEnc, $website));
+                ->send(new UserRegisterAccountMailByAdmin($name, $lastname, $rol, $account, $website));
+        
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el correo .'
+            );
+        }
+       return $data;
+    }
+    // Mail cuando la cuenta es autorizada por el administrador
+    public function userAuthorizedByAdmin($params) {
+        if(!empty($params)) {
+            $paramsArray = array_map('trim', $params);
+            
+            // print_r($params);
+
+            $name           = $params['name'];
+            $lastname       = $params['lastname'];
+            $mail           = $params['mail'];
+            $statusAccount  = $params['statusAccount'];
+
+            Mail::to($mail)
+                ->send(new UserAuthorizedByAdmin($name, $lastname, $statusAccount));
+        
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el correo .'
+            );
+        }
+       return $data;
+    }
+    // Mail cuando la cuenta es activada por el administrador
+    public function userActivatedByAdmin($params) {
+        if(!empty($params)) {
+            $paramsArray = array_map('trim', $params);
+            
+            // print_r($params);
+
+            $name           = $params['name'];
+            $lastname       = $params['lastname'];
+            $mail           = $params['mail'];
+            $statusAccount  = $params['statusAccount'];
+
+            Mail::to($mail)
+                ->send(new userActivatedByAdmin($name, $lastname, $statusAccount));
         
             $data = array(
                 'status'    => 'success',

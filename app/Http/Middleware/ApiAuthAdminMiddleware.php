@@ -40,7 +40,20 @@ class ApiAuthAdminMiddleware
                 );
             }
             else {
-                return $next($request);
+
+                if($user->usts_idStatus == 1 ) {
+
+                    return $next($request);
+                }
+                else {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 403,
+                        // 'message'   => 'Error de identificación',
+                        'message'   => 'El usuario no cuenta con permisos suficiente para ejecutar esta acción',
+                    );
+                }
+                
             }
 
         }

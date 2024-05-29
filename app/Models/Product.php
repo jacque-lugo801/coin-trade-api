@@ -65,7 +65,6 @@ class Product extends Model
     //     return $this->HasOne(ProductCategory::class, 'pcat_idCategory', 'prod_idCategory_product');
     // }
 
-
     public function productGroup() {
         // return $this->hasOne(Phone::class, 'foreign_key', 'local_key');
         return $this->HasOne(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');
@@ -74,7 +73,7 @@ class Product extends Model
         // return $this->hasOne(Phone::class, 'foreign_key', 'local_key');
         return $this->HasOne(ProductCategory::class, 'pcat_idCategory', 'prod_idCategory_product');
     }
-
+    
 
 
 

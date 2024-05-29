@@ -42,6 +42,8 @@ class ProductController extends Controller
         where([
             ["prod_isActive", "=", 1],
             ["prod_isAuthorized", "=", 1],
+            ["psts_idStatus", "!=", 2],
+            ["psts_idStatus", "!=", 5],
         ])
             ->get()
             // ->load('productType')
@@ -140,67 +142,67 @@ class ProductController extends Controller
 
 
 
-        die();
-        // decode has
+        // die();
+        // // decode has
 
-        if(isset($id) ) {
-            $id = str_replace('"', '', $id);
+        // if(isset($id) ) {
+        //     $id = str_replace('"', '', $id);
 
 
-            // var_dump($id);
-            // die();
+        //     // var_dump($id);
+        //     // die();
             
            
-            $product = Product::join(
-                (new ProductType)->getTable(),
-                (new Product)->getTable().'.'.(new ProductType)->getKeyName(),
-                '=',
-                (new ProductType)->getTable().'.'.(new ProductType)->getKeyName(),
-                // 'product_type',
-                // 'product_type.ptpe_idType',
-                // '=',
-                // 'products.ptpe_idType',
-            )
-            ->select(
-                'prod_idProducto            as idProducto',
-                'prod_name                  as name',
-                'prod_description           as description',
-                'prod_content               as content',
-                'prod_country               as country',
-                'prod_metal                 as metal',
-                'prod_diameter              as diameter',
-                'prod_condition             as condition',
-                'prod_date                  as date',
-                'prod_weight                as weight',
-                'prod_minting               as minting',
-                'prod_fineness              as fineness',
-                'prod_serie                 as serie',
-                'prod_denomination          as denomination',
-                'prod_number                as number',
-                'prod_rating                as rating',
-                'prod_unit_cost             as unit_cost',
-                'prod_commission            as commission',
-                'prod_total                 as total',
-                'prod_stock                 as stock',
-                'product_type.ptpe_idType   as typeID',
-                'product_type.ptpe_name     as typeName',
-                // (new ProductType)->getTable().'ptpe_idType as idType',
-                // 'usu_idUser         as dUser',
-                'prod_image                 as image',
-            )
-            ->where('prod_idProducto', '=', $id)
-            ->where('prod_isActive', '=', 1)
+        //     $product = Product::join(
+        //         (new ProductType)->getTable(),
+        //         (new Product)->getTable().'.'.(new ProductType)->getKeyName(),
+        //         '=',
+        //         (new ProductType)->getTable().'.'.(new ProductType)->getKeyName(),
+        //         // 'product_type',
+        //         // 'product_type.ptpe_idType',
+        //         // '=',
+        //         // 'products.ptpe_idType',
+        //     )
+        //     ->select(
+        //         'prod_idProducto            as idProducto',
+        //         'prod_name                  as name',
+        //         'prod_description           as description',
+        //         'prod_content               as content',
+        //         'prod_country               as country',
+        //         'prod_metal                 as metal',
+        //         'prod_diameter              as diameter',
+        //         'prod_condition             as condition',
+        //         'prod_date                  as date',
+        //         'prod_weight                as weight',
+        //         'prod_minting               as minting',
+        //         'prod_fineness              as fineness',
+        //         'prod_serie                 as serie',
+        //         'prod_denomination          as denomination',
+        //         'prod_number                as number',
+        //         'prod_rating                as rating',
+        //         'prod_unit_cost             as unit_cost',
+        //         'prod_commission            as commission',
+        //         'prod_total                 as total',
+        //         'prod_stock                 as stock',
+        //         'product_type.ptpe_idType   as typeID',
+        //         'product_type.ptpe_name     as typeName',
+        //         // (new ProductType)->getTable().'ptpe_idType as idType',
+        //         // 'usu_idUser         as dUser',
+        //         'prod_image                 as image',
+        //     )
+        //     ->where('prod_idProducto', '=', $id)
+        //     ->where('prod_isActive', '=', 1)
             
-            ->get();
-        }
-        else {
-            $product = [];
-        }
+        //     ->get();
+        // }
+        // else {
+        //     $product = [];
+        // }
 
         
-        return response()->json([
-            'products' => $product
-        ]);
+        // return response()->json([
+        //     'products' => $product
+        // ]);
     }
 
 
@@ -227,6 +229,7 @@ class ProductController extends Controller
                 // 'productType.productGroup',
                 'productGroup',
                 'productCategory',
+                'productStatus',
                 // 'userAddressShipping.userShippingCountry', 
 
                 // 'userAddressShipping.userShippingCountry.userState'

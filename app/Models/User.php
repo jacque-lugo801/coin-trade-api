@@ -47,8 +47,8 @@ class User extends Authenticatable
         'usu_verification_code_pass',
         'usu_isTerms',
 
-        'usu_isVerification',
-        'usu_isVerificated',
+        // 'usu_isVerification',
+        // 'usu_isVerificated',
 
 
     ];
@@ -101,6 +101,14 @@ class User extends Authenticatable
         
         ;
     }
+    public function userShippingCity($cit_clave, $sta_iso_alpha2) {
+        return $this->hasOne(City::class, 'cit_clave', 'usad_city')
+                    ->join('states', 'cities.sta_iso_alpha2', '=', 'states.sta_iso_alpha2')
+                    ->where('cities.cit_clave', '=', $cit_clave)
+                    ->where('states.sta_iso_alpha2', '=', $sta_iso_alpha2);
+    }
+    
+
     public function userFiscalData() {
         // return $this->HasOne(UserShippingAddress::class, 'ufdt_idData');
         
