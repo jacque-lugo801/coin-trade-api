@@ -292,6 +292,16 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            Debe verificar y configurar su cuenta para poder acceder al sitio.
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
                                             Para configurar su cuenta de acceso, de clic en el botón "Configurar cuenta" y continué con el proceso del sitio web.
                                           </td>
                                         </tr>
@@ -303,12 +313,14 @@
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
                                             <!-- <a href="{{ env('WEBSITE_URL') }}/validar-cuenta;mail={{$mailEnc}}"> -->
-                                            <a href="{{ env('WEBSITE_URL') }}/validar-cuenta;mail={{$mailEnc}};rol={{$rolEnc}}">
+                                            <!-- <a href="{{ env('WEBSITE_URL') }}/validar-cuenta;mail={{$mailEnc}};rol={{$rolEnc}}"> -->
+                                            <!-- <a href="{{$website}}/validar-cuenta;mail={{$mailEnc}};rol={{$rolEnc}}"> -->
+                                            <a href="{{$website}}/validar-cuenta;account={{$account}}">
                                                 Configurar cuenta
                                             </a>
                                           </td>
                                         </tr>
-                                        <tr>
+                                        <!-- <tr>
                                           <td height="25" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
@@ -317,7 +329,7 @@
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
                                             Una vez finalizado el proceso, espere la autorización por parte del Administrador para poder usar su cuenta. En cuanto haya sido autorizado recibirá un email de confirmación.
                                           </td>
-                                        </tr>
+                                        </tr> -->
                                         <tr>
                                           <td height="50" style="font-size: 0; line-height: 0">
                                             &nbsp;
