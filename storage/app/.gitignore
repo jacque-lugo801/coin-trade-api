@@ -1,3 +1,7 @@
 *
 !public/
+!images/
+!images/**
+!products/
+!products/**
 !.gitignore
