@@ -179,6 +179,8 @@
                                           <td class="talign_center image_logo1" style="font-size: 0; line-height: 0" >
                                             <!-- <img src="http://localhost:4200/assets/icons/logos/[Project Files] Logo_CoinTrade.png" width="250" alt=""/> -->
                                             <!-- <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/> -->
+                                            <!-- <img src="{{$message->embed('images/[Project Files] Logo_CoinTrade.png')}}" width="250" alt=""/> -->
+                                            <!-- <img src="{{ asset('storage/images/' .$imageLogo) }}" width="250" alt=""/> -->
                                             
                                             <img src="{{$message->embed($imageLogo)}}" width="250" alt=""/>
                                           </td>
@@ -226,7 +228,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_center tbold fnt_20pt" style="color: #C78A37; font-size: 20pt; line-height: 1.75;">
-                                            Modificación a su cuenta
+                                            Información de su producto
                                           </td>
                                         </tr>
                                         <tr>
@@ -274,13 +276,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Su cuenta en nuestro sitio ha sido
-                                        @if ($statusAccount == 1)
-                                            <span class="tbold">AUTORIZADA</span>
-                                        @elseif ($statusAccount == 0)
-                                            <span class="tbold">DESAUTORIZADA</span>
-                                        @endif
-                                            .
+                                            El siguiente producto:
                                           </td>
                                         </tr>
                                         <tr>
@@ -288,11 +284,68 @@
                                             &nbsp;
                                           </td>
                                         </tr>
-                                    @if ($statusAccount == 1)
+                                        <tr>
+                                          <td style="border: 1px solid #eaebff; padding: 15px 10px;">
+                                            <table  width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="2"  valign="middle" class="talign_left tmedium fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
+                                                            Nombre
+                                                        </td>
+                                                        <td colspan="1"  valign="middle" class="talign_left tmedium fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
+                                                            Total
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="2" valign="middle" class="talign_left tmedium fnt_13pt" style="color: #1B243E; font-size: 13pt; line-height: 1.2;">
+                                                            {{$prodName}}
+                                                        </td>
+                                                        <td colspan="1" valign="middle" class="talign_left tmedium fnt_13pt" style="color: #1B243E; font-size: 13pt; line-height: 1.2;">
+                                                            $ {{$prodTotal}} MXN
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                    @if ($isApprove == 1)
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            Ha sido
+                                            <span class="tbold">ABROBADO</span>;
+                                            por lo que ahora aparecera en la lista de productos del sitio principal.
+                                          </td>
+                                        </tr>
+                                    @elseif ($isApprove == 0)
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            Ha sido
+                                            <span class="tbold">DESAPROBADO</span>.
+                                            Recibira un correo con las razones de este motivo.
+                                          </td>
+                                        </tr>
+                                    @endif
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                    @if ($isApprove == 1)
                                         <tr>
                                             <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                                Puede acceder a su cuenta con las credenciales registradas con anterioridad.
+                                                Puede revisarlo en la sección "Productos" desde el panel de su cuenta en el sitio.
                                             </td>
+                                        </tr>
+                                    @elseif ($isApprove == 0)
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            En caso de no recibir el correo, pongase en contacto con el administrador del sitio.
+                                          </td>
                                         </tr>
                                     @endif
                                         <tr>

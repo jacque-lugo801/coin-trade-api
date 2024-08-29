@@ -11,7 +11,8 @@
         "jenssegers/agent": "^2.6",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
-        "laravel/tinker": "^2.8"
+        "laravel/tinker": "^2.8",
+        "moneyphp/money": "^4.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

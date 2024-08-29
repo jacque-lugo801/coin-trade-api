@@ -179,6 +179,8 @@
                                           <td class="talign_center image_logo1" style="font-size: 0; line-height: 0" >
                                             <!-- <img src="http://localhost:4200/assets/icons/logos/[Project Files] Logo_CoinTrade.png" width="250" alt=""/> -->
                                             <!-- <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/> -->
+                                            <!-- <img src="{{$message->embed('images/[Project Files] Logo_CoinTrade.png')}}" width="250" alt=""/> -->
+                                            <!-- <img src="{{ asset('storage/images/' .$imageLogo) }}" width="250" alt=""/> -->
                                             
                                             <img src="{{$message->embed($imageLogo)}}" width="250" alt=""/>
                                           </td>
@@ -226,7 +228,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_center tbold fnt_20pt" style="color: #C78A37; font-size: 20pt; line-height: 1.75;">
-                                            Modificación a su cuenta
+                                            Solicitud de mejora a su producto
                                           </td>
                                         </tr>
                                         <tr>
@@ -257,11 +259,17 @@
                                   <td align="center" valign="middle" class="section1" style="padding: 0 40px;">
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                       <tbody>
-                                        <tr>
+                                        <!-- <tr>
                                           <td height="25" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
+                                        </tr> -->
+                                        <tr>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt prelative" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            {!! $messageContent !!}
+                                          </td>
                                         </tr>
+                                        <!--
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt prelative" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
                                             Hola, {{$name}} {{$lastname}}.
@@ -274,13 +282,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Su cuenta en nuestro sitio ha sido
-                                        @if ($statusAccount == 1)
-                                            <span class="tbold">AUTORIZADA</span>
-                                        @elseif ($statusAccount == 0)
-                                            <span class="tbold">DESAUTORIZADA</span>
-                                        @endif
-                                            .
+                                            Parece que su producto necesita mejorar para poder publicarse.
                                           </td>
                                         </tr>
                                         <tr>
@@ -288,13 +290,29 @@
                                             &nbsp;
                                           </td>
                                         </tr>
-                                    @if ($statusAccount == 1)
                                         <tr>
-                                            <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                                Puede acceder a su cuenta con las credenciales registradas con anterioridad.
-                                            </td>
+                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
+                                            Revise el siguiente mensaje enviado por parte de la administracion y realice las mejoras solicitadas.
+                                          </td>
                                         </tr>
-                                    @endif
+                                        <tr>
+                                          <td height="25" style="font-size: 0; line-height: 0">
+                                            &nbsp;
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td style="border: 1px solid #eaebff; padding: 15px 10px;">
+                                            <table  width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                <tbody>
+                                                    <tr>
+                                                        <td valign="middle" class="talign_left tmedium fnt_13pt" style="color: #1B243E; font-size: 13pt; line-height: 1.2;">
+                                                            {!! $messageContent !!}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                          </td>
+                                        </tr> -->
                                         <tr>
                                           <td height="50" style="font-size: 0; line-height: 0">
                                             &nbsp;

@@ -178,7 +178,10 @@
                                         <tr>
                                           <td class="talign_center image_logo1" style="font-size: 0; line-height: 0" >
                                             <!-- <img src="http://localhost:4200/assets/icons/logos/[Project Files] Logo_CoinTrade.png" width="250" alt=""/> -->
-                                            <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/>
+                                            <!-- <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/> -->
+                                            
+                                            
+                                            <img src="{{$message->embed($imageLogo)}}" width="250" alt=""/>
                                           </td>
                                         </tr>
                                         <tr>
@@ -357,16 +360,6 @@
                                       <tbody>
                                         <tr>
                                           <td height="15" style="font-size: 0; line-height: 0">
-                                            &nbsp;
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td valign="middle" class="talign_left tmedium fnt_9pt" style="color: #6d6d6d; font-size: 9pt; line-height: 1.2;">
-                                            Si usted no ha solicitado el código de verificación ignore este correo electrónico.
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td height="10" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
                                         </tr>

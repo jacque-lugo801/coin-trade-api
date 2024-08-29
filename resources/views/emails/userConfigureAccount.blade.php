@@ -179,7 +179,6 @@
                                           <td class="talign_center image_logo1" style="font-size: 0; line-height: 0" >
                                             <!-- <img src="http://localhost:4200/assets/icons/logos/[Project Files] Logo_CoinTrade.png" width="250" alt=""/> -->
                                             <!-- <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/> -->
-                                            
                                             <img src="{{$message->embed($imageLogo)}}" width="250" alt=""/>
                                           </td>
                                         </tr>
@@ -226,7 +225,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_center tbold fnt_20pt" style="color: #C78A37; font-size: 20pt; line-height: 1.75;">
-                                            Modificación a su cuenta
+                                            Bienvenid@ a CoinTrade
                                           </td>
                                         </tr>
                                         <tr>
@@ -264,7 +263,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt prelative" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Hola, {{$name}} {{$lastname}}.
+                                            Hola, {{$name}}, tu cuenta ha sido configurada exitosamente.
                                           </td>
                                         </tr>
                                         <tr>
@@ -274,27 +273,9 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Su cuenta en nuestro sitio ha sido
-                                        @if ($statusAccount == 1)
-                                            <span class="tbold">AUTORIZADA</span>
-                                        @elseif ($statusAccount == 0)
-                                            <span class="tbold">DESAUTORIZADA</span>
-                                        @endif
-                                            .
+                                            Ahora puede ingresar al sitio usando las credenciales registradas durante el proceso de 'Verificación de cuenta'.
                                           </td>
                                         </tr>
-                                        <tr>
-                                          <td height="25" style="font-size: 0; line-height: 0">
-                                            &nbsp;
-                                          </td>
-                                        </tr>
-                                    @if ($statusAccount == 1)
-                                        <tr>
-                                            <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                                Puede acceder a su cuenta con las credenciales registradas con anterioridad.
-                                            </td>
-                                        </tr>
-                                    @endif
                                         <tr>
                                           <td height="50" style="font-size: 0; line-height: 0">
                                             &nbsp;

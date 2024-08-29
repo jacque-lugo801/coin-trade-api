@@ -9,23 +9,25 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UserActivatedByAdmin extends Mailable
+class ProductRequestUpgradeByAdmin extends Mailable
 {
     use Queueable, SerializesModels;
+
     public $name;
     public $lastname;
-    public $statusAccount;
+    public $prodName;
+    public $messageContent;
     public $imageLogo;
-
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname, $statusAccount, $imageLogo)
+    public function __construct($name, $lastname, $prodName, $messageContent, $imageLogo)
     {
         //
         $this->name             = $name;
         $this->lastname         = $lastname;
-        $this->statusAccount    = $statusAccount;
+        $this->prodName         = $prodName;
+        $this->messageContent   = $messageContent;
         $this->imageLogo        = $imageLogo;
     }
 
@@ -35,8 +37,8 @@ class UserActivatedByAdmin extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Su cuenta ha sido modificada',
-            tags: ['modificación', 'cointrade'],
+            subject: 'Solicitud de mejora de producto',
+            tags: ['solicitud', 'mejor', 'producto', 'cointrade'],
         );
     }
 
@@ -46,7 +48,7 @@ class UserActivatedByAdmin extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.userActivatedByAdmin',
+            view: 'emails.productRequestUpgradeByAdmin',
         );
     }
 
@@ -58,6 +60,10 @@ class UserActivatedByAdmin extends Mailable
     public function attachments(): array
     {
         return [];
+        
+        // return [
+        //     Attachment::fromPath($this->imagePath),
+        // ];
     }
     /**
      * Build the message.
@@ -65,12 +71,13 @@ class UserActivatedByAdmin extends Mailable
     public function build()
     {
         return
-            $this->view('emails.userActivatedByAdmin')
+            $this->view('emails.productRequestUpgradeByAdmin')
                 ->with([
-                    'name'          => $this->name,
-                    'lastname'      => $this->lastname,
-                    'statusAccount' => $this->statusAccount,
-                    'imageLogo'     => $this->imageLogo,
+                    'name'              => $this->name,
+                    'lastname'          => $this->lastname,
+                    'prodName'          => $this->prodName,
+                    'messageContent'    => $this->messageContent,
+                    'imageLogo'         => $this->imageLogo,
                 ]);
     }
 }

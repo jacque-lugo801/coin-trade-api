@@ -16,14 +16,16 @@ class UserRegisterAccountMail extends Mailable
     public $code;
     public $name;
     public $lastName;
+    public $imageLogo;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname)
+    public function __construct($name, $lastname, $imageLogo)
     {
-        $this->name = $name;
-        $this->lastName = $lastname;
+        $this->name         = $name;
+        $this->lastName     = $lastname;
+        $this->imageLogo    = $imageLogo;
     }
 
     /**
@@ -55,5 +57,18 @@ class UserRegisterAccountMail extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+    /**
+     * Build the message.
+     */
+    public function build()
+    {
+        return
+            $this->view('emails.userRegisterAccount')
+                ->with([
+                    'name'      => $this->name,
+                    'lastName'  => $this->lastName,
+                    'imageLogo' => $this->imageLogo,
+                ]);
     }
 }

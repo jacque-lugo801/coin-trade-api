@@ -90,6 +90,7 @@ class UserController extends Controller
 
                 $code = $this->setCode();
 
+                
                 // //Creacion de usuario
                 $user = new User();
                 $user->usu_name                 = $paramsArray['name'];
@@ -141,10 +142,13 @@ class UserController extends Controller
                 $fiscal = (new UserFiscalDataController)
                     ->saveSignupFiscalData($fiscalParams);
 
-                    
+                
+
+
                 // Send email that its created
 
-                (new MailController)->userVerificationCode($paramsArray);
+                (new MailController)->userVerificationCode($request);
+                // (new MailController)->userVerificationCode($paramsArray);
                 // $this->userVerificationCode($request);
 
                 $data = array(
@@ -156,23 +160,112 @@ class UserController extends Controller
         }
         return response()->json($data, $data['code']);
     }
-
-    public function userVerificationCode(Request $request) {
+    // Registro de una nueva cuenta para el sitio
+    public function userConfigureAccount(Request $request) {
+        // Recoger datos usuarios
         $json = $request->input('json', null);
         
         $params         = json_decode($json); //objeto
         $paramsArray    = json_decode($json, true);   //array
+        
 
-        // echo 'hola';
-
-        var_dump($params);
         if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
+            $validate = \Validator::make($paramsArray, [
+                'name'  => 'required',
+                'lastname'  => 'required',
+                'mail'      => 'required | email',
+                'rol'       => 'required',
+                'rolKey'    => 'required',
+                
+                'username'  => 'required | alpha_num | unique:users,usu_username',
+                'pwd'       => 'required',
+                'terms'     => 'required',
+            ],
+            [
+                'mail.unique'       => 'El email ya ha sido registrado.',
+                'username.unique'   => 'El nombre de usuario ya existe.',
+            ]);
+
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 402,
+                    'message'   => 'Ha ocurrido un error en el registro',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+
+                $pwd = hash('sha256', $params->pwd);    //Cifrado de contraseña
+                
+                
+                $user = User::where([
+                    ['urol_idRol', '=', $params->rolKey],
+                    ['usu_email', '=', $params->mail]
+                ])->first();
+                
+                // var_dump($user);
+                // die();
+                
+                $updateParams = array(
+                    'usu_username'      => $paramsArray['username'],
+                    'usu_pswd'          => $pwd,
+                    'usu_isVerificated' => 1,
+                );
+                
+                $update= User::where('usu_idUser', '=', $user->usu_idUser)
+                    ->update($updateParams);
+
+                
+                $paramsMail = array(
+                    'name'      => $user->usu_name,
+                    'lastname'  => $user->usu_lastname,
+                    'mail'      => $user->usu_email,
+                    // 'rolEnc'    => $rolEnc,
+                );
+
+                // var_dump($paramsMail);
+                // die();
+
+                // Send email that its created
+                (new MailController)->userConfigureAccount($paramsMail);
+
+                
+                // die();
+
+                if(!empty($update) || $update == 1) {
+                    $data = array(
+                        'status'    => 'success',
+                        'code'      => 200,
+                        'message'   => 'El usuario se ha creado correctamente',
+                    );
+                }
+                else {
+                    
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 403,
+                        'message'   => 'Ha ocurrido un error al configurar su cuenta.'
+                    );
+                }
+            }
         }
         return response()->json($data, $data['code']);
+    }
+
+    public function userVerificationCode(Request $request) {
+        // $json = $request->input('json', null);
         
-    //     (new MailController)->userVerificationCode($paramsArray);
-        
+        // $params         = json_decode($json); //objeto
+        // $paramsArray    = json_decode($json, true);   //array
+
+        // // echo 'hola';
+
+        // if(!empty($params) && !empty($paramsArray)) {
+        //     (new MailController)->userVerificationCode($paramsArray);
+        // }
     }
 
     
@@ -228,7 +321,7 @@ class UserController extends Controller
                             'status'    => 'error',
                             'code'      => 402,
                             'message'   => 'Ha ocurrido un error en la validación.',
-                            'errors'    => $validate->errors()
+                            'errors'    => $validateCreated->errors()
                         );
                     }
                     else {
@@ -248,7 +341,7 @@ class UserController extends Controller
 
                         $dbUserCode = $userData->usu_verification_code;
 
-                        if($code === $dbUserCode) {
+                        if($params->code === $dbUserCode) {
 
                             // Save validation flag usu_isVerificated
                             $paramsUpdate = array (
@@ -264,8 +357,6 @@ class UserController extends Controller
                                 ->update($paramsUpdate);
 
                             if($userUpdate || $userUpdate == 1) {
-
-
                                 $data = array(
                                     'status'    => 'success',
                                     'code'      => 200,
@@ -305,7 +396,7 @@ class UserController extends Controller
                             'status'    => 'error',
                             'code'      => 402,
                             'message'   => 'Ha ocurrido un error en la validación.',
-                            'errors'    => $validate->errors()
+                            'errors'    => $validateCreated->errors()
                         );
                     }
                     else {
@@ -315,6 +406,42 @@ class UserController extends Controller
                         ])->first();
 
                         $dbUserCode = $userData->usu_verification_code;
+
+                        // var_dump($dbUserCode);
+                        // die();
+                        if($params->code === $dbUserCode) {
+                            // $paramsUpdate = array (
+                            //     "usu_isVerificated"  => 1,
+                            // );
+                            // $userUpdate = User::where('usu_idUser', $userData->usu_idUser)
+                            //     // ->update([
+                            //     //     'usu_birth_date' => $params->birthdate
+                            //     // ]);
+                            //     ->update($paramsUpdate);
+
+                            // if($userUpdate || $userUpdate == 1) {
+                                $data = array(
+                                    'status'    => 'success',
+                                    'code'      => 200,
+                                    'message'   => 'Se ha validado correctamente el código de verificación.',
+                                );
+                            // }
+                            // else {
+
+                            //     $data = array(
+                            //         'status'    => 'error',
+                            //         'code'      => 405,
+                            //         'message'   => 'Ha ocurrido un error al validar el código',
+                            //     );
+                            // }
+                        }
+                        else {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 403,
+                                'message'   => 'El código de verificación es incorrecto.',
+                            );
+                        }
                     }
                 }
 
@@ -348,11 +475,12 @@ class UserController extends Controller
         }
         else {
             $pwd =  hash('sha256', $params->pwd);
+            // var_dump($params);
+            // die();
 
             // Devolver token o datos
             $signin = $jwtAuth->signin($params->mail, $pwd);
 
-            // var_dump($params);
             // var_dump(!empty($params->getToken));
             // die();
             if(!empty($params->getToken)) {
@@ -489,12 +617,9 @@ class UserController extends Controller
             $validate = \Validator::make($paramsArray, [
                 'name'          => 'required',
                 'mail'          => 'required | email',
-                'middlename'    => 'nullable',
                 'lastname'      => 'required',
-                'lastname2'     => 'nullable',
-                'birthdate'     => 'required',
                 'phone'         => 'required',
-                'country'       => 'required',
+                'isBS'          => 'required',
             ]);
 
             if($validate->fails()) {
@@ -506,64 +631,122 @@ class UserController extends Controller
                 );
             }
             else {
-                // var_dump(
-                //     $paramsArray['middlename']
-                // );
-                // var_dump(
-                //     $paramsArray['lastname']
-                // );
 
-                // die();
+                if($params->isBS == 1) {
+                    $validateBuyerSeller = \Validator::make($paramsArray, [
+                        'middlename'    => 'nullable',
+                        'lastname2'     => 'nullable',
+                        'birthdate'     => 'required',
+                        'country'       => 'required',
+                    ]);
 
+                    if($validateBuyerSeller->fails()) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 402,
+                            'message'   => 'Ha ocurrido un error en la validación.',
+                            'errors'    => $validateBuyerSeller->errors()
+                        );
+                    }
+                    else {
+                        $paramsUserUpdate = array (
+                            "usu_name"          => $params->name,
+                            "usu_middle_name"   => $params->middlename,
+                            "usu_lastname"      => $params->lastname,
+                            "usu_lastname2"     => $params->lastname2,
+                            "usu_birth_date"    => $params->birthdate,
+                            // "usu_email"         => $params->mail,
+                            "usu_phone"         => $params->phone,
+                            // "" => $params->country,
+                        );
+                        // $paramsShippingUpdate = array(
+                        //     "usad_country"         => $params->phone,
+                        // );
+        
+                        // var_dump($paramsUserUpdate);
+                        // var_dump($paramsUserUpdate['usu_middle_name']);
+                        // var_dump($user->usu_idUser);
+                        // die();
+                        $userUpdate = User::where('usu_idUser', $user->usu_idUser)
+                            // ->update([
+                            //     'usu_birth_date' => $params->birthdate
+                            // ]);
+                            ->update($paramsUserUpdate);
+        
+                        // var_dump($user);
+                        $newUser = User::where([
+                            'usu_idUser' => $user->usu_idUser,
+                            'usu_email'  => $user->usu_email,
+                        ])
+                        ->first();
+                        // var_dump($newUser);
+        
+        
+                        $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
+                        // var_dump($newToken);
+                        $newIdentity = $jwtAuth->decode($newToken);
+                        // var_dump($newIdentity);
+                        // die();
+                        // Devolver array con resultado
+                        $data = array(
+                            'status'    => 'success',
+                            'code'      => 200,
+                            'message'   => 'Los datos se han actualizado exitosamente',
+                            'user'      => $user,
+                            // 'changes'   => $paramsArray
+                            'token'      => $newToken,
+                            'identity'   => $newIdentity
+                        );
+                    }
+                }
+                else {
+                    $paramsUserUpdate = array (
+                        "usu_name"          => $params->name,
+                        "usu_lastname"      => $params->lastname,
+                        // "usu_email"         => $params->mail,
+                        "usu_phone"         => $params->phone,
+                    );
+                    // $paramsShippingUpdate = array(
+                    //     "usad_country"         => $params->phone,
+                    // );
+    
+                    // var_dump($paramsUserUpdate);
+                    // var_dump($paramsUserUpdate['usu_middle_name']);
+                    // var_dump($user->usu_idUser);
+                    // die();
+                    $userUpdate = User::where('usu_idUser', $user->usu_idUser)
+                        // ->update([
+                        //     'usu_birth_date' => $params->birthdate
+                        // ]);
+                        ->update($paramsUserUpdate);
+    
+                    // var_dump($user);
+                    $newUser = User::where([
+                        'usu_idUser' => $user->usu_idUser,
+                        'usu_email'  => $user->usu_email,
+                    ])
+                    ->first();
+                    // var_dump($newUser);
+    
+    
+                    $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
+                    // var_dump($newToken);
+                    $newIdentity = $jwtAuth->decode($newToken);
+                    // var_dump($newIdentity);
+                    // die();
+                    // Devolver array con resultado
+                    $data = array(
+                        'status'    => 'success',
+                        'code'      => 200,
+                        'message'   => 'Los datos se han actualizado exitosamente',
+                        'user'      => $user,
+                        // 'changes'   => $paramsArray
+                        'token'      => $newToken,
+                        'identity'   => $newIdentity
+                    );
+
+                }
                 
-                $paramsUserUpdate = array (
-                    "usu_name"          => $params->name,
-                    "usu_middle_name"   => $params->middlename,
-                    "usu_lastname"      => $params->lastname,
-                    "usu_lastname2"     => $params->lastname2,
-                    "usu_birth_date"    => $params->birthdate,
-                    "usu_email"         => $params->mail,
-                    "usu_phone"         => $params->phone,
-                    // "" => $params->country,
-                );
-                // $paramsShippingUpdate = array(
-                //     "usad_country"         => $params->phone,
-                // );
-
-                // var_dump($paramsUserUpdate);
-                // var_dump($paramsUserUpdate['usu_middle_name']);
-                // var_dump($user->usu_idUser);
-                // die();
-                $userUpdate = User::where('usu_idUser', $user->usu_idUser)
-                    // ->update([
-                    //     'usu_birth_date' => $params->birthdate
-                    // ]);
-                    ->update($paramsUserUpdate);
-
-                // var_dump($user);
-                $newUser = User::where([
-                    'usu_idUser' => $user->usu_idUser,
-                    'usu_email'  => $user->usu_email,
-                ])
-                ->first();
-                // var_dump($newUser);
-
-
-                $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
-                // var_dump($newToken);
-                $newIdentity = $jwtAuth->decode($newToken);
-                // var_dump($newIdentity);
-                // die();
-                // Devolver array con resultado
-                $data = array(
-                    'status'    => 'success',
-                    'code'      => 200,
-                    'message'   => 'Los datos se han actualizado exitosamente',
-                    'user'      => $user,
-                    // 'changes'   => $paramsArray
-                    'token'      => $newToken,
-                    'identity'   => $newIdentity
-                );
             }
         }
         else {
@@ -846,8 +1029,8 @@ class UserController extends Controller
                 ]
                 
             )
-        ->
-            whereNot('usu_idUser', $user->usu_idUser)
+        // ->
+        //     whereNot('usu_idUser', $user->usu_idUser)
         ->
         get()
         ->load('userRol')
@@ -1599,7 +1782,7 @@ class UserController extends Controller
                             'status'    => 'error',
                             'code'      => 402,
                             'message'   => 'Ha ocurrido un error en la actualización de datos',
-                            'errors'    => $validate->errors()
+                            'errors'    => $validateSellerBuyer->errors()
                         );
                     }
                     else {

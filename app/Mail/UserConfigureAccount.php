@@ -9,35 +9,32 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UserVerificationCodeMail extends Mailable
+class UserConfigureAccount extends Mailable
 {
     use Queueable, SerializesModels;
     
     public $name;
     public $lastname;
-    public $code;
+    public $website;
     public $imageLogo;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname, $code, $imageLogo)
+    public function __construct($name, $lastname, $website, $imageLogo)
     {
-        $this->name         = $name;
-        $this->lastname     = $lastname;
-        $this->code         = $code;
-        $this->imageLogo    = $imageLogo;
+        $this->name     = $name;
+        $this->lastname = $lastname;
+        $this->website  = $website;
     }
-
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            // from: new Address('cointrade@example.com', 'Jeffrey Way'),
-            subject: 'Verifica tu correo electrónico para CoinTrade',
-            tags: ['código', 'verificación'],
+            subject: 'Hola ¡Te damos la bienvenida a CoinTrade!',
+            tags: ['bienvenida', 'cointrade'],
         );
     }
 
@@ -47,7 +44,7 @@ class UserVerificationCodeMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.userVerificationCode',
+            view: 'emails.userConfigureAccount',
         );
     }
 
@@ -60,18 +57,17 @@ class UserVerificationCodeMail extends Mailable
     {
         return [];
     }
-    
     /**
      * Build the message.
      */
     public function build()
     {
         return
-            $this->view('emails.userVerificationCode')
+            $this->view('emails.userConfigureAccount')
                 ->with([
                     'name'      => $this->name,
                     'lastname'  => $this->lastname,
-                    'code'      => $this->code,
+                    'website'   => $this->website,
                     'imageLogo' => $this->imageLogo,
                 ]);
     }

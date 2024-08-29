@@ -28,11 +28,14 @@ class JwtAuth {
     public $key;
     public $keyWeb;
     public $keyWeb64;
+    public $passEncode;
     
     public function __construct(){
         $this->key = '_#C01N-TR4D3#_';
         $this->keyWeb = 'COIN_TRADE@2024';
         $this->keyWeb64 = base64_encode($this->keyWeb);
+
+        $this->passEnconde = 'Q09JTl9UUkFERUAyMDI0';
         // Q09JTl9UUkFERUAyMDI0
     }
 
@@ -363,18 +366,20 @@ class JwtAuth {
     public function generateToken($user) {
         // echo 'generating token';
 
+        // print_r('<pre>');
+        // print_r($user);
+        // print_r('</pre>');
+        // die();
+
         // Obtener el rol del ususario
         $rol = UserRol::where([
             'urol_idRol' => $user->urol_idRol,
         ])->first();
+
         $status = UserStatus::where([
             'usts_idStatus' => $user->usts_idStatus,
         ])->first();
-        $address = UserShippingAddress::where([
-            'usu_idUser' => $user->usu_idUser,
-            // 'usu_idUser' => '3',
-        ])->get();
-
+        
         $userLog = UserLog::where ([
             'usu_idUser' => $user->usu_idUser,
             // 'usu_idUser' => '3',
@@ -383,13 +388,101 @@ class JwtAuth {
         ->first();
         // print_r($address);
         
-        // var_dump(count($address));
-        // print_r('<pre>');
-        // print_r($address);
-        // print_r('</pre>');
+
+        if($user->urol_idRol == 2 || $user->urol_idRol == 3) {
+            $token = $this->generateBuyerSeller($user, $rol, $status, $userLog);
+        }
+        else {
+            $token = $this->generateAdmin($user, $rol, $status, $userLog);
+        }
+
+
+        return $token;
         // die();
+        // // print_r($address);
         
-        if($address){
+        // // // var_dump(count($address));
+        // // print_r('<pre>');
+        // // print_r($address);
+        // // print_r('</pre>');
+        // // var_dump(count($address));
+        // // die();
+        
+        // // die();
+        
+        // // Generar token con los datos del usuario identificado
+        // $token = array(
+        //     'usu_idUser'        => $user->usu_idUser,
+        //     'usu_name'          => $user->usu_name,
+        //     'usu_middle_name'   => $user->usu_middle_name,
+        //     'usu_lastname'      => $user->usu_lastname,
+        //     'usu_lastname2'     => $user->usu_lastname2,
+        //     'usu_phone'         => $user->usu_phone,
+        //     'usu_phone_local'   => $user->usu_phone_local,
+        //     'usu_birth_date'    => $user->usu_birth_date,
+
+        //     'usu_username'      => $user->usu_username,
+        //     'usu_email'         => $user->usu_email,
+        //     'usu_isTerms'       => $user->usu_isTerms,
+        //     'usu_isAuthorized'  => $user->usu_isAuthorized,
+        //     'usu_created_date'  => $user->usu_created_date,
+        //     'usu_updated_date'  => $user->usu_updated_date,
+
+        //     'urol_idRol'        => $rol->urol_idRol,
+        //     'urol_name'         => $rol->urol_name,
+        //     'urol_description'  => $rol->urol_description,
+
+        //     'usts_idStatus'     => $status->usts_idStatus,
+        //     'usts_name'         => $status->usts_name,
+        //     'usts_description'  => $status->usts_description,
+        //     'ulog_date_access'  => $userLog->ulog_date_access,
+        //     // 'device'          => $device,
+        //     // 'platform'          => $platform,
+        //     // 'browser'          => $browser,
+        //     // 'isDesktop'          => $isDesktop,
+        //     // 'isPhone'          => $isPhone,
+        //     // 'isRobot'          => $isRobot,
+
+        //     // 'usad_country'          => $address->usad_country,
+        //     // 'usad_state'          => $address->usad_state,
+        //     // 'usad_city'          => $address->usad_city,
+        //     // 'usad_address'          => $address->usad_address,
+        //     // 'usad_isDefault'          => $address->usad_isDefault,
+
+        //     // 'usts_idStatus'          => $rol->usts_idStatus,
+
+        //     // 'usu_mail_account'         => $user->usu_mail_account,
+
+        //     // 'status'        => $user->usts_idStatus,
+        //     // 'status'        => $status->usts_name,
+        //     // 'rol'           => $user->urol_idRol,
+        //     // 'rol'           => $rol->urol_name,
+        //     'iat'           => time(),//fecha en que se ha creado el token
+        //     'exp'           => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
+        // );
+
+
+    }
+
+    public function encode($data) {
+        return JWT::encode($data, $this->key, 'HS256'); // HS256 algoritmo de cifrado
+    }
+
+    public function decode($data) {
+        return JWT::decode($data, new Key($this->key, 'HS256'));
+    }
+
+    public function generateBuyerSeller($user, $rol, $status, $userLog) {
+        $address = UserShippingAddress::where([
+            'usu_idUser' => $user->usu_idUser,
+            // 'usu_idUser' => '3',
+        ])->get();
+
+
+        // var_dump($user);
+
+        
+        if($address && count($address) > 0){
             
             foreach($address as $ads){
                 // echo '--------';
@@ -428,36 +521,32 @@ class JwtAuth {
 
         }
 
-        // die();
-        
+
         // Generar token con los datos del usuario identificado
-
-
-
         $token = array(
             'usu_idUser'        => $user->usu_idUser,
             'usu_name'          => $user->usu_name,
-            'usu_middle_name'    => $user->usu_middle_name,
+            'usu_middle_name'   => $user->usu_middle_name,
             'usu_lastname'      => $user->usu_lastname,
             'usu_lastname2'     => $user->usu_lastname2,
             'usu_phone'         => $user->usu_phone,
-            'usu_phone_local'         => $user->usu_phone_local,
-            'usu_birth_date'     => $user->usu_birth_date,
+            'usu_phone_local'   => $user->usu_phone_local,
+            'usu_birth_date'    => $user->usu_birth_date,
 
             'usu_username'      => $user->usu_username,
-            'usu_email'          => $user->usu_email,
-            'usu_isTerms'          => $user->usu_isTerms,
-            'usu_isAuthorized'          => $user->usu_isAuthorized,
-            'usu_created_date'          => $user->usu_created_date,
-            'usu_updated_date'          => $user->usu_updated_date,
+            'usu_email'         => $user->usu_email,
+            'usu_isTerms'       => $user->usu_isTerms,
+            'usu_isAuthorized'  => $user->usu_isAuthorized,
+            'usu_created_date'  => $user->usu_created_date,
+            'usu_updated_date'  => $user->usu_updated_date,
 
-            'urol_idRol'          => $rol->urol_idRol,
-            'urol_name'          => $rol->urol_name,
-            'urol_description'          => $rol->urol_description,
+            'urol_idRol'        => $rol->urol_idRol,
+            'urol_name'         => $rol->urol_name,
+            'urol_description'  => $rol->urol_description,
 
-            'usts_idStatus'          => $status->usts_idStatus,
-            'usts_name'          => $status->usts_name,
-            'usts_description'          => $status->usts_description,
+            'usts_idStatus'     => $status->usts_idStatus,
+            'usts_name'         => $status->usts_name,
+            'usts_description'  => $status->usts_description,
             'ulog_date_access'  => $userLog->ulog_date_access,
             // 'device'          => $device,
             // 'platform'          => $platform,
@@ -483,7 +572,7 @@ class JwtAuth {
             'iat'           => time(),//fecha en que se ha creado el token
             'exp'           => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
         );
-
+        
         if($address){
             // echo 'Hay data';
             // $token['usad_country']    = $address->usad_country;
@@ -512,18 +601,67 @@ class JwtAuth {
             // $token['usad_isDefault']  = NULL;
         }
 
-
+        // var_dump($token);
         return $token;
 
 
+
     }
 
-    public function encode($data) {
-        return JWT::encode($data, $this->key, 'HS256'); // HS256 algoritmo de cifrado
-    }
+    public function generateAdmin($user, $rol, $status, $userLog) {
 
-    public function decode($data) {
-        return JWT::decode($data, new Key($this->key, 'HS256'));
+        // Generar token con los datos del usuario identificado
+        $token = array(
+            'usu_idUser'        => $user->usu_idUser,
+            'usu_name'          => $user->usu_name,
+            'usu_middle_name'   => $user->usu_middle_name,
+            'usu_lastname'      => $user->usu_lastname,
+            'usu_lastname2'     => $user->usu_lastname2,
+            'usu_phone'         => $user->usu_phone,
+            'usu_phone_local'   => $user->usu_phone_local,
+            // 'usu_birth_date'    => $user->usu_birth_date,
+
+            'usu_username'      => $user->usu_username,
+            'usu_email'         => $user->usu_email,
+            'usu_isTerms'       => $user->usu_isTerms,
+            'usu_isAuthorized'  => $user->usu_isAuthorized,
+            'usu_created_date'  => $user->usu_created_date,
+            'usu_updated_date'  => $user->usu_updated_date,
+
+            'urol_idRol'        => $rol->urol_idRol,
+            'urol_name'         => $rol->urol_name,
+            'urol_description'  => $rol->urol_description,
+
+            'usts_idStatus'     => $status->usts_idStatus,
+            'usts_name'         => $status->usts_name,
+            'usts_description'  => $status->usts_description,
+            'ulog_date_access'  => $userLog->ulog_date_access,
+            // 'device'          => $device,
+            // 'platform'          => $platform,
+            // 'browser'          => $browser,
+            // 'isDesktop'          => $isDesktop,
+            // 'isPhone'          => $isPhone,
+            // 'isRobot'          => $isRobot,
+
+            // 'usad_country'          => $address->usad_country,
+            // 'usad_state'          => $address->usad_state,
+            // 'usad_city'          => $address->usad_city,
+            // 'usad_address'          => $address->usad_address,
+            // 'usad_isDefault'          => $address->usad_isDefault,
+
+            // 'usts_idStatus'          => $rol->usts_idStatus,
+
+            // 'usu_mail_account'         => $user->usu_mail_account,
+
+            // 'status'        => $user->usts_idStatus,
+            // 'status'        => $status->usts_name,
+            // 'rol'           => $user->urol_idRol,
+            // 'rol'           => $rol->urol_name,
+            'iat'           => time(),//fecha en que se ha creado el token
+            'exp'           => time() + (7 * 24 * 60 * 60) //cuando va a caducar el token (aqui caduca en una semana)
+        );
+
+        return $token;
     }
 
     // falta

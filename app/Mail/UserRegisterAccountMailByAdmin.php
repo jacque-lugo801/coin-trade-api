@@ -22,21 +22,23 @@ class UserRegisterAccountMailByAdmin extends Mailable
     // public $mailEnc;
     public $website;
     // public $rol;
+    public $imageLogo;
 
 
     /**
      * Create a new message instance.
      */
     // public function __construct($name, $lastname, $rol, $rolEnc, $mailEnc, $website)
-    public function __construct($name, $lastname, $rol, $account, $website)
+    public function __construct($name, $lastname, $rol, $account, $website, $imageLogo)
     {
-        $this->name = $name;
-        $this->lastname = $lastname;
-        $this->account = $account;
-        $this->rol = $rol;
+        $this->name         = $name;
+        $this->lastname     = $lastname;
+        $this->account      = $account;
+        $this->rol          = $rol;
         // $this->rolEnc = $rolEnc;
         // $this->mailEnc = $mailEnc;
-        $this->website = $website;
+        $this->website      = $website;
+        $this->imageLogo    = $imageLogo;
     }
 
     /**
@@ -68,5 +70,21 @@ class UserRegisterAccountMailByAdmin extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+    /**
+     * Build the message.
+     */
+    public function build()
+    {
+        return
+            $this->view('emails.userRegisterAccountByAdmin')
+                ->with([
+                    'name'      => $this->name,
+                    'lastname'  => $this->lastname,
+                    'account'   => $this->account,
+                    'rol'       => $this->rol,
+                    'website'   => $this->website,
+                    'imageLogo' => $this->imageLogo,
+                ]);
     }
 }

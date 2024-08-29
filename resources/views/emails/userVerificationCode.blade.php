@@ -205,7 +205,8 @@
                                         <tr>
                                           <td class="talign_center image_logo1" style="font-size: 0; line-height: 0" >
                                             <!-- <img src="http://localhost:4200/assets/icons/logos/[Project Files] Logo_CoinTrade.png" width="250" alt=""/> -->
-                                            <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/>
+                                            <!-- <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/> -->
+                                            <img src="{{$message->embed($imageLogo)}}" width="250" alt=""/>
                                           </td>
                                         </tr>
                                         <tr>

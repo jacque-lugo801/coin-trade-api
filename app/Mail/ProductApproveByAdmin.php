@@ -7,25 +7,35 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 
-class UserVerificationCodeMail extends Mailable
+class ProductApproveByAdmin extends Mailable
 {
     use Queueable, SerializesModels;
-    
+
     public $name;
     public $lastname;
-    public $code;
+    public $prodName;
+    // public $imageF;
+    // public $imageB;
+    public $isApprove;
+    public $prodTotal;
     public $imageLogo;
-
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname, $code, $imageLogo)
+    // public function __construct($name, $lastname, $prodName, $imageF, $imageB, $isApprove, $imageLogo)
+    public function __construct($name, $lastname, $prodName, $prodTotal, $isApprove, $imageLogo)
     {
+        //
         $this->name         = $name;
         $this->lastname     = $lastname;
-        $this->code         = $code;
+        $this->prodName     = $prodName;
+        // $this->imageF   = $imageF;
+        // $this->imageB   = $imageB;
+        $this->prodTotal    = $prodTotal;
+        $this->isApprove    = $isApprove;
         $this->imageLogo    = $imageLogo;
     }
 
@@ -35,9 +45,8 @@ class UserVerificationCodeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            // from: new Address('cointrade@example.com', 'Jeffrey Way'),
-            subject: 'Verifica tu correo electrónico para CoinTrade',
-            tags: ['código', 'verificación'],
+            subject: 'Información sobre su producto',
+            tags: ['informacion', 'producto', 'cointrade'],
         );
     }
 
@@ -47,7 +56,7 @@ class UserVerificationCodeMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.userVerificationCode',
+            view: 'emails.productApproveByAdmin',
         );
     }
 
@@ -59,19 +68,26 @@ class UserVerificationCodeMail extends Mailable
     public function attachments(): array
     {
         return [];
+        
+        // return [
+        //     Attachment::fromPath($this->imagePath),
+        // ];
     }
-    
     /**
      * Build the message.
      */
     public function build()
     {
         return
-            $this->view('emails.userVerificationCode')
+            $this->view('emails.productApproveByAdmin')
                 ->with([
                     'name'      => $this->name,
                     'lastname'  => $this->lastname,
-                    'code'      => $this->code,
+                    'prodName'  => $this->prodName,
+                    // 'imageF' => $this->imageF,
+                    // 'imageB' => $this->imageB,
+                    'prodTotal' => $this->prodTotal,
+                    'isApprove' => $this->isApprove,
                     'imageLogo' => $this->imageLogo,
                 ]);
     }

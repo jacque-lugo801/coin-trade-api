@@ -15,16 +15,18 @@ class UserAuthorizedByAdmin extends Mailable
     public $name;
     public $lastname;
     public $statusAccount;
+    public $imageLogo;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname, $statusAccount)
+    public function __construct($name, $lastname, $statusAccount, $imageLogo)
     {
         //
-        $this->name = $name;
-        $this->lastname = $lastname;
-        $this->statusAccount = $statusAccount;
+        $this->name             = $name;
+        $this->lastname         = $lastname;
+        $this->statusAccount    = $statusAccount;
+        $this->imageLogo        = $imageLogo;
     }
 
     /**
@@ -56,5 +58,19 @@ class UserAuthorizedByAdmin extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+    /**
+     * Build the message.
+     */
+    public function build()
+    {
+        return
+            $this->view('emails.userAuthorizedByAdmin')
+                ->with([
+                    'name'          => $this->name,
+                    'lastname'      => $this->lastname,
+                    'statusAccount' => $this->statusAccount,
+                    'imageLogo'     => $this->imageLogo,
+                ]);
     }
 }

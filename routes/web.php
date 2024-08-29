@@ -15,6 +15,9 @@ use App\Http\Controllers\ProductGroupController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductRatingController;
 use App\Http\Controllers\ProductFavoriteController;
+use App\Http\Controllers\ProductStatusController;
+
+use App\Http\Controllers\NotificationController;
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
@@ -50,6 +53,9 @@ Route::get('/view-verification-code', function () {
 Route::get('/view-authorized', function () {
     return view('emails/userAuthorizedByAdmin');
 });
+Route::get('/view-approve-product', function () {
+    return view('emails/productApproveByAdmin');
+});
 // END Views
 
 // Image
@@ -61,13 +67,15 @@ Route::post('api/user/signup', [UserController::class, 'signup']);
 Route::post('api/user/signin', [UserController::class, 'signin']);
 
 // Envio de e-mail con código de verificación
-// Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
+Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
 // Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
-Route::post('/api/user/send-code', [UserController::class, 'userVerificationCode']);
+// Route::post('/api/user/send-code', [UserController::class, 'userVerificationCode']);
 Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
 Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);
 
 Route::post('/api/user/register-account', [MailController::class, 'userRegisterAccount']);
+
+Route::put('/api/user/configure-account', [UserController::class, 'userConfigureAccount']);
 
 
 
@@ -134,6 +142,10 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
     Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsRatedFmUser']);
     Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct']);
     Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser']);
+    
+    Route::get('/api/products/status', [ProductStatusController::class, 'getStatus']);
+    Route::put('/api/products/update-product', [ProductController::class, 'updateProduct']);
+    Route::get('/api/product/product/{idProduct}', [ProductController::class, 'getProductInfo']);
 
     // CART
     Route::get('/api/cart/', [CartController::class, 'getCart']);
@@ -162,10 +174,14 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     Route::put('/api/user/activate', [UserController::class, 'activateUser']);
     Route::put('/api/user/update-user', [UserController::class, 'updateUser']);
     // Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
-
+    
     // ROLES
     Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles']);
     
     // PRODUCTS
-    Route::get('/api/products/verify-products', [ProductController::class, 'getProductsForVerification']);
+    Route::get('/api/products/products-verify', [ProductController::class, 'getProductsForVerification']);
+    Route::put('/api/products/approve', [ProductController::class, 'approveDisapproveProduct']);
+
+    // NOTIFICATIONS
+    Route::post('/api/notifications/request-upgrade', [NotificationController::class, 'sendRequestUpgrade']);
 });
