@@ -68,3 +68,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 LARAVEL VERSION
 (v10.2.9)
+
+php artisan config:clear            
+php artisan route:clear
+php artisan cache:clear

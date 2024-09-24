@@ -23,7 +23,6 @@ class ApiAuthMiddleware
         $checkToken = $jwtAuth->checkToken($token);
 
         if($checkToken) {
-            
             $user = $jwtAuth->checkToken($token, true);
 
             if(
@@ -39,18 +38,14 @@ class ApiAuthMiddleware
             else {
                 return $next($request);
             }
-
-            // return $next($request);
         }
         else {
             $data = array(
                 'status'    => 'error',
-                'code'      => 404,
+                'code'      => 401,
                 // 'message'   => 'Error de identificación',
                 'message'   => 'El usuario no esta identificado Mid',
             );
-
-
             return response()->json($data, $data['code']);
         }
     }

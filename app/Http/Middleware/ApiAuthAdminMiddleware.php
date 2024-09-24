@@ -23,9 +23,6 @@ class ApiAuthAdminMiddleware
         if($checkToken) {
             $user = $jwtAuth->checkToken($token, true);
 
-            // var_dump($user);
-            // die();
-
             if(
                 strtolower($user->urol_name) === strtolower('Vendedor') ||
                 strtolower($user->urol_name) === strtolower('Comprador') ||
@@ -35,37 +32,29 @@ class ApiAuthAdminMiddleware
                 $data = array(
                     'status'    => 'error',
                     'code'      => 403,
-                    // 'message'   => 'Error de identificación',
                     'message'   => 'El usuario no cuenta con permisos suficiente para ejecutar esta acción',
                 );
             }
             else {
-
                 if($user->usts_idStatus == 1 ) {
-
                     return $next($request);
                 }
                 else {
                     $data = array(
                         'status'    => 'error',
                         'code'      => 403,
-                        // 'message'   => 'Error de identificación',
                         'message'   => 'El usuario no cuenta con permisos suficiente para ejecutar esta acción',
                     );
                 }
-                
             }
-
         }
         else {
-            
             $data = array(
                 'status'    => 'error',
-                'code'      => 404,
+                'code'      => 401,
                 // 'message'   => 'Error de identificación',
                 'message'   => 'El usuario no esta identificado MidAdmin',
             );
-
         }
         return response()->json($data, $data['code']);
     }

@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-// use App\Http\Controllers;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRolController;
 use App\Http\Controllers\MailController;
@@ -16,79 +15,70 @@ use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductRatingController;
 use App\Http\Controllers\ProductFavoriteController;
 use App\Http\Controllers\ProductStatusController;
-
 use App\Http\Controllers\NotificationController;
-
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
-
 use App\Http\Controllers\ImageController;
 
 // Middlewares
 // use App\Http\Middleware\ApiAuthMiddleware;
 
-
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|J
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-// Views
+// VIEWS
 Route::get('/', function () {
     return view('welcome');
 });
 Route::get('list/routes', function () {
     return view('routes');
 });
-Route::get('/view-account-registration-admin', function () {
-    return view('emails/userRegisterAccountByAdmin');
-});
-Route::get('/view-verification-code', function () {
-    return view('emails/userVerificationCode');
-});
-Route::get('/view-authorized', function () {
-    return view('emails/userAuthorizedByAdmin');
-});
-Route::get('/view-approve-product', function () {
-    return view('emails/productApproveByAdmin');
-});
-// END Views
-
-// Image
-Route::get('/images/{imageName}', [ImageController::class, 'show'])->name('image.show');
+// Route::get('/view-account-registration-admin', function () {
+//     return view('emails/userRegisterAccountByAdmin');
+// });
+// Route::get('/view-verification-code', function () {
+//     return view('emails/userVerificationCode');
+// });
+// Route::get('/view-authorized', function () {
+//     return view('emails/userAuthorizedByAdmin');
+// });
+// Route::get('/view-approve-product', function () {
+//     return view('emails/productApproveByAdmin');
+// });
+// END VIEWS
 
 
-// Rutas controlador usuario
-Route::post('api/user/signup', [UserController::class, 'signup']);
+// IMAGES
+Route::get('/images/{imageName}', [ImageController::class, 'show'])->name('image.show');    // Obtener las imagenes almacenadas en el storage
+// END IMAGES
+
+// USER
+Route::post('api/user/signup', [UserController::class, 'signup'])->name('user.signup'); // Registrar nueva cuenta de usuario
+Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode'])->name('user.validateCode'); // Validación del código
+// END USER
+
+
+// MAIL
+// Envio de e-mail con código de verificación
+Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode'])->name('mail.sendCode'); //E-mail para enviar el código de verificacion
+Route::post('/api/user/register-account', [MailController::class, 'userRegisterAccount'])->name('mail.validatedAccount'); //E-mail para notificar la correcta creación y validación de la cuenta)
+// END MAIL
+
+
+
+
+
 Route::post('api/user/signin', [UserController::class, 'signin']);
 
-// Envio de e-mail con código de verificación
-Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode']);
 // Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
 // Route::post('/api/user/send-code', [UserController::class, 'userVerificationCode']);
 Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
-Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode']);
-
-Route::post('/api/user/register-account', [MailController::class, 'userRegisterAccount']);
-
 Route::put('/api/user/configure-account', [UserController::class, 'userConfigureAccount']);
 
-
-
-// Territorios
+// TERRITORIES
 Route::get('/api/countries', [CountryController::class, 'getCountries']);
 Route::get('/api/states', [StateController::class, 'getStatesFmCountry']);
 Route::get('/api/cities', [CityController::class, 'getCitiesFmState']);
 
 
-// Productos
+// PRODUCTS
 Route::get('/api/categories', [ProductTypeController::class, 'getAllCategories']);
 
 
@@ -136,6 +126,7 @@ Route::post('/api/user/resend-code-account', [MailController::class, 'userResend
 Route::middleware(['api.auth'])->group(function () { //Con alias
     // USER
     Route::put('/api/user/update-profile', [UserController::class, 'updateProfile']);
+    // END USER
 
     // PRODUCTS
     Route::get('/api/products/products-user', [ProductController::class, 'getProductsFmUser']);
@@ -170,16 +161,19 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 // Admin Autenthicate
 Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     // USER
-    Route::get('/api/user/all-users', [UserController::class, 'getAllUsers']);
+    Route::get('/api/user/all-users', [UserController::class, 'getAllUsers'])->name('admin.user.allUsers'); // *
+    Route::get('/api/user/{idUser}', [UserController::class, 'getUserByID'])->name('admin.user.user'); // *
+    Route::put('/api/user/authorize', [UserController::class, 'authorizeUser'])->name('admin.user.authorize'); // *
+    Route::put('/api/user/activate', [UserController::class, 'activateUser'])->name('admin.user.activate'); // *
+    Route::put('/api/user/update-user', [UserController::class, 'updateUser'])->name('admin.user.update'); // *
+    // END USER
+
     Route::post('/api/user/register-user', [UserController::class, 'addNewUser']);
-    Route::get('/api/user/{idUser}', [UserController::class, 'getUserByID']);
-    Route::put('/api/user/authorize', [UserController::class, 'authorizeUser']);
-    Route::put('/api/user/activate', [UserController::class, 'activateUser']);
-    Route::put('/api/user/update-user', [UserController::class, 'updateUser']);
     // Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
     
-    // ROLES
-    Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles']);
+    // ROL
+    Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles'])->name('admin.rol.allRoles'); // *
+    // END ROL
     
     // PRODUCTS
     Route::get('/api/products/products-verify', [ProductController::class, 'getProductsForVerification']);
@@ -188,33 +182,3 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     // NOTIFICATIONS
     Route::post('/api/notifications/request-upgrade', [NotificationController::class, 'sendRequestUpgrade']);
 });
-
-
-// Route::get('routes', function () {
-//     $routeCollection = Route::getRoutes();
-
-//     echo "<table style='width:100%'>";
-//     echo "<tr>";
-//     echo "<td width='10%'><h4>HTTP Method</h4></td>";
-//     echo "<td width='10%'><h4>Route</h4></td>";
-//     echo "<td width='10%'><h4>Name</h4></td>";
-//     echo "<td width='70%'><h4>Corresponding Action</h4></td>";
-//     echo "</tr>";
-//     foreach ($routeCollection as $value) {
-//         echo "<tr>";
-//         echo "<td>" . $value->methods()[0] . "</td>";
-//         echo "<td>" . $value->uri() . "</td>";
-//         echo "<td>" . $value->getName() . "</td>";
-//         echo "<td>" . $value->getActionName() . "</td>";
-//         echo "</tr>";
-//     }
-//     echo "</table>";
-// });
-
-// Route::get('/routes1', function() {
-//     $routeCollection = Route::getRoutes();
-//     foreach ($routeCollection as $value) {
-//        echo $value->getActionName();
-//        echo "<br/>";
-//     }
-//  });

@@ -24,6 +24,9 @@
                     Route
                 </th>
                 <th>
+                    Name
+                </th>
+                <th>
                     Action
                 </th>
             </thead>
@@ -36,6 +39,7 @@
 
                         echo "<td>" . $value->methods()[0] . "</td>";
                         echo "<td>" . $value->uri() . "</td>";
+                        echo "<td>" . $value->getName() . "</td>";
                         echo "<td>" . $value->getActionName() . "</td>";
 
                         echo "</tr>";
