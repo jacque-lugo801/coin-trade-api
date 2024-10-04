@@ -47,9 +47,9 @@ Route::get('list/routes', function () {
 // Route::get('/view-approve-product', function () {
 //     return view('emails/productApproveByAdmin');
 // });
-Route::get('/view-upload-product', function () {
-    return view('emails/productUpload');
-});
+// Route::get('/view-upload-product', function () {
+//     return view('emails/productUpload');
+// });
 // END VIEWS
 
 
@@ -82,7 +82,7 @@ Route::get('/api/cities', [CityController::class, 'getCitiesFmState'])->name('te
 Route::get('/api/products', [ProductController::class, 'getAllProducts'])->name('products.all'); // Obtener todos los productos
 Route::get('/api/products/image/{filename}', [ProductController::class, 'getImage'])->name('products.imageShow'); // Obtener la imagen
 Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct'])->name('products.product'); // Obtiene el producto con el ID
-// Route::get('/api/products/product-type', [ProductTypeController::class, 'getProductTypes'])->name('products.types'); //*
+Route::get('/api/products/product-type', [ProductTypeController::class, 'getProductTypes'])->name('products.types'); //*
 Route::get('/api/products/coins', [ProductController::class, 'getAllCoins'])->name('products.coins'); //*
 Route::get('/api/products/bills', [ProductController::class, 'getAllBills'])->name('products.bills'); //*
 // END PRODUCTS
@@ -90,29 +90,6 @@ Route::get('/api/products/bills', [ProductController::class, 'getAllBills'])->na
 // CATEGORIES
 Route::get('/api/categories', [ProductTypeController::class, 'getAllCategories'])->name('categories.all'); //*
 // END CATEGORIES
-
-
-
-
-// Route::get('/api/categories/group-categories', [ProductTypeController::class, 'getGroupCategories']);
-Route::get('/api/categories/metal-categories', [ProductCategoryController::class, 'getMetalCategories']);
-
-
-
-
-Route::get('/api/categories-coins', [ProductTypeController::class, 'getAllCoinCategories']);
-Route::get('/api/categories-bills', [ProductTypeController::class, 'getAllMoneyBillCategories']);
-
-
-
-
-
-
-
-
-
-
-
 
 // URL
 Route::post('/api/user/validate-url', [UserController::class, 'validateUrl'])->name('url.validate'); // *
