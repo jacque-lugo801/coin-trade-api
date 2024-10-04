@@ -18,19 +18,25 @@ class ProductUpload extends Mailable
     public $prodCost;
     public $prodComission;
     public $prodTotal;
+    public $imageFront;
+    public $imageBack;
+    public $imageCertification;
     public $imageLogo;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $product, $prodCost, $prodComission, $prodTotal, $imageLogo)
+    public function __construct($user, $product, $prodCost, $prodComission, $prodTotal, $imageFront, $imageBack, $imageCertification, $imageLogo)
     {
-        $this->user             = $user;
-        $this->product          = $product;
-        $this->prodCost         = $prodCost;
-        $this->prodComission    = $prodComission;
-        $this->prodTotal        = $prodTotal;
-        $this->imageLogo        = $imageLogo;
+        $this->user                 = $user;
+        $this->product              = $product;
+        $this->prodCost             = $prodCost;
+        $this->prodComission        = $prodComission;
+        $this->prodTotal            = $prodTotal;
+        $this->imageFront           = $imageFront;
+        $this->imageBack            = $imageBack;
+        $this->imageCertification   = $imageCertification;
+        $this->imageLogo            = $imageLogo;
     }
 
     /**
@@ -71,12 +77,15 @@ class ProductUpload extends Mailable
         return
             $this->view('emails.productUpload')
                 ->with([
-                    'product'       => $this->product,
-                    'user'          => $this->user,
-                    'prodCost'      => $this->prodCost,
-                    'prodComission' => $this->prodComission,
-                    'prodTotal'     => $this->prodTotal,
-                    'imageLogo'     => $this->imageLogo,
+                    'product'               => $this->product,
+                    'user'                  => $this->user,
+                    'prodCost'              => $this->prodCost,
+                    'prodComission'         => $this->prodComission,
+                    'prodTotal'             => $this->prodTotal,
+                    'imageFront'            => $this->imageFront,
+                    'imageBack'             => $this->imageBack,
+                    'imageCertification'    => $this->imageCertification,
+                    'imageLogo'             => $this->imageLogo,
                 ]);
     }
 }

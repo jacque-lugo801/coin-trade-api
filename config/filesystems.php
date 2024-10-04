@@ -48,6 +48,7 @@ return [
             'driver' => 'local',
             'root' => storage_path('app/products'),
             'url' => env('APP_URL').'/storage',
+            // 'url' => env('APP_URL').'/storage/products',
             'visibility' => 'public',
             'throw' => false,
         ],

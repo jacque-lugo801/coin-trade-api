@@ -265,8 +265,12 @@ class MailController extends Controller
             $comission  = number_format($product->prod_commission, 2, '.', ',');
             $total      = number_format($product->prod_total, 2, '.', ',');
 
+            $imageFront = storage_path('app/products/' . $product->prod_image_front);
+            $imageBack = storage_path('app/products/' . $product->prod_image_back);
+            $imageCertification = storage_path('app/products/' . $product->productCertifications[0]->pcert_image);
+
             Mail::to($user->usu_email)
-                ->send(new ProductUpload($user, $product, $cost, $comission, $total, $this->imgLogo));
+                ->send(new ProductUpload($user, $product, $cost, $comission, $total, $imageFront, $imageBack, $imageCertification, $this->imgLogo));
         
             $data = array(
                 'status'    => 'success',

@@ -333,6 +333,11 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
+                                                        <td height="15" style="font-size: 0; line-height: 0">
+                                                            &nbsp;
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
                                                         <td colspan="1"  valign="top" class="talign_left tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
                                                             Tipo:
                                                         </td>
@@ -437,12 +442,12 @@
                                                             Total:
                                                         </td>
                                                         <td class="space_col_product" width="15"></td>
-                                                        <td colspan="2"  valign="top" class="talign_left tmedium fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
+                                                        <td colspan="2"  valign="top" class="talign_left tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
                                                             $ {{$prodTotal}} MXN
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td height="25" style="font-size: 0; line-height: 0">
+                                                        <td height="15" style="font-size: 0; line-height: 0">
                                                             &nbsp;
                                                         </td>
                                                     </tr>
@@ -453,6 +458,87 @@
                                                         <td class="space_col_product" width="15"></td>
                                                         <td colspan="2"  valign="top" class="talign_left tmedium fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
                                                             {{ ucfirst($product->productStatus->psts_name) }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td height="30" style="font-size: 0; line-height: 0">
+                                                            &nbsp;
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4"  valign="top">
+                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td valign="top" class="talign_center">
+                                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td valign="top" class="talign_center tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
+                                                                                            Anverso
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td height="5" style="font-size: 0; line-height: 0">
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="top" class="talign_center">
+                                                                                            <img src="{{$message->embed($imageFront)}}" width="125" alt=""/>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td class="space_col_product" width="15"></td>
+                                                                        <td valign="top" class="talign_center">
+                                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td valign="top" class="talign_center tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
+                                                                                            Reverso
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td height="5" style="font-size: 0; line-height: 0">
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="top" class="talign_center">
+                                                                                            <img src="{{$message->embed($imageBack)}}" width="125" alt=""/>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td class="space_col_product" width="15"></td>
+                                                                        <td valign="top" class="talign_center">
+                                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td valign="top" class="talign_center tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
+                                                                                            Certificado
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td height="5" style="font-size: 0; line-height: 0">
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="top" class="talign_center">
+                                                                                            <img src="{{$message->embed($imageCertification)}}" width="125" alt=""/>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>    
+                                                        
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -466,7 +552,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_right tmedium fnt_10pt" style="color: #1B243E; font-size: 10pt; line-height: 1.2;">
-                                            *Para ver la información completa de su producto, visite el la sección <span class="tbold">Productos</span> del Panel General de su cuenta.
+                                            *Para ver la información completa de su producto, visite la sección <span class="tbold">Productos</span> del Panel General de su cuenta.
                                           </td>
                                         </tr>
                                         <tr>
