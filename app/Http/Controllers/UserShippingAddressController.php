@@ -51,7 +51,6 @@ class UserShippingAddressController extends Controller
                 Str::of($idUser)->trim();
 
                 $addresses = UserShippingAddress::where('usu_idUser', '=', $idUser)->get();
-                
 
                 foreach ($addresses as $address) {
                     $id = $address->usad_idAddress;

@@ -1,33 +1,5 @@
-<!-- <!DOCTYPE html>
-<html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Código de Verificación</title>
-        <style>
-
-        </style>
-    </head>
-    <body>
-        <h1>Verificacion e-mail de Coin Trade</h1>
-        <hr>
-        <h2>Código de Verificacion: 123456 </h2>
-        <br>
-        <p>
-            Hola Jacqueline
-            , gracias por unirte a Coin Trade.</p>
-        <p>Este correo electrónico ha sido enviado para verificar tu cuenta con nosotros.</p>
-        <p>Copie y pegue el código anterior para completar el proceso de creación de su cuenta.</p>
-
-        <br>
-        <small>Si usted no ha solicitado el código de verificación ignore este correo electrónico y pongase en contacto con el administrador.</small>
-        <br>
-        <small>Este correo electrónico ha sido enviado desde una dirección que no puede recibir correos electrónicos. No respondas este correo electrónico.</small>
-    </body>
-</html> -->
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -45,7 +17,7 @@
       <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
     </noscript>
-    <title>Aulas Virtuales - E-mail Template</title>
+    <title>CoinTrade - Registro de cuenta</title>
 
     <style type="text/css">
       body { font-family: "Poppins", sans-serif; font-style: normal;}
@@ -147,6 +119,7 @@
         .fnt_40pt { font-size: 38pt !important; }
 
 
+
         .section1 { padding: 0px 20px !important; }
         .section2 { padding: 0px 10px !important; }
         /* .section3 { padding: 0px 5px !important; } */
@@ -206,6 +179,7 @@
                                           <td class="talign_center image_logo1" style="font-size: 0; line-height: 0" >
                                             <!-- <img src="http://localhost:4200/assets/icons/logos/[Project Files] Logo_CoinTrade.png" width="250" alt=""/> -->
                                             <!-- <img src="{{ route('image.show', ['imageName' => '[Project Files] Logo_CoinTrade.png']) }}" width="250" alt=""/> -->
+                                             
                                             <img src="{{$message->embed($imageLogo)}}" width="250" alt=""/>
                                           </td>
                                         </tr>
@@ -252,7 +226,7 @@
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_center tbold fnt_20pt" style="color: #C78A37; font-size: 20pt; line-height: 1.75;">
-                                            Verifica tu cuenta
+                                            Se restableció su contraseña
                                           </td>
                                         </tr>
                                         <tr>
@@ -270,7 +244,7 @@
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f5f5f5">
                               <tbody>
                                 <tr>
-                                  <td height="15" style="font-size: 0; line-height: 0">
+                                  <td height="25" style="font-size: 0; line-height: 0">
                                     &nbsp;
                                   </td>
                                 </tr>
@@ -284,58 +258,27 @@
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                       <tbody>
                                         <tr>
-                                          <td height="15" style="font-size: 0; line-height: 0">
+                                          <td height="25" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
                                         </tr>
-                                    @if ($isCreated == 1 && $isRecover == 0)
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt prelative" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Hola, {{$name}}, gracias por unirte a Coin Trade.
+                                          La contraseña de su cuenta en el sitio se modificó con éxito.
                                           </td>
                                         </tr>
                                         <tr>
-                                          <td height="10" style="font-size: 0; line-height: 0">
+                                          <td height="25" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
                                         </tr>
                                         <tr>
                                           <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Para verificar tu cuenta en el sitio web, utiliza el siguiente
-                                            <span class="tbold">código de verificación</span>
-                                          </td>
-                                        </tr>
-                                    @elseif ($isCreated == 0 && $isRecover == 1)
-                                        <tr>
-                                          <td valign="middle" class="talign_left tmedium fnt_15pt" style="color: #1B243E; font-size: 15pt; line-height: 1.2;">
-                                            Para continuar con el proceso y establecer una nueva contraseña, utiliza el siguiente
-                                            <span class="tbold">código de verificación</span>
-                                          </td>
-                                        </tr>
-                                    @endif
-                                        <tr>
-                                          <td height="30" style="font-size: 0; line-height: 0">
-                                            &nbsp;
+                                            Puede ingresar a esta con las credenciales correspondientes.
                                           </td>
                                         </tr>
                                         <tr>
-                                          <td valign="middle" class="talign_center tbold fnt_27pt" style="color: #0055FF; font-size: 27pt; line-height: 1.2; letter-spacing: 5px;">
-                                            {{$code}}
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td height="30" style="font-size: 0; line-height: 0">
-                                            &nbsp;
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td valign="middle" class="talign_left tmedium fnt_13pt" style="color: #1B243E; font-size: 13pt; line-height: 1.2;">
-                                            <!-- Copie y pegue el código anterior para completar el proceso de creación de su cuenta. -->
-                                            Escriba código anterior para completar el proceso de creación de su cuenta.
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td height="30" style="font-size: 0; line-height: 0">
+                                          <td height="50" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
                                         </tr>
@@ -364,16 +307,6 @@
                                       <tbody>
                                         <tr>
                                           <td height="15" style="font-size: 0; line-height: 0">
-                                            &nbsp;
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td valign="middle" class="talign_left tmedium fnt_9pt" style="color: #6d6d6d; font-size: 9pt; line-height: 1.2;">
-                                            Si usted no ha solicitado el código de verificación ignore este correo electrónico.
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <td height="10" style="font-size: 0; line-height: 0">
                                             &nbsp;
                                           </td>
                                         </tr>

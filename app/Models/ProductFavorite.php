@@ -9,10 +9,8 @@ class ProductFavorite extends Model
 {
     use HasFactory;
 
-    protected $table = "users_favorites";
-    protected $primaryKey = 'ufav_idFavorite';
-    // protected $keyType = 'int';
-    
+    protected $table        = "users_favorites";
+    protected $primaryKey   = 'ufav_idFavorite';
     // public $incrementing = false;
 
     const CREATED_AT = 'ufav_created_date';
@@ -21,7 +19,6 @@ class ProductFavorite extends Model
     protected $hidden = [
         'ufav_isActive',
         'usu_idUser',
-        // 'prod_idProducto',
     ];
 
     

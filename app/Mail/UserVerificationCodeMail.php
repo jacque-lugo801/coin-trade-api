@@ -17,16 +17,20 @@ class UserVerificationCodeMail extends Mailable
     public $lastname;
     public $code;
     public $imageLogo;
+    public $isCreated;
+    public $isRecover;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname, $code, $imageLogo)
+    public function __construct($name, $lastname, $code, $imageLogo, $isCreated, $isRecover)
     {
         $this->name         = $name;
         $this->lastname     = $lastname;
         $this->code         = $code;
         $this->imageLogo    = $imageLogo;
+        $this->isCreated    = $isCreated;
+        $this->isRecover    = $isRecover;
     }
 
     /**
@@ -73,6 +77,8 @@ class UserVerificationCodeMail extends Mailable
                     'lastname'  => $this->lastname,
                     'code'      => $this->code,
                     'imageLogo' => $this->imageLogo,
+                    'isCreated' => $this->isCreated,
+                    'isRecover' => $this->isRecover,
                 ]);
     }
 }

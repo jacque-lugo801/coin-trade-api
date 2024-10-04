@@ -5,11 +5,56 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\ProductRating;
-use App\Http\Controllers\ProductController;
+// use App\Http\Controllers\ProductController;
+
+use Illuminate\Database\QueryException;
+// use Illuminate\Support\Facades\Log;
+use Exception;
+
 
 class ProductRatingController extends Controller
 {
-    //
+    // Obtener los productos que ha calificado el usuario(comprador)
+    public function getProductsRatedFmUser(Request $request) {
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+
+        $user = $jwtAuth->checkToken($token, true);
+
+        try {
+            $productsRated = ProductRating::
+                where([
+                    ["usu_idUser", "=", $user->usu_idUser],
+                    ["prat_isActive", "=", 1],
+                ])
+                ->get()
+                ->load('productRated')
+            ;
+
+            if(!empty($productsRated)){
+                $data = array(
+                    'rated' => $productsRated,
+                );
+            }
+            else {
+                $data = array(
+                    'rated' => [],
+                );
+            }
+
+        } catch (QueryException $e) {
+            $data = array(
+                'rated' => [],
+            );
+        }
+        return response()->json($data);
+    }
+
+
+
+
+
+
 
     public function ratingProduct(Request $request) {
         // echo 'rating product';
@@ -222,52 +267,5 @@ class ProductRatingController extends Controller
         // ]);
 
 
-    }
-
-
-    public function getProductsRatedFmUser(Request $request) {
-
-        
-        $token = $request->header('Authorization');
-        $jwtAuth = new \App\Helpers\JwtAuth();
-
-        
-        $user = $jwtAuth->checkToken($token, true);
-
-        // var_dump($user);
-        // die();
-
-        $productsRated = ProductRating::
-            where([
-                ["usu_idUser", "=", $user->usu_idUser],
-                // ["prod_idProducto", "=", $paramsArray['id']],
-                ["prat_isActive", "=", 1],
-            ])
-        ->
-        get()
-        ->load('productRated')
-        ;
-
-        
-        if(!empty($productsRated)){
-
-            $data = array(
-                // 'status'    => 'error',
-                // 'code'      => 400,
-                // 'message'   => 'Error al subir imagen',
-                'rated' => $productsRated,
-            );
-        }
-        else {
-            
-            $data = array(
-                // 'status'    => 'error',
-                // 'code'      => 400,
-                // 'message'   => 'Error al subir imagen',
-                'rated' => [],
-            );
-        }
-
-        return response()->json($data);
     }
 }

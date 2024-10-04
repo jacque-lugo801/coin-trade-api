@@ -13,9 +13,6 @@ class UserFiscalDataController extends Controller
 {
     // Guardar datos fiscales
     public function saveSignupFiscalData($params) {
-        // print_r('<pre>');
-        // print_r($params);
-        // print_r('</pre>');
         if(!empty($params)){
             try {
                 $paramsArray = array_map('trim', $params); 
@@ -45,37 +42,24 @@ class UserFiscalDataController extends Controller
         }
     }
 
-    
-
+    // Actualizar datos fiscales
     public function updatFiscalData($params, $id) {
         if(!empty($params) && (isset($id) && $id != null)){
-            // print_r('<pre>');
-            // print_r($params);
-            // print_r('</pre>');
-            
-            // print_r('<pre>');
-            // print_r($id);
-            // print_r('</pre>');
-
-            // die();
             $paramsArray = array_map('trim', $params); 
             
             $address = UserFiscalData::
                 where('ufdt_idData', '=', $id)
                 ->
                 update($params);
-                // ->get()
                 ;
-                            // ->update($paramsUserUpdate);
-
             if($address || $address == 1) {
-                return true;
+                return 1;
             } else {
-                return false;
+                return 0;
             }
         }
-        else{
-            echo 'error on update fsical address';
+        else {
+            return 0;
         }
     }
 }

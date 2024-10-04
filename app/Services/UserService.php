@@ -10,6 +10,11 @@ use App\Http\Controllers\UserFiscalDataController;
 
 use App\Models\User;
 
+
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
+use Exception;
+
 /*
 | Servicio para acceder de forma más rapida a los métodos de los controladores
 | usados relacionados con los USUARIOS.
@@ -20,7 +25,7 @@ class UserService
     protected $rolController;
     protected $shippingController;
     protected $fiscalController;
-    // protected $userController;
+    protected $userController;
 
     public function __construct (
         UserRolController               $rolController,
@@ -34,12 +39,42 @@ class UserService
         // $this->userController       =   $userController;
     }
 
+    // USER
+    //Obtener los datos de usuario del vendedor para enviar la solicitud de mejora de su producto
+    public function getUserData($mail, $username) {
+        try {
+            $user =  User::
+                where('usu_email', '=', $mail)
+                ->where('usu_username', '=', $username)
+                ->first();
+
+            return $user;
+        } catch (QueryException $e)  {
+            return 0;
+        }
+    }  
+
+    // Obtener usuario por mail
+    public function getUserByMail($mail) {
+        try {
+            $user =  User::
+                where('usu_email', '=', $mail)
+                ->first();
+
+            return $user;
+        } catch (QueryException $e)  {
+            return 0;
+        }
+    }
+    // END USER
+
     // ROL
     // Obtener el nombre del rol mediante el ID
     public function getRolID($rolName) {
         return $this->rolController->getRolID($rolName);
     }
     // END ROL
+    
     
     // ADDRESS
     
@@ -52,7 +87,6 @@ class UserService
     public function updateShippingAddress($params, $idAddress) {
         return $this->shippingController->updateShippingAddress($params, $idAddress);
     }
-
     // Borrar los datos de dirección que se han guardado
     public function deleteShippingAddress($idUser) {
         return $this->shippingController->deleteSignupAddress($idUser);
@@ -64,7 +98,13 @@ class UserService
     public function saveFiscalData($params) {
         return $this->fiscalController->saveSignupFiscalData($params);
     }
+    // Actualizar de los datos fiscales
+    public function updatFiscalData($params, $idAddress) {
+        return $this->fiscalController->updatFiscalData($params, $idAddress);
+    }
     // END ADDRESS
+
+
 
 
     

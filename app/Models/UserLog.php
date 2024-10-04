@@ -9,14 +9,11 @@ class UserLog extends Model
 {
     use HasFactory;
     
-    protected $table = "users_logs";
-    protected $primaryKey = 'ulog_idLog';
-    // protected $keyType = 'string';
-
+    protected $table        = "users_logs";
+    protected $primaryKey   = 'ulog_idLog';
 
     const CREATED_AT = 'ulog_created_date';
     const UPDATED_AT = 'ulog_updated_date';
-
     
     protected $fillable = [
         'ulog_date_access',
@@ -34,7 +31,6 @@ class UserLog extends Model
         'ulog_ip_latitude',
         'ulog_ip_longitude',
     ];
-
 
     protected $hidden = [
         // 'coun_iso_alpha3',

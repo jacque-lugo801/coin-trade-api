@@ -19,6 +19,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\SettingsController;
+
 
 // Middlewares
 // use App\Http\Middleware\ApiAuthMiddleware;
@@ -30,6 +32,9 @@ Route::get('/', function () {
 Route::get('list/routes', function () {
     return view('routes');
 });
+// Route::get('/view-account-reset-pass', function () {
+//     return view('emails/userResetPassword');
+// });
 // Route::get('/view-account-registration-admin', function () {
 //     return view('emails/userRegisterAccountByAdmin');
 // });
@@ -42,44 +47,51 @@ Route::get('list/routes', function () {
 // Route::get('/view-approve-product', function () {
 //     return view('emails/productApproveByAdmin');
 // });
+Route::get('/view-upload-product', function () {
+    return view('emails/productUpload');
+});
 // END VIEWS
 
 
 // IMAGES
-Route::get('/images/{imageName}', [ImageController::class, 'show'])->name('image.show');    // Obtener las imagenes almacenadas en el storage
+Route::get('/images/{imageName}', [ImageController::class, 'show'])->name('image.show'); // Obtener las imagenes almacenadas en el storage
 // END IMAGES
 
 // USER
 Route::post('api/user/signup', [UserController::class, 'signup'])->name('user.signup'); // Registrar nueva cuenta de usuario
+Route::post('api/user/search-mail', [UserController::class, 'searchMail'])->name('user.searchMail'); // Buscar el email cuando se intente recuperar la contraseña
 Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode'])->name('user.validateCode'); // Validación del código
+Route::put('/api/user/configure-account', [UserController::class, 'userConfigureAccount'])->name('user.configureAccount'); // Configurar cuenta cuando se valida por URL
+
+Route::post('api/user/login', [UserController::class, 'login'])->name('user.login'); // Login de usuarios
+Route::put('/api/user/reset-pass', [UserController::class, 'resetPassword'])->name('user.resetPassword'); // Guardar contraseña nueva
 // END USER
 
-
 // MAIL
-// Envio de e-mail con código de verificación
-Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode'])->name('mail.sendCode'); //E-mail para enviar el código de verificacion
-Route::post('/api/user/register-account', [MailController::class, 'userRegisterAccount'])->name('mail.validatedAccount'); //E-mail para notificar la correcta creación y validación de la cuenta)
+Route::post('/api/user/send-code', [MailController::class, 'userVerificationCode'])->name('mail.sendCode'); // E-mail para enviar el código de verificacion
+Route::post('/api/user/register-account', [MailController::class, 'userRegisterAccount'])->name('mail.validatedAccount'); // E-mail para notificar la correcta creación y validación de la cuenta)
 // END MAIL
 
-
-
-
-
-Route::post('api/user/signin', [UserController::class, 'signin']);
-
-// Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
-// Route::post('/api/user/send-code', [UserController::class, 'userVerificationCode']);
-Route::post('/api/user/resend-code', [MailController::class, 'userResendVerificationCode']);
-Route::put('/api/user/configure-account', [UserController::class, 'userConfigureAccount']);
-
 // TERRITORIES
-Route::get('/api/countries', [CountryController::class, 'getCountries']);
-Route::get('/api/states', [StateController::class, 'getStatesFmCountry']);
-Route::get('/api/cities', [CityController::class, 'getCitiesFmState']);
-
+Route::get('/api/countries', [CountryController::class, 'getCountries'])->name('territory.countries'); // Obtener los países
+Route::get('/api/states', [StateController::class, 'getStatesFmCountry'])->name('territory.states'); // Obtener los estados del país
+Route::get('/api/cities', [CityController::class, 'getCitiesFmState'])->name('territory.cities'); // Obtener las ciudades del estado
+// END TERRITORIES
 
 // PRODUCTS
-Route::get('/api/categories', [ProductTypeController::class, 'getAllCategories']);
+Route::get('/api/products', [ProductController::class, 'getAllProducts'])->name('products.all'); // Obtener todos los productos
+Route::get('/api/products/image/{filename}', [ProductController::class, 'getImage'])->name('products.imageShow'); // Obtener la imagen
+Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct'])->name('products.product'); // Obtiene el producto con el ID
+// Route::get('/api/products/product-type', [ProductTypeController::class, 'getProductTypes'])->name('products.types'); //*
+Route::get('/api/products/coins', [ProductController::class, 'getAllCoins'])->name('products.coins'); //*
+Route::get('/api/products/bills', [ProductController::class, 'getAllBills'])->name('products.bills'); //*
+// END PRODUCTS
+
+// CATEGORIES
+Route::get('/api/categories', [ProductTypeController::class, 'getAllCategories'])->name('categories.all'); //*
+// END CATEGORIES
+
+
 
 
 // Route::get('/api/categories/group-categories', [ProductTypeController::class, 'getGroupCategories']);
@@ -94,52 +106,48 @@ Route::get('/api/categories-bills', [ProductTypeController::class, 'getAllMoneyB
 
 
 
-Route::get('/api/products', [ProductController::class, 'getAllProducts']);
-Route::get('/api/products/coins', [ProductController::class, 'getAllCoins']);
-Route::get('/api/products/bills', [ProductController::class, 'getAllBills']);
-
-Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
-
-Route::get('/api/products/product-type', [ProductTypeController::class, 'getProductTypes']);
 
 
 
 
-Route::get('/api/products/image/{filename}', [ProductController::class, 'getImage']);
-
-
-// Validate url
-Route::post('/api/user/validate-url', [UserController::class, 'validateUrl']);
-Route::post('/api/user/resend-code-account', [MailController::class, 'userResendVerificationCodeAccount']);
-// Route::post('/api/user/validate-code-account', [UserController::class, 'validateCodeAccount']);
 
 
 
-// Si definimos un middleware para varias rutas, podría añadirse a cada uno, pero en la documentación de laravel tenemos un sistema para englobar varias rutas dentro de uno o más middlewares:
-// Route::middleware(['api.auth'])->group(function(){
-//     Route::post('/user/upload', [UserController::class, 'upload']);
-// });
 
-// Autenthicate is required
+// URL
+Route::post('/api/user/validate-url', [UserController::class, 'validateUrl'])->name('url.validate'); // *
+// END URL
+
+// SETTINGS
+Route::get('/api/settings/valuation-price', [SettingsController::class, 'getValuationPrice'])->name('settings.valuation.price'); //*
+// END SETTINGS
+
+
+
+// Autenticación requerida (todos los usuarios)
 // Route::middleware([ApiAuthMiddleware::class])->group(function () { //Sin alias
-    // All
 Route::middleware(['api.auth'])->group(function () { //Con alias
     // USER
-    Route::put('/api/user/update-profile', [UserController::class, 'updateProfile']);
+    Route::put('/api/user/update-profile', [UserController::class, 'updateProfile'])->name('auth.user.profileUpdate'); //*
     // END USER
 
     // PRODUCTS
-    Route::get('/api/products/products-user', [ProductController::class, 'getProductsFmUser']);
-    Route::post('/api/products/upload', [ProductController::class, 'uploadImage']);
-    Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct']);
+    Route::get('/api/products/products-user', [ProductController::class, 'getProductsFmUser'])->name('auth.products.products'); //*
+    Route::put('/api/products/update-product', [ProductController::class, 'updateProduct'])->name('auth.products.updateProduct'); //*
+    Route::get('/api/product/product/{idProduct}', [ProductController::class, 'getProductInfo'])->name('auth.products.productInfo'); //*
+    Route::get('/api/products/status', [ProductStatusController::class, 'getStatus'])->name('auth.products.status'); //*
+    Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsRatedFmUser'])->name('auth.products.userRated'); // *
+    Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser'])->name('auth.products.userFavorites'); //*
+    Route::get('/api/products/product-type', [ProductTypeController::class, 'getProductTypes'])->name('auth.products.types'); //*
+    Route::post('/api/products/upload-image', [ProductController::class, 'uploadImage'])->name('auth.products.uploadImage'); //*
+    Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct'])->name('auth.products.upload'); //*
+    // END PRODUCTS
+
+
+
     Route::post('/api/products/rate-product', [ProductRatingController::class, 'ratingProduct']);
-    Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsRatedFmUser']);
     Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct']);
-    Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser']);
     
-    Route::get('/api/products/status', [ProductStatusController::class, 'getStatus']);
-    Route::put('/api/products/update-product', [ProductController::class, 'updateProduct']);
-    Route::get('/api/product/product/{idProduct}', [ProductController::class, 'getProductInfo']);
 
     // CART
     Route::get('/api/cart/', [CartController::class, 'getCart']);
@@ -148,17 +156,10 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
     // Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
     Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
 
-    // Route::get('/profile', function () {
-    //     // ...
-    // })->withoutMiddleware([EnsureTokenIsValid::class]);
-
-    // MAIL
-    Route::post('/api/user/register-account-new', [MailController::class, 'userRegisterAccountByAdmin']);
 });
 
 
-
-// Admin Autenthicate
+// Autenticación de administrador
 Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     // USER
     Route::get('/api/user/all-users', [UserController::class, 'getAllUsers'])->name('admin.user.allUsers'); // *
@@ -166,19 +167,28 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     Route::put('/api/user/authorize', [UserController::class, 'authorizeUser'])->name('admin.user.authorize'); // *
     Route::put('/api/user/activate', [UserController::class, 'activateUser'])->name('admin.user.activate'); // *
     Route::put('/api/user/update-user', [UserController::class, 'updateUser'])->name('admin.user.update'); // *
+    Route::post('/api/user/register-user', [UserController::class, 'addNewUser'])->name('admin.user.register'); // *
     // END USER
 
-    Route::post('/api/user/register-user', [UserController::class, 'addNewUser']);
     // Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
     
     // ROL
     Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles'])->name('admin.rol.allRoles'); // *
     // END ROL
-    
+
     // PRODUCTS
-    Route::get('/api/products/products-verify', [ProductController::class, 'getProductsForVerification']);
-    Route::put('/api/products/approve', [ProductController::class, 'approveDisapproveProduct']);
+    Route::get('/api/products/products-verify', [ProductController::class, 'getProductsForVerification'])->name('admin.products.all'); //*
+    Route::put('/api/products/approve', [ProductController::class, 'approveDisapproveProduct'])->name('admin.products.aprove'); //*
+    // END PRODUCTS
+
+
 
     // NOTIFICATIONS
-    Route::post('/api/notifications/request-upgrade', [NotificationController::class, 'sendRequestUpgrade']);
+    Route::post('/api/notifications/request-upgrade', [NotificationController::class, 'sendRequestUpgrade'])->name('admin.notifications.requestUpgrade');
+    // END NOTIFICATIONS
+    
+    // SETTINGS
+        Route::put('/api/settings/valuation-price-update', [SettingsController::class, 'updateValuationPrice'])->name('admin.settings.valuationPriceUpdate'); //* 
+    // END SETTINGS
+
 });

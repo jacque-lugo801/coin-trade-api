@@ -9,11 +9,10 @@ class City extends Model
 {
     use HasFactory;
     
-    protected $table = "cities";
-    protected $keyType = 'string';
-    protected $primaryKey = 'cit_clave';
+    protected $table        = "cities";
+    protected $keyType      = 'string';
+    protected $primaryKey   = 'cit_clave';
 
-    
     protected $hidden = [
         'sta_iso_alpha3',
         'coun_iso_alpha2',

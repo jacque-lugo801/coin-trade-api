@@ -9,13 +9,12 @@ class ProductGroup extends Model
 {
     use HasFactory;
 
-    protected $table = "product_group";
-    protected $primaryKey = 'pgrp_idGroup';
-    protected $keyType = 'int';
+    protected $table        = "product_group";
+    protected $primaryKey   = 'pgrp_idGroup';
+    protected $keyType      = 'int';
     
     public $incrementing = false;
 
-    
     protected $hidden = [
         'pgrp_isActive',
     ];

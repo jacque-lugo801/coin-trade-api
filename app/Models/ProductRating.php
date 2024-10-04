@@ -9,12 +9,9 @@ class ProductRating extends Model
 {
     use HasFactory;
 
-    protected $table = "product_rating";
-    protected $primaryKey = 'prat_idRating';
-    // protected $keyType = 'int';
+    protected $table        = "product_rating";
+    protected $primaryKey   = 'prat_idRating';
     
-    // public $incrementing = false;
-
     const CREATED_AT = 'prat_created_date';
     const UPDATED_AT = 'prat_updated_date';
 
@@ -24,9 +21,6 @@ class ProductRating extends Model
         // 'prod_idProducto',
     ];
 
-
-
-    
     
     public function productRated() {
         // return $this->BelongsTo(ProductGroup::class, 'pgrp_idGroup', 'prod_idGroup_product');

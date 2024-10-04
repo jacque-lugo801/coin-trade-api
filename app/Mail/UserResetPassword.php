@@ -9,33 +9,28 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UserConfigureAccount extends Mailable
+class UserResetPassword extends Mailable
 {
     use Queueable, SerializesModels;
-    
-    public $name;
-    public $lastname;
-    public $website;
+
     public $imageLogo;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($name, $lastname, $website, $imageLogo)
+    public function __construct($imageLogo)
     {
-        $this->name     = $name;
-        $this->lastname = $lastname;
-        $this->website  = $website;
         $this->imageLogo    = $imageLogo;
     }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Hola ¡Te damos la bienvenida a CoinTrade!',
-            tags: ['bienvenida', 'cointrade'],
+            subject: 'Se reestableció su contraseña',
+            tags: ['contraseña'],
         );
     }
 
@@ -45,7 +40,7 @@ class UserConfigureAccount extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.userConfigureAccount',
+            view: 'emails.userResetPassword',
         );
     }
 
@@ -64,12 +59,9 @@ class UserConfigureAccount extends Mailable
     public function build()
     {
         return
-            $this->view('emails.userConfigureAccount')
+            $this->view('emails.userResetPassword')
                 ->with([
-                    'name'      => $this->name,
-                    'lastname'  => $this->lastname,
-                    'website'   => $this->website,
-                    'imageLogo' => $this->imageLogo,
+                    'imageLogo' => $this->imageLogo
                 ]);
     }
 }

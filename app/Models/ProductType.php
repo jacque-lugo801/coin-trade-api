@@ -9,8 +9,8 @@ class ProductType extends Model
 {
     use HasFactory;
 
-    protected $table = "product_type";
-    protected $primaryKey = 'ptpe_idType';
+    protected $table        = "product_type";
+    protected $primaryKey   = 'ptpe_idType';
     
     // const CREATED_AT = 'prod_created_date';
     // const UPDATED_AT = 'prod_updated_date';

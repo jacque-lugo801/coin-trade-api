@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Country;
 use App\Models\State;
-use App\Models\City;
+// use App\Models\Country;
+// use App\Models\City;
 
 // use App\Models\UserShippingAddress;
 // use App\Models\UserFiscalData;
@@ -18,7 +18,10 @@ use App\Http\Controllers\MailController;
 // use App\Models\UserRol;
 
 use App\Services\UserService;
+
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 // use Illuminate\Validation\Rule;
 
@@ -249,9 +252,7 @@ class UserController extends Controller
                                             );
                                         }
                                     }
-
                                 }
-
                             }
                         }
 
@@ -265,7 +266,6 @@ class UserController extends Controller
                             'message'   => 'Ha ocurrido un error en el registro.',
                         );
                     }
-                    
                 }
                 return response()->json($data, $data['code']);
             }
@@ -281,7 +281,135 @@ class UserController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    
+    // Buscar email para comprobar el email
+    public function searchMail(Request $request) {
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+
+        $params         = json_decode($json); // Objeto
+        $paramsArray    = json_decode($json, true); // Array
+
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray); // Limpiar datos del array
+            
+            $validate = \Validator::make($paramsArray, [
+                'mail'          => 'required | email',
+                'search'         => 'required',
+            ]);
+
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en la busqueda.',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+                try {
+                    $userData = User::where([
+                        ['usu_email', '=', $params->mail]
+                    ])->first();
+
+                    if(!isset($userData) || empty($userData)) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 422,
+                            'message'   => 'No se encontraron resultados para la busqueda',
+                        );
+                    }
+                    else {
+                        // $data = array(
+                        //     'status'    => 'success',
+                        //     'code'      => 200,
+                        //     'message'   => 'Se han encontrado coincidencias para la busqueda.',
+                        // );
+                        // Enviar mail de codigo
+                        $sendMailCode = $this->mailController->userVerificationCode($request);
+
+                            // Procesar la respuesta del MailController
+                        if (isset($sendMailCode['error'])) {
+                            // $data = array(
+                            //     'status' => 'error',
+                            //     'code' => 404,
+                            //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                            // );
+                            if(isset($userData)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'Se han encontrado coincidencias para la busqueda, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    'code' => 400,
+                                    'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                );
+                            }
+                        }
+                        elseif ($sendMailCode['status'] === 'success') {
+                            $data = array(
+                                // 'status' => 'success',
+                                // 'code' => 200,
+                                // 'message' => 'El usuario se ha creado correctamente y se ha enviado el correo de verificación.',
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'Se han encontrado coincidencias para la busqueda y se ha enviado el correo de verificación.',
+                            );
+                            
+                        }
+                        else {
+                            // $data = array(
+                            //     'status' => 'error',
+                            //     'code' => 500,
+                            //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                            // );
+                            
+                            if(isset($userData)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'Se han encontrado coincidencias para la busqueda, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    // 'code' => 500,
+                                    'code' => 400,
+                                    'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                );
+                            }
+                        }
+                    }
+
+                } catch (QueryException $e) {
+                    // $errorCode = $e->getCode();
+                    // $errorMessage = $e->getMessage();
+                    // Log::error("Error on signup. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error en el registro.',
+                    );
+                }
+                
+            }
+            return response()->json($data, $data['code']);
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
+        return response()->json($data, $data['code']);
+    }
+
     // Validar código de verificacion enviado al e-mail
     public function validateVerificationCode(Request $request ) {
         // Recoger datos usuario
@@ -297,6 +425,7 @@ class UserController extends Controller
                 'mail'          => 'required | email',
                 'code'          => 'required',
                 'isCreated'     => 'required',
+                'isRecover'     => 'required',
             ]);
 
             if($validate->fails()) {
@@ -367,23 +496,46 @@ class UserController extends Controller
                     }
                 }
                 else {
-                    $validateCreated = \Validator::make($paramsArray, [
-                        'rolKey'    => 'required',
-                        'rol'       => 'required',
-                    ]);
-
-                    if($validateCreated->fails()) {
-                        $data = array(
-                            'status'    => 'error',
-                            'code'      => 400,
-                            'message'   => 'Ha ocurrido un error en la validación.',
-                            'errors'    => $validateCreated->errors()
-                        );
+                    if($params->isRecover == 0) {
+                        $validateCreated = \Validator::make($paramsArray, [
+                            'rolKey'    => 'required',
+                            'rol'       => 'required',
+                        ]);
+                        if($validateCreated->fails()) {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error en la validación.',
+                                'errors'    => $validateCreated->errors()
+                            );
+                        }
+                        else {
+                            $userData = User::where([
+                                ['usu_email', '=', $params->mail],
+                                ['urol_idRol', '=', $params->rolKey],
+                            ])->first();
+    
+                            $dbUserCode = $userData->usu_verification_code;
+    
+                            if($params->code === $dbUserCode) {
+                                $data = array(
+                                    'status'    => 'success',
+                                    'code'      => 200,
+                                    'message'   => 'Se ha validado correctamente el código de verificación.',
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 422,
+                                    'message'   => 'El código de verificación es incorrecto.',
+                                );
+                            }
+                        }
                     }
                     else {
                         $userData = User::where([
                             ['usu_email', '=', $params->mail],
-                            ['urol_idRol', '=', $params->rolKey],
                         ])->first();
 
                         $dbUserCode = $userData->usu_verification_code;
@@ -417,15 +569,81 @@ class UserController extends Controller
         return response()->json($data, $data['code']);
     }
 
+    // Validar URL del e-mail (cuenta creada por admin) desde el panel gestion de usuarios
+    public function validateUrl(Request $request) {
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+                
+        $params         = json_decode($json); //objeto
+        $paramsArray    = json_decode($json, true);   //array
 
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
+            $validate = \Validator::make($paramsArray, [
+                'mail'          => 'required | email',
+                'rol'           => 'required ',
+                'rolKey'        => 'required ',
+            ]);
 
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en el registro.',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else{
+                $userData = User::
+                    where('usu_email', '=', $paramsArray['mail'])
+                    ->where('urol_idRol', '=', $paramsArray['rolKey'])
+                    ->first();
 
-
-
-
-
-    // Registro de una nueva cuenta para el sitio
+                if(!empty($userData)) {
+                    if($userData->usu_isVerification == 1 && $userData->usu_isVerificated == 0) {
+                        $data = array(
+                            'status'    => 'success',
+                            'code'      => 200,
+                            'message'   => 'La URL es correcta',
+                        );
+                    }
+                    else if($userData->usu_isVerification == 1 && $userData->usu_isVerificated == 1){
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 409,
+                            'message'   => 'El email ya ha sido verificado',
+                        );
+                    }
+                    else if($userData->usu_isVerification == 1 && $userData->usu_isVerificated == 1){
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 409,
+                            'message'   => 'El email ya ha sido verificado',
+                        );
+                    }
+                }
+                else {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 422,
+                        'message'   => 'El mail no existe',
+                    );
+                }
+            }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
+        return response()->json($data, $data['code']);
+    }
+    
+    // Registro de una nueva cuenta en el sitio, cuando se hace la validacion de URL
     public function userConfigureAccount(Request $request) {
         // Recoger datos usuarios
         $json = $request->input('json', null);
@@ -433,7 +651,6 @@ class UserController extends Controller
         $params         = json_decode($json); //objeto
         $paramsArray    = json_decode($json, true);   //array
         
-
         if(!empty($params) && !empty($paramsArray)) {
             $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
@@ -456,91 +673,129 @@ class UserController extends Controller
             if($validate->fails()) {
                 $data = array(
                     'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error en el registro',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en el registro.',
                     'errors'    => $validate->errors()
                 );
             }
             else {
-
                 $pwd = hash('sha256', $params->pwd);    //Cifrado de contraseña
-                
                 
                 $user = User::where([
                     ['urol_idRol', '=', $params->rolKey],
                     ['usu_email', '=', $params->mail]
                 ])->first();
-                
-                // var_dump($user);
-                // die();
-                
-                $updateParams = array(
-                    'usu_username'      => $paramsArray['username'],
-                    'usu_pswd'          => $pwd,
-                    'usu_isVerificated' => 1,
-                );
-                
-                $update= User::where('usu_idUser', '=', $user->usu_idUser)
-                    ->update($updateParams);
 
-                
-                $paramsMail = array(
-                    'name'      => $user->usu_name,
-                    'lastname'  => $user->usu_lastname,
-                    'mail'      => $user->usu_email,
-                    // 'rolEnc'    => $rolEnc,
-                );
-
-                // var_dump($paramsMail);
-                // die();
-
-                // Send email that its created
-                (new MailController)->userConfigureAccount($paramsMail);
-
-                
-                // die();
-
-                if(!empty($update) || $update == 1) {
-                    $data = array(
-                        'status'    => 'success',
-                        'code'      => 200,
-                        'message'   => 'El usuario se ha creado correctamente',
+                try {
+                    $updateParams = array(
+                        'usu_username'      => $paramsArray['username'],
+                        'usu_pswd'          => $pwd,
+                        'usu_isVerificated' => 1,
+                        'usu_isTerms'       => $paramsArray['terms'],
                     );
-                }
-                else {
-                    
+
+                    $update= User::where('usu_idUser', '=', $user->usu_idUser)
+                        ->update($updateParams);
+    
+                    if(!isset($update) && empty($update)) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error en la actualización de datos.',
+                        );
+                    }
+                    else {
+                        $paramsMail = array(
+                            'name'      => $user->usu_name,
+                            'lastname'  => $user->usu_lastname,
+                            'mail'      => $user->usu_email,
+                            // 'rolEnc'    => $rolEnc,
+                        );
+
+                        
+                        // Send email that its created
+                        // (new MailController)->userConfigureAccount($paramsMail);
+                        $sendMail = $this->mailController->userConfigureAccount($paramsMail);
+                        
+                        // var_dump($sendMail);
+                        // die();
+                        // Procesar la respuesta del MailController
+                        if (isset($sendMail['error'])) {
+                            // $data = array(
+                            //     'status' => 'error',
+                            //     'code' => 404,
+                            //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                            // );
+                            if(isset($update)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'El usuario se ha creado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    'code' => 400,
+                                    'message' => 'Error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                        }
+                        elseif ($sendMail['status'] === 'success') {
+                            $data = array(
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'El usuario se ha creado correctamente y se ha enviado el correo de verificación.',
+                            );
+                            
+                        }
+                        else {
+                            // // $data = array(
+                            // //     'status' => 'error',
+                            // //     'code' => 500,
+                            // //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                            // // );
+                            
+                            if(isset($update)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'El usuario se ha creado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    // 'code' => 500,
+                                    'code' => 400,
+                                    'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                );
+                            }
+                        }
+                    }
+                } catch (QueryException $e) {
                     $data = array(
                         'status'    => 'error',
-                        'code'      => 403,
-                        'message'   => 'Ha ocurrido un error al configurar su cuenta.'
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error en la actualización de datos.',
                     );
                 }
             }
+            return response()->json($data, $data['code']);
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
         }
         return response()->json($data, $data['code']);
     }
 
-    public function userVerificationCode(Request $request) {
-        // $json = $request->input('json', null);
-        
-        // $params         = json_decode($json); //objeto
-        // $paramsArray    = json_decode($json, true);   //array
-
-        // // echo 'hola';
-
-        // if(!empty($params) && !empty($paramsArray)) {
-        //     (new MailController)->userVerificationCode($paramsArray);
-        // }
-    }
-
-
-
-
-
-
-
     // Login de usuarios
-    public function signin(Request $request) {
+    public function login(Request $request) {
         $jwtAuth = new \App\Helpers\JwtAuth(); // Llamando al alias con la barra delante
         
         $json = $request->input('json', null);
@@ -548,143 +803,186 @@ class UserController extends Controller
         $params = json_decode($json);
         $paramsArray = json_decode($json, true);
 
-        $validate = \Validator::make($paramsArray, [
-            'mail'  => 'required|email',
-            'pwd'   => 'required',
-        ]);
-
-        if($validate->fails()){
-            $data = array(
-                'status'    => 'error',
-                'code'      => 404,
-                'message'   => 'El usuario no se ha podido loggear',
-                'errors'    => $validate->errors()
-            );
-        }
-        else {
-            $pwd =  hash('sha256', $params->pwd);
-            // var_dump($params);
-            // die();
-
-            // Devolver token o datos
-            $signin = $jwtAuth->signin($params->mail, $pwd);
-
-            // var_dump(!empty($params->getToken));
-            // die();
-            if(!empty($params->getToken)) {
-                $signin = $jwtAuth->signin($params->mail, $pwd, true);
-            }
-        }
-        // return response()->json($signin, 200);
-        return response()->json($signin, 200);
-    }
-
-
-    // Actualizar usuario
-    public function update(Request $request) {
-        //Comprobar si el usuario esta identificado
-        $token = $request->header('Authorization');
-        $jwtAuth = new \App\Helpers\JwtAuth();
-        $checkToken = $jwtAuth->checkToken($token);
-        
-        // Recoger datos por post
-        $json = $request->input('json', null);
-        
-        $params = json_decode($json);
-        $paramsArray = json_decode($json, true);
-
-        if($checkToken && !empty($params) && !empty($paramsArray)) {
-            // Sacar usuario identificado
-            $user = $jwtAuth->checkToken($token, true);
-
-            // Validar datos
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
+                
             $validate = \Validator::make($paramsArray, [
-                'name'          => 'required',
-                'middlename'    => 'nullable',
-                'lastname'      => 'required',
-                'lastname2'     => 'nullable',
-                'birthdate'     => 'required',
-                'mail'          => [
-                    'required',
-                    'email',
-                    Rule::unique('users', 'usu_email')->ignore($user->idUser, 'usu_idUser')
-                ],
-                // 'mail'          => 'required | email | unique:users,usu_email,$user->idUser,usu_idUser',
-                'country'   => 'required',
-                'phone'     => 'required',
-            ],
-            [
-                'mail.unique'       => 'El email ya ha sido registrado.',
-                'username.unique'   => 'El nombre de usuario ya existe.',
+                'mail'  => 'required|email',
+                'pwd'   => 'required',
             ]);
 
-            if ($validate->fails()) {
+            if($validate->fails()) {
                 $data = array(
                     'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error en la actualización',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en la validación.',
                     'errors'    => $validate->errors()
                 );
             }
             else {
-                // Quitar campos que no se van a actualizar
-                // unset($paramsArray['idUser']);
-                // unset($paramsArray['username']);
-                // unset($paramsArray['identity']);
-                // unset($paramsArray['pwd']);
-                // unset($paramsArray['code']);
-                // unset($paramsArray['terms']);
-                // unset($paramsArray['authorized']);
-                // unset($paramsArray['authorized']);
-                // unset($paramsArray['status']);
-                // unset($paramsArray['rol']);
-                // unset($paramsArray['rememberToken']);
-                // unset($paramsArray['iat']);
-                // unset($paramsArray['exp']);
+                $pwd =  hash('sha256', $params->pwd); // Cifrado de contraseña
 
-                // Actualizar ususario en DB
-                // var_dump($user->birthdate);
-                // // die();
+                // Devolver token o datos
+                $signin = $jwtAuth->login($params->mail, $pwd);
 
-                $paramsUserUpdate = array (
-                    "usu_name"          => $params->name,
-                    "usu_middle_name"   => $params->middlename,
-                    "usu_lastname"      => $params->lastname,
-                    "usu_lastname2"     => $params->lastname2,
-                    "usu_birth_date"    => $params->birthdate,
-                    "usu_email"         => $params->mail,
-                    "usu_phone"         => $params->phone,
-                    // "" => $params->country,
-                );
-                // var_dump($paramsUserUpdate);
-                // die();
-                $userUpdate = User::where('usu_idUser', $user->idUser)
-                    // ->update([
-                    //     'usu_birth_date' => $params->birthdate
-                    // ]);
-                    ->update($paramsUserUpdate);
-
-                // Devolver array con resultado
-                $data = array(
-                    'status'    => 'success',
-                    'code'      => 200,
-                    'message'   => 'El producto se ha agregado exitosamente',
-                    'user'      => $user,
-                    'changes'   => $paramsArray
-                );
+                    
+                if(!empty($params->getToken)) {
+                    $signin = $jwtAuth->signin($params->mail, $pwd, true);
+                }
+                return response()->json($signin, 200);
             }
+            return response()->json($data, $data['code']);
         }
         else {
-            // Mensaje de error
             $data = array(
                 'status'    => 'error',
                 'code'      => 404,
-                'message'   => 'El usuario no esta identificado',
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
             );
         }
         return response()->json($data, $data['code']);
     }
 
+    // Guardar contraseña nueva del usuario
+    public function resetPassword(Request $request) {
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+        
+        $params         = json_decode($json); //objeto
+        $paramsArray    = json_decode($json, true);   //array
+        
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
+
+            $validate = \Validator::make($paramsArray, [
+                'mail'          => 'required | email',
+                'pwd'           => 'required',
+                'codeValidate'  => 'required',
+            ]);
+
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en el registro.',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+                $pwd = hash('sha256', $params->pwd); // Cifrado de contraseña
+                
+                $user = User::where([
+                    ['usu_email', '=', $params->mail]
+                ])->first();
+
+                try {
+                    $updateParams = array(
+                        'usu_pswd'          => $pwd,
+                        'usu_isVerificated' => 1,
+                    );
+
+                    $update= User::where('usu_idUser', '=', $user->usu_idUser)
+                        ->update($updateParams);
+    
+                    if(!isset($update) && empty($update)) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 422,
+                            'message'   => 'Ha ocurrido un error en la actualización de contraseña.',
+                        );
+                    }
+                    else {
+                        $paramsMail = array(
+                            // 'name'      => $user->usu_name,
+                            // 'lastname'  => $user->usu_lastname,
+                            'mail'      => $user->usu_email,
+                        );
+
+                        $sendMail = $this->mailController->userResetPassword($paramsMail);
+                        
+                        // Procesar la respuesta del MailController
+                        if (isset($sendMail['error'])) {
+                            // $data = array(
+                            //     'status' => 'error',
+                            //     'code' => 404,
+                            //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                            // );
+                            if(isset($update)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'La contraseña se ha actualizado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    'code' => 422,
+                                    'message' => 'Error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                        }
+                        elseif ($sendMail['status'] === 'success') {
+                            $data = array(
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'La contraseña se ha actualizado correctamente y se ha enviado el correo de verificación.',
+                            );
+                            
+                        }
+                        else {
+                            // // $data = array(
+                            // //     'status' => 'error',
+                            // //     'code' => 500,
+                            // //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                            // // );
+                            
+                            if(isset($update)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'La contraseña se ha actualizado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    // 'code' => 500,
+                                    'code' => 422,
+                                    'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                );
+                            }
+                        }
+                    }
+                } catch (QueryException $e) {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error en la actualización de datos.',
+                    );
+                }
+            }
+            return response()->json($data, $data['code']);
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
+        return response()->json($data, $data['code']);
+    }
+
+
+    
+    // **************************************************
+    // *                    AUTH                        *
+    // **************************************************
+
+    //Actualizar perfil de usuario ()
     public function updateProfile(Request $request) {
         $token = $request->header('Authorization');
         $jwtAuth = new \App\Helpers\JwtAuth();
@@ -694,13 +992,11 @@ class UserController extends Controller
         // Recoger datos por post
         $json = $request->input('json', null);
         
-        $params = json_decode($json);
-        $paramsArray = json_decode($json, true);
+        $params         = json_decode($json);
+        $paramsArray    = json_decode($json, true);
     
         if(!empty($params) && !empty($paramsArray)) {
-
-            // var_dump(($paramsArray));
-            // die();
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
             $validate = \Validator::make($paramsArray, [
                 'name'          => 'required',
@@ -713,13 +1009,12 @@ class UserController extends Controller
             if($validate->fails()) {
                 $data = array(
                     'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error en la actualización de datos',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en el registro.',
                     'errors'    => $validate->errors()
                 );
             }
             else {
-
                 if($params->isBS == 1) {
                     $validateBuyerSeller = \Validator::make($paramsArray, [
                         'middlename'    => 'nullable',
@@ -727,342 +1022,131 @@ class UserController extends Controller
                         'birthdate'     => 'required',
                         'country'       => 'required',
                     ]);
-
                     if($validateBuyerSeller->fails()) {
                         $data = array(
                             'status'    => 'error',
-                            'code'      => 402,
-                            'message'   => 'Ha ocurrido un error en la validación.',
-                            'errors'    => $validateBuyerSeller->errors()
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error en el registro.',
+                            'errors'    => $validate->errors()
                         );
                     }
                     else {
-                        $paramsUserUpdate = array (
-                            "usu_name"          => $params->name,
-                            "usu_middle_name"   => $params->middlename,
-                            "usu_lastname"      => $params->lastname,
-                            "usu_lastname2"     => $params->lastname2,
-                            "usu_birth_date"    => $params->birthdate,
-                            // "usu_email"         => $params->mail,
-                            "usu_phone"         => $params->phone,
-                            // "" => $params->country,
-                        );
-                        // $paramsShippingUpdate = array(
-                        //     "usad_country"         => $params->phone,
-                        // );
-        
-                        // var_dump($paramsUserUpdate);
-                        // var_dump($paramsUserUpdate['usu_middle_name']);
-                        // var_dump($user->usu_idUser);
-                        // die();
-                        $userUpdate = User::where('usu_idUser', $user->usu_idUser)
-                            // ->update([
-                            //     'usu_birth_date' => $params->birthdate
-                            // ]);
-                            ->update($paramsUserUpdate);
-        
-                        // var_dump($user);
-                        $newUser = User::where([
-                            'usu_idUser' => $user->usu_idUser,
-                            'usu_email'  => $user->usu_email,
-                        ])
-                        ->first();
-                        // var_dump($newUser);
-        
-        
-                        $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
-                        // var_dump($newToken);
-                        $newIdentity = $jwtAuth->decode($newToken);
-                        // var_dump($newIdentity);
-                        // die();
-                        // Devolver array con resultado
-                        $data = array(
-                            'status'    => 'success',
-                            'code'      => 200,
-                            'message'   => 'Los datos se han actualizado exitosamente',
-                            'user'      => $user,
-                            // 'changes'   => $paramsArray
-                            'token'      => $newToken,
-                            'identity'   => $newIdentity
-                        );
+                        try {
+                            $paramsUserUpdate = array (
+                                "usu_name"          => $params->name,
+                                "usu_middle_name"   => $params->middlename,
+                                "usu_lastname"      => $params->lastname,
+                                "usu_lastname2"     => $params->lastname2,
+                                "usu_birth_date"    => $params->birthdate,
+                                "usu_phone"         => $params->phone,
+                            );
+
+                            $userUpdate = User::where('usu_idUser', $user->usu_idUser)
+                                ->update($paramsUserUpdate);
+
+                            if(!isset($userUpdate) && empty($userUpdate)) {
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 400,
+                                    'message'   => 'Ha ocurrido un error en la actualización de datos.',
+                                );
+                            }
+                            else {
+                                $newUser = User::
+                                    where([
+                                        'usu_idUser' => $user->usu_idUser,
+                                        'usu_email'  => $user->usu_email,
+                                    ])
+                                    ->first();
+                                        
+                                $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
+                                // var_dump($newToken);
+
+                                $newIdentity = $jwtAuth->decode($newToken);
+                                // var_dump($newIdentity);
+                                
+                                $data = array(
+                                    'status'    => 'success',
+                                    'code'      => 200,
+                                    'message'   => 'Los datos se han actualizado exitosamente',
+                                    'user'      => $user,
+                                    // 'changes'   => $paramsArray
+                                    'token'      => $newToken,
+                                    'identity'   => $newIdentity
+                                );
+                            }
+
+                        } catch (QueryException $e) {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error en la actualización de datos.',
+                            );
+                        }
                     }
                 }
                 else {
-                    $paramsUserUpdate = array (
-                        "usu_name"          => $params->name,
-                        "usu_lastname"      => $params->lastname,
-                        // "usu_email"         => $params->mail,
-                        "usu_phone"         => $params->phone,
-                    );
-                    // $paramsShippingUpdate = array(
-                    //     "usad_country"         => $params->phone,
-                    // );
-    
-                    // var_dump($paramsUserUpdate);
-                    // var_dump($paramsUserUpdate['usu_middle_name']);
-                    // var_dump($user->usu_idUser);
-                    // die();
-                    $userUpdate = User::where('usu_idUser', $user->usu_idUser)
-                        // ->update([
-                        //     'usu_birth_date' => $params->birthdate
-                        // ]);
-                        ->update($paramsUserUpdate);
-    
-                    // var_dump($user);
-                    $newUser = User::where([
-                        'usu_idUser' => $user->usu_idUser,
-                        'usu_email'  => $user->usu_email,
-                    ])
-                    ->first();
-                    // var_dump($newUser);
-    
-    
-                    $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
-                    // var_dump($newToken);
-                    $newIdentity = $jwtAuth->decode($newToken);
-                    // var_dump($newIdentity);
-                    // die();
-                    // Devolver array con resultado
-                    $data = array(
-                        'status'    => 'success',
-                        'code'      => 200,
-                        'message'   => 'Los datos se han actualizado exitosamente',
-                        'user'      => $user,
-                        // 'changes'   => $paramsArray
-                        'token'      => $newToken,
-                        'identity'   => $newIdentity
-                    );
+                    try {
+                        $paramsUserUpdate = array (
+                            "usu_name"          => $params->name,
+                            "usu_lastname"      => $params->lastname,
+                            // "usu_email"         => $params->mail,
+                            "usu_phone"         => $params->phone,
+                        );
 
+                        $userUpdate = User::where('usu_idUser', $user->usu_idUser)
+                            ->update($paramsUserUpdate);
+
+                        if(!isset($userUpdate) && empty($userUpdate)) {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error en la actualización de datos.',
+                            );
+                        } else {
+                            $newUser = User::
+                                where([
+                                    'usu_idUser' => $user->usu_idUser,
+                                    'usu_email'  => $user->usu_email,
+                                ])
+                                ->first();
+                            // var_dump($newUser);
+            
+                            $newToken = $jwtAuth->encode($jwtAuth->generateToken($newUser));
+                            // var_dump($newToken);
+
+                            $newIdentity = $jwtAuth->decode($newToken);
+                            // var_dump($newIdentity);
+
+                            // Devolver array con resultado
+                            $data = array(
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'Los datos se han actualizado exitosamente',
+                                'user'      => $user,
+                                // 'changes'   => $paramsArray
+                                'token'      => $newToken,
+                                'identity'   => $newIdentity
+                            );
+                        }
+                    } catch (QueryException $e) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error en la actualización de datos.',
+                        );
+                    }
                 }
-                
             }
         }
         else {
-            
             $data = array(
                 'status'    => 'error',
-                'code'      => 405,
-                'message'   => 'Ha ocurrido un error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
             );
         }
-        
-        return response()->json($data, $data['code']);
-
-        
-    }
-
-    // Validate url when has an account link, the account was created by an admin from gestion-usuarios
-    public function validateUrl(Request $request) {
-        // Recoger datos usuarios
-        $json = $request->input('json', null);
-                
-        $params         = json_decode($json); //objeto
-        $paramsArray    = json_decode($json, true);   //array
-
-        if(!empty($params) && !empty($paramsArray)) {
-
-            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
-
-            $validate = \Validator::make($paramsArray, [
-                'mail'          => 'required | email',
-                'rol'           => 'required ',
-                'rolKey'        => 'required ',
-            ]);
-
-            if($validate->fails()) {
-                $data = array(
-                    'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error en la comprobación',
-                    'errors'    => $validate->errors()
-                );
-            }
-            else{
-                // // $rol = 
-                // var_dump($params);
-                // die();
-                
-                $userData = User::
-                    where('usu_email', '=', $paramsArray['mail'])
-                    ->where('urol_idRol', '=', $paramsArray['rolKey'])
-                    ->first();
-
-                if(!empty($userData)) {
-
-                    // var_dump($userData->usu_isVerification);
-                    // var_dump($userData->usu_isVerificated);
-                    if($userData->usu_isVerification == 1 && $userData->usu_isVerificated == 0) {
-                        // var_dump($userData->usu_isVerificated);
-                        $data = array(
-                            'status'    => 'success',
-                            'code'      => 200,
-                            'message'   => 'La URL es correcta',
-                            // 'errors'    => $validate->errors()
-                        );
-                    }
-                    else if($userData->usu_isVerification == 1 && $userData->usu_isVerificated == 1){
-
-                        $data = array(
-                            'status'    => 'error',
-                            'code'      => 402,
-                            'message'   => 'El email ya ha sido verificado',
-                            // 'errors'    => $validate->errors()
-                        );
-                    }
-                    else if($userData->usu_isVerification == 1 && $userData->usu_isVerificated == 1){
-
-                        $data = array(
-                            'status'    => 'error',
-                            'code'      => 402,
-                            'message'   => 'El email ya ha sido verificado',
-                            // 'errors'    => $validate->errors()
-                        );
-                    }
-                    // die();
-                }
-                else {
-                    $data = array(
-                        'status'    => 'error',
-                        'code'      => 401,
-                        'message'   => 'El mail no existe',
-                        // 'errors'    => $validate->errors()
-                    );
-                }
-
-                // print_r($userData);
-                // die();
-                            
-                // $securityED = new \App\Helpers\SecurityED();
-
-                
-                // $s = $securityED->getString($paramsArray['mail']);
-                // print_r($s);
-                // die();
-                // $rolName = $paramsArray['rol'];
-                // $rolID = $paramsArray['rolKey'];
-                // // var_dump($rolName);
-                // // $rol = UserRol::
-                // //     // where('urol_name', 'LIKE', '%'. strtolower($rolName) .'%')
-                // //     // where('urol_name', 'LIKE', '%'. $rolName .'%')
-                // //     where('urol_name', '=', $rolName)
-                // //     ->first()
-                // //     ;
-
-                // // var_dump($rol->urol_idRol);
-                // // die();
-                // $user = new User();
-                // $user->usu_name         = $paramsArray['name'];
-                // $user->usu_lastname     = $paramsArray['lastname'];
-                // $user->usu_email        = $paramsArray['mail'];
-                // // $user->urol_idRol       = $rol->urol_idRol;
-                // $user->urol_idRol       =  $paramsArray['rolKey'];
-                // $user->usu_isAuthorized = 0;
-
-                // // var_dump($paramsArray['rol']);
-                // // die();
-                // // var_dump($user);
-                // // die();
-                // $user->save();
-                // // $idUser = $user->usu_idUser;
-                
-                // $data = array(
-                //     'status'    => 'success',
-                //     'code'      => 200,
-                //     'message'   => 'El usuario se ha creado correctamente',
-                // );
-            }
-
-
-        }
-        return response()->json($data, $data['code']);
-    }
-
-    // // Validar code for account by admin
-    // public function {
-        
-    //     (new MailController)->userVerificationCode($paramsArray);
-    // }
-
-    public function validateCodeAccount(Request $request ) {
-        // Recoger datos usuario}
-        $json = $request->input('json', null);
-        
-        $params = json_decode($json); //objeto
-        $paramsArray = json_decode($json, true);   //array
-        
-        if(!empty($params) && !empty($paramsArray)) {
-            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
-            
-            $validate = \Validator::make($paramsArray, [
-                // 'name'          => 'required',
-                // 'lastname'      => 'required',
-                'mail'          => 'required | email',
-                'rol'           => 'required ',
-                'rolKey'        => 'required ',
-            ]);
-                
-                $name           = $params->name;
-                $lastname       = $params->lastname;
-                $username       = $params->username;
-                $mail           = $params->mail;
-                $mailAccount    = $params->mailAccount;
-                $code           = $params->code;
-                
-
-            if($validate->fails()) {
-                $data = array(
-                    'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error en la validación.',
-                    'errors'    => $validate->errors()
-                );
-            }
-            else {
-
-                $userData = User::where([
-                    ['usu_username', '=', $username],
-                    ['usu_email', '=', $mail]
-                ])->first();
-
-                $dbUserCode = $userData->usu_verification_code;
-
-                if($code === $dbUserCode) {
-                    $data = array(
-                        'status'    => 'success',
-                        'code'      => 200,
-                        'message'   => 'Se ha validado correctamente el código de verificación.',
-                    );
-                }
-                else {
-
-                    $data = array(
-                        'status'    => 'error',
-                        'code'      => 403,
-                        'message'   => 'El código de verificación es incorrecto.',
-                    );
-                }
-            }
-        }
-        return response()->json($data, $data['code']);
-    }
-
-
-    // Tutorial UDEMY
-
-    public function upload(Request $request) {
-
-        // Recoger datos de peticion
-
-        // Subir imagen en laravel
-
-        // Devolver el resultado
-        
-        $data = array(
-            'status'    => 'error',
-            'code'      => 400,
-            'message'   => 'Error al subir imagen',
-        );
-
         return response()->json($data, $data['code']);
     }
 
@@ -1243,7 +1327,7 @@ class UserController extends Controller
         return response()->json($data);
     }
 
-    // Authorizar al usuario
+    // Autorizar al usuario
     public function authorizeUser(Request $request) {
         // Recoger datos usuarios
         $json = $request->input('json', null);
@@ -1537,24 +1621,6 @@ class UserController extends Controller
                                 "usu_phone"     => $params->usu_phone,
                             );
                             
-                            // $paramsShippingUpdate = array (
-                            //     "usad_country"  => $params->country,
-                            //     "usad_state"    => $params->state,
-                            //     "usad_city"     => $params->city,
-                            //     "usad_address"  => $params->address,
-                            //     "usad_cp"       => $params->cp,
-                            // );
-    
-                            // $paramsFiscalUpdate = array (
-                            //     "ufdt_denomination" => $params->denomination,
-                            //     "ufdt_country"      => $params->countryFiscal,
-                            //     "ufdt_state"        => $params->stateFiscal,
-                            //     "ufdt_city"         => $params->cityFiscal,
-                            //     "ufdt_address"      => $params->addressFiscal,
-                            //     "ufdt_cp"           => $params->cpFiscal,
-                            // );
-
-                            
                             $userUpdate = User::where('usu_idUser', $params->usu_idUser)
                                 ->update($paramsUserUpdate);
 
@@ -1566,7 +1632,6 @@ class UserController extends Controller
                                 );
                             }
                             else {
-                                    
                                 $paramsShippingUpdate = array (
                                     "usad_country"  => $params->country,
                                     "usad_state"    => $params->state,
@@ -1574,20 +1639,9 @@ class UserController extends Controller
                                     "usad_address"  => $params->address,
                                     "usad_cp"       => $params->cp,
                                 );
-        
-                                // $paramsFiscalUpdate = array (
-                                //     "ufdt_denomination" => $params->denomination,
-                                //     "ufdt_country"      => $params->countryFiscal,
-                                //     "ufdt_state"        => $params->stateFiscal,
-                                //     "ufdt_city"         => $params->cityFiscal,
-                                //     "ufdt_address"      => $params->addressFiscal,
-                                //     "ufdt_cp"           => $params->cpFiscal,
-                                // );
 
 
                                 $shippingUpdate = $this->userService->updateShippingAddress($paramsShippingUpdate, $params->idAddress);
-                                // $shippingUpdate = (new UserShippingAddressController)
-                                //     ->updateShippingAddress($paramsShippingUpdate, $params->idAddress);
 
                                 if(!isset($shippingUpdate) && empty($shippingUpdate)) {
                                     $data = array(
@@ -1597,14 +1651,33 @@ class UserController extends Controller
                                     );
                                 }
                                 else {
-
-                                    $data = array(
-                                        'status'    => 'success',
-                                        'code'      => 200,
-                                        'message'   => 'Los datos se han actualizado exitosamente',
+                                    $paramsFiscalUpdate = array (
+                                        "ufdt_denomination" => $params->denomination,
+                                        "ufdt_country"      => $params->countryFiscal,
+                                        "ufdt_state"        => $params->stateFiscal,
+                                        "ufdt_city"         => $params->cityFiscal,
+                                        "ufdt_address"      => $params->addressFiscal,
+                                        "ufdt_cp"           => $params->cpFiscal,
                                     );
-                                }
 
+                                    
+                                    $fiscalUpdate = $this->userService->updatFiscalData($paramsFiscalUpdate, $params->idAddressFiscal);
+
+                                    if(!isset($fiscalUpdate) && empty($fiscalUpdate)) {
+                                        $data = array(
+                                            'status'    => 'error',
+                                            'code'      => 400,
+                                            'message'   => 'Ha ocurrido un error en la actualización de datos, no sen actualizado por completo.',
+                                        );
+                                    }
+                                    else {
+                                        $data = array(
+                                            'status'    => 'success',
+                                            'code'      => 200,
+                                            'message'   => 'Los datos se han actualizado exitosamente',
+                                        );
+                                    }
+                                }
                             }
                         } catch (QueryException $e) {
                             $data = array(
@@ -1613,47 +1686,7 @@ class UserController extends Controller
                                 'message'   => 'Ha ocurrido un error en la actualización de datos.',
                             );
                         }
-
-                        /*
-                        die();
-
-                            
-                        
-                        $shippingUpdate = (new UserShippingAddressController)
-                            ->updateShippingAddress($paramsShippingUpdate, $params->idAddress);
-
-                        $fiscalUpdate = (new UserFiscalDataController)
-                            ->updatFiscalData($paramsFiscalUpdate, $params->idAddressFiscal);
-
-                        
-                        if(!$shippingUpdate) {
-                            $data = array(
-                                'status'    => 'error',
-                                'code'      => 400,
-                                'message'   => 'Ha ocurrido un error en la actualización de datos',
-                                'errors'    => $validate->errors()
-                            );
-                        }
-                        if(!$fiscalUpdate) {
-                            $data = array(
-                                'status'    => 'error',
-                                'code'      => 400,
-                                'message'   => 'Ha ocurrido un error en la actualización de datos',
-                                'errors'    => $validate->errors()
-                            );
-                        }
-
-
-                        $data = array(
-                            'status'    => 'success',
-                            'code'      => 200,
-                            'message'   => 'Los datos se han actualizado exitosamente',
-                        );
-                        */
-                        
-
                     }
-                    
                 }
                 else {
                     $paramsUserUpdate = array (
@@ -1685,8 +1718,6 @@ class UserController extends Controller
                     }
                     
                 }
-                
-                // return response()->json($data, $data['code']);
             }
         }
         else {
@@ -1700,14 +1731,7 @@ class UserController extends Controller
         return response()->json($data, $data['code']);
     }
 
-
-
-
-
-
-
-
-
+    // Agregar un nuevo usuario
     public function addNewUser(Request $request) {
         // Recoger datos usuarios
         $json = $request->input('json', null);
@@ -1716,7 +1740,6 @@ class UserController extends Controller
         $paramsArray    = json_decode($json, true);   //array
 
         if(!empty($params) && !empty($paramsArray)) {
-
             $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
             $validate = \Validator::make($paramsArray, [
@@ -1727,167 +1750,137 @@ class UserController extends Controller
                 'rolKey'        => 'required ',
             ],
             [
-                'mail.unique'       => 'El email ya ha sido registrado.',
+                'mail.unique'   => 'El email ya ha sido registrado.',
             ]);
 
             if($validate->fails()) {
                 $data = array(
                     'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error en el registro',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en el registro.',
                     'errors'    => $validate->errors()
                 );
             }
-            else{
-                // var_dump($params);
-                // die();
-                
-                $user = new User();
-                $user->usu_name             = $paramsArray['name'];
-                $user->usu_lastname         = $paramsArray['lastname'];
-                $user->usu_email            = $paramsArray['mail'];
-                $user->urol_idRol           = $paramsArray['rolKey'];
-                $user->usu_isAuthorized     = 1;
-                $user->usu_isVerification   = 1;
-                $user->usu_isVerificated    = 0;
-
-                $user->save();
-                
-                // Mail
-                $jwtAuth = new \App\Helpers\JwtAuth();
-
-                // $mail = array(
-                //     // 'mail' => $paramsArray['mail']
-                //     $paramsArray['mail']
-                // );
-                
-                // $mailEnc = $jwtAuth->encode($mail);
-                // // var_dump($mailEnc);
-                // $rol = array(
-                //     'id' => $paramsArray['rolKey'],
-                //     'name' => $paramsArray['rol'],
-                // );
-                // $rolEnc = $jwtAuth->encode($rol);
-
-                $info = array(
-                    'mail'      => $paramsArray['mail'],
-                    'name'      => $paramsArray['name'],
-                    'lastname'  => $paramsArray['lastname'],
-                    'rolKey'    => $paramsArray['rolKey'],
-                    'rol'       => $paramsArray['rol'],
-                );
-
-                $infoEnc = $jwtAuth->encode($info);
-
-                $paramsMail = array(
-                    'name'      => $paramsArray['name'],
-                    'lastname'  => $paramsArray['lastname'],
-                    'mail'      => $paramsArray['mail'],
-                    'info'      =>  $infoEnc,
-                    // 'mailEnc'   => $mailEnc,
-                    'rol'       => $paramsArray['rol'],
-                    // 'rolEnc'    => $rolEnc,
-                );
-
-
-                // var_dump($paramsMail);
-                // die();
-
-                // Send email that its created
-                (new MailController)->userRegisterAccountByAdmin($paramsMail);
-
-                // var_dump($mail);
-                
-                // // Send email that its created
-                // $mail = (new MailController)
-                //     ->saveSignupAddress($shippingParams);
-
-                $data = array(
-                    'status'    => 'success',
-                    'code'      => 200,
-                    'message'   => 'El usuario se ha creado correctamente',
-                );
-            }
-
-
-        }
-        return response()->json($data, $data['code']);
-    }
-
-
-
-
-    public function unlockUser(Request $request) {
+            else {
+                try {
+                    $user = new User();
+                    $user->usu_name             = $paramsArray['name'];
+                    $user->usu_lastname         = $paramsArray['lastname'];
+                    $user->usu_email            = $paramsArray['mail'];
+                    $user->urol_idRol           = $paramsArray['rolKey'];
+                    $user->usu_isAuthorized     = 1;
+                    $user->usu_isVerification   = 1;
+                    $user->usu_isVerificated    = 0;
+    
+                    $user->save();
+                    
+                    $idUser = $user->usu_idUser;
+                    
+                    if(!isset($idUser) && empty($idUser)) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error en el registro.',
+                        );
+                    }
+                    else {$jwtAuth = new \App\Helpers\JwtAuth();
+                    
+                        $info = array(
+                            'mail'      => $paramsArray['mail'],
+                            'name'      => $paramsArray['name'],
+                            'lastname'  => $paramsArray['lastname'],
+                            'rolKey'    => $paramsArray['rolKey'],
+                            'rol'       => $paramsArray['rol'],
+                        );
         
-        // Recoger datos usuarios
-        $json = $request->input('json', null);
-                
-        $params         = json_decode($json); //objeto
-        $paramsArray    = json_decode($json, true);   //array
-
-        if(!empty($params) && !empty($paramsArray)) {
-
-            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
-
-            $validate = \Validator::make($paramsArray, [
-                'unlock'    => 'required',
-            ]);
-
-            if($validate->fails()) {
-                $data = array(
-                    'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error en el registro',
-                    'errors'    => $validate->errors()
-                );
-            }
-            else{
-                // $rol = 
-                
-                // print_r($paramsArray);
+                        $infoEnc = $jwtAuth->encode($info);
+        
+                        $paramsMail = array(
+                            'name'      => $paramsArray['name'],
+                            'lastname'  => $paramsArray['lastname'],
+                            'mail'      => $paramsArray['mail'],
+                            'info'      =>  $infoEnc,
+                            'rol'       => $paramsArray['rol'],
+                        );
+    
+                        // Send email that its created
+                        // (new MailController)->userRegisterAccountByAdmin($paramsMail);
+                        $sendMail = $this->mailController->userRegisterAccountByAdmin($paramsMail);
+    
+                        // Procesar la respuesta del MailController
+                        if (isset($sendMail['error'])) {
+                            // $data = array(
+                            //     'status' => 'error',
+                            //     'code' => 404,
+                            //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                            // );
+                            if(isset($idUser)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'El usuario se ha creado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    'code' => 400,
+                                    'message' => 'Error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                        }
+                        elseif ($sendMail['status'] === 'success') {
+                            $data = array(
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'El usuario se ha creado correctamente y se ha enviado el correo de verificación.',
+                            );
                             
-                $securityED = new \App\Helpers\SecurityED();
-
-                
-                $s = $securityED->getString($paramsArray['mail']);
-                print_r($s);
-                die();
-                $rolName = $paramsArray['rol'];
-                $rolID = $paramsArray['rolKey'];
-                // var_dump($rolName);
-                // $rol = UserRol::
-                //     // where('urol_name', 'LIKE', '%'. strtolower($rolName) .'%')
-                //     // where('urol_name', 'LIKE', '%'. $rolName .'%')
-                //     where('urol_name', '=', $rolName)
-                //     ->first()
-                //     ;
-
-                // var_dump($rol->urol_idRol);
-                // die();
-                $user = new User();
-                $user->usu_name         = $paramsArray['name'];
-                $user->usu_lastname     = $paramsArray['lastname'];
-                $user->usu_email        = $paramsArray['mail'];
-                // $user->urol_idRol       = $rol->urol_idRol;
-                $user->urol_idRol       =  $paramsArray['rolKey'];
-                $user->usu_isAuthorized = 0;
-
-                // var_dump($paramsArray['rol']);
-                // die();
-                // var_dump($user);
-                // die();
-                $user->save();
-                // $idUser = $user->usu_idUser;
-                
-                $data = array(
-                    'status'    => 'success',
-                    'code'      => 200,
-                    'message'   => 'El usuario se ha creado correctamente',
-                );
+                        }
+                        else {
+                            // // $data = array(
+                            // //     'status' => 'error',
+                            // //     'code' => 500,
+                            // //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                            // // );
+                            
+                            if(isset($idUser)) {
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'El usuario se ha creado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status' => 'error',
+                                    // 'code' => 500,
+                                    'code' => 400,
+                                    'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                );
+                            }
+                        }
+                    }
+                } catch (QueryException $e) {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error en el registro.',
+                    );
+                }
             }
-
-
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
         }
         return response()->json($data, $data['code']);
     }
+    
+
+
 }

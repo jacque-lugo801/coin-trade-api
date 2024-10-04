@@ -9,8 +9,8 @@ class ProductCertifications extends Model
 {
     use HasFactory;
 
-    protected $table = "product_certifications";
-    protected $primaryKey = 'pcert_idCertification';
+    protected $table        = "product_certifications";
+    protected $primaryKey   = 'pcert_idCertification';
     
     const CREATED_AT = 'pcert_created_date';
     const UPDATED_AT = 'pcert_updated_date';

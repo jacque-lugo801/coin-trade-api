@@ -6,9 +6,51 @@ use Illuminate\Http\Request;
 use App\Models\ProductFavorite;
 use App\Http\Controllers\ProductController;
 
+use Illuminate\Database\QueryException;
+// use Illuminate\Support\Facades\Log;
+use Exception;
+
 class ProductFavoriteController extends Controller
 {
-    //
+    // Obtener los productos favoritos del usuario
+    public function getProductsFavoriteFmUser(Request $request) {
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+        
+        $user = $jwtAuth->checkToken($token, true);
+
+        try {
+            $productsFavorites = ProductFavorite::
+                where([
+                    ["usu_idUser", "=", $user->usu_idUser],
+                    ["ufav_isActive", "=", 1],
+                ])
+                ->get()
+                ->load('productFavorite')
+            ;
+            if(!empty($productsFavorites)){
+                $data = array(
+                    'favorites' => $productsFavorites,
+                );
+            }
+            else {
+                $data = array(
+                    'favorites' => [],
+                );
+            }
+
+        } catch (QueryException $e) {
+            $data = array(
+                'favorites' => [],
+            );
+        }
+        return response()->json($data);
+    }
+
+
+
+
+    
 
     public function favoriteProduct(Request $request) {
         // echo 'fav';
@@ -196,51 +238,4 @@ class ProductFavoriteController extends Controller
     
     
 
-    public function getProductsFavoriteFmUser(Request $request) {
-        // echo 'getting favs';
-        // die();
-
-        
-        $token = $request->header('Authorization');
-        $jwtAuth = new \App\Helpers\JwtAuth();
-
-        
-        $user = $jwtAuth->checkToken($token, true);
-
-        // var_dump($user);
-        // die();
-
-        $productsFavorites = ProductFavorite::
-            where([
-                ["usu_idUser", "=", $user->usu_idUser],
-                // ["prod_idProducto", "=", $paramsArray['id']],
-                ["ufav_isActive", "=", 1],
-            ])
-        ->
-        get()
-        ->load('productFavorite')
-        ;
-
-        
-        if(!empty($productsFavorites)){
-
-            $data = array(
-                // 'status'    => 'error',
-                // 'code'      => 400,
-                // 'message'   => 'Error al subir imagen',
-                'favorites' => $productsFavorites,
-            );
-        }
-        else {
-            
-            $data = array(
-                // 'status'    => 'error',
-                // 'code'      => 400,
-                // 'message'   => 'Error al subir imagen',
-                'favorites' => [],
-            );
-        }
-
-        return response()->json($data);
-    }
 }

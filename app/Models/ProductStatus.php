@@ -9,8 +9,8 @@ class ProductStatus extends Model
 {
     use HasFactory;
 
-    protected $table = "product_status";
-    protected $primaryKey = 'psts_idStatus';
+    protected $table        = "product_status";
+    protected $primaryKey   = 'psts_idStatus';
     
     // const CREATED_AT = 'pcert_created_date';
     // const UPDATED_AT = 'pcert_updated_date';

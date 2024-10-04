@@ -12,15 +12,9 @@ class UserStatus extends Model
     protected $table        = "user_status";
     protected $primaryKey   = 'usts_idStatus';
     
-    // const CREATED_AT = 'ufdt_updated_date';
-    // const UPDATED_AT = 'ufdt_created_date';
-
     protected $fillable = [
         'usts_idStatus ',
         'usts_name',
         'usts_description',
     ];
-
-    // protected $appends = [ 'status' ];
-    // protected $hidden = [ 'userStatus' ];
 }
