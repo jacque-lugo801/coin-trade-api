@@ -8,6 +8,7 @@ use Mail;
 use App\Mail\DemoMail;
 use App\Mail\UserVerificationCodeMail;
 use App\Mail\UserRegisterAccountMail;
+use App\Mail\UserRegisterAccountMailv2; // Temporal
 use App\Mail\UserRegisterAccountMailByAdmin;
 use App\Mail\UserAuthorizedByAdmin;
 use App\Mail\UserActivatedByAdmin;
@@ -171,7 +172,8 @@ class MailController extends Controller
             $code = $user->usu_verification_code;
 
             Mail::to($mailAccount)
-                ->send(new UserRegisterAccountMail($name, $lastname, $this->imgLogo));
+                // ->send(new UserRegisterAccountMail($name, $lastname, $this->imgLogo));
+                ->send(new UserRegisterAccountMailv2($name, $lastname, $this->imgLogo)); // Temporal
         
             $data = array(
                 'status'    => 'success',

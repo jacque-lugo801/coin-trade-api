@@ -465,6 +465,7 @@ class UserController extends Controller
                             // Save validation flag usu_isVerificated
                             $paramsUpdate = array (
                                 "usu_isVerificated"  => 1,
+                                "usu_isAuthorized"  => 1,
                             );
 
                             $userUpdate = User::where('usu_idUser', $userData->usu_idUser)
@@ -476,6 +477,8 @@ class UserController extends Controller
                                     'code'      => 200,
                                     'message'   => 'Se ha validado correctamente el código de verificación.',
                                 );
+
+                                
                             }
                             else {
 
