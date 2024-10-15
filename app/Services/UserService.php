@@ -105,14 +105,11 @@ class UserService
     // END ADDRESS
 
 
-
-
-    
     // CODE
     // Generación de código (6 digitos) para validacion de e-mail
     public function setCode() {
         do {
-            $code = random_int(000001, 999999);
+            $code = str_pad(random_int(1, 999999), 6, '0', STR_PAD_LEFT);
         } while (User::where("usu_verification_code", "=", $code)->first());
         return $code;
     }

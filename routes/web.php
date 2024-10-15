@@ -50,6 +50,7 @@ Route::get('list/routes', function () {
 // Route::get('/view-upload-product', function () {
 //     return view('emails/productUpload');
 // });
+Route::get('api/user/code', [UserController::class, 'code']); // Registrar nueva cuenta de usuario
 // END VIEWS
 
 

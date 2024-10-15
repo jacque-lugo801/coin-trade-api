@@ -1885,5 +1885,16 @@ class UserController extends Controller
     }
     
 
+    // Test code
+    public function code(Request $request) 
+    {
+        $code = $this->userService->setCode();
 
+        $data = array(
+            'status'    => 'success',
+            'code'      => 200,
+            'message'   => 'CODE -> ' .$code
+        );
+        return response()->json($data, $data['code']);
+    }
 }
