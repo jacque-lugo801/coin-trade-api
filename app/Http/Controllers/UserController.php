@@ -1892,6 +1892,10 @@ class UserController extends Controller
         $params         = json_decode($json); //objeto
         $paramsArray    = json_decode($json, true);   //array
 
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+        $user = $jwtAuth->checkToken($token, true);
+
         if(!empty($params) && !empty($paramsArray)) {
             $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
@@ -1908,32 +1912,42 @@ class UserController extends Controller
             }
             else {
                 try {
-                    $paramsUserUpdate = array (
-                        "usu_email"     => '',
-                        "usu_username"  => null,
-                    );
-
-                    $userUpdate = User::where('usu_email', $params->mail)
-                        ->update($paramsUserUpdate);
-
-                    if($userUpdate || $userUpdate == 1) {
-                    
-                        $data = array(
-                            'status'    => 'success',
-                            'code'      => 200,
-                            'message'   => 'Los datos se han actualizado exitosamente',
-                        );
-                            
-                    }
-                    else {
+                    if($user->usu_email == $params->mail) {
                         $data = array(
                             'status'    => 'error',
                             'code'      => 402,
-                            'message'   => 'Ha ocurrido un error en la actualización de datos',
-                            'errors'    => $validate->errors()
+                            'message'   => 'Ha ocurrido un error en la actualización de datos, no puedes eliminar tu cuenta',
                         );
                     }
-
+                    else {
+                        $paramsUserUpdate = array (
+                            "usu_email"     => '',
+                            "usu_username"  => null,
+                        );
+    
+                        $userUpdate = User::where('usu_email', $params->mail)
+                            ->update($paramsUserUpdate);
+    
+                        if($userUpdate || $userUpdate == 1) {
+                        
+                            $data = array(
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'Los datos se han actualizado exitosamente',
+                            );
+                                
+                        }
+                        else {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 402,
+                                'message'   => 'Ha ocurrido un error en la actualización de datos',
+                                'errors'    => $validate->errors()
+                            );
+                        }
+    
+                    }
+                    
                         
                 } catch (QueryException $e) {
                     $data = array(
