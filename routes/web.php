@@ -146,6 +146,7 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     Route::put('/api/user/activate', [UserController::class, 'activateUser'])->name('admin.user.activate'); // *
     Route::put('/api/user/update-user', [UserController::class, 'updateUser'])->name('admin.user.update'); // *
     Route::post('/api/user/register-user', [UserController::class, 'addNewUser'])->name('admin.user.register'); // *
+    Route::put('/api/user/delete-user', [UserController::class, 'deleteUser'])->name('admin.user.delete'); // *
     // END USER
 
     // Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);

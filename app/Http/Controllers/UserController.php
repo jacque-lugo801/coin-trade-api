@@ -1883,6 +1883,77 @@ class UserController extends Controller
         }
         return response()->json($data, $data['code']);
     }
+
+    //
+    public function deleteUser(Request $request) {
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+                
+        $params         = json_decode($json); //objeto
+        $paramsArray    = json_decode($json, true);   //array
+
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
+
+            $validate = \Validator::make($paramsArray, [
+                'mail'          => 'required|email',
+            ]);
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en el registro.',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+                try {
+                    $paramsUserUpdate = array (
+                        "usu_email"     => '',
+                        "usu_username"  => null,
+                    );
+
+                    $userUpdate = User::where('usu_email', $params->mail)
+                        ->update($paramsUserUpdate);
+
+                    if($userUpdate || $userUpdate == 1) {
+                    
+                        $data = array(
+                            'status'    => 'success',
+                            'code'      => 200,
+                            'message'   => 'Los datos se han actualizado exitosamente',
+                        );
+                            
+                    }
+                    else {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 402,
+                            'message'   => 'Ha ocurrido un error en la actualización de datos',
+                            'errors'    => $validate->errors()
+                        );
+                    }
+
+                        
+                } catch (QueryException $e) {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error en el registro.',
+                    );
+                }
+            }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
+        return response()->json($data, $data['code']);
+    }
     
 
     // Test code
