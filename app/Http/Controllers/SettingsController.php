@@ -6,12 +6,22 @@ use Illuminate\Http\Request;
 
 use App\Models\Settings;
 
+use App\Http\Controllers\MailController;
+
 use Illuminate\Database\QueryException;
 use Exception;
 
 
 class SettingsController extends Controller
 {
+    protected $mailController;
+
+    public function __construct (
+        MailController      $mailController,
+    ) {
+        $this->mailController   = $mailController;
+    }
+
     // Obtener el precio para hacer la valuacion
     public function getValuationPrice(){
         try {

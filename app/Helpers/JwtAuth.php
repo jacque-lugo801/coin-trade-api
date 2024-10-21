@@ -290,7 +290,13 @@ class JwtAuth {
             'usts_description'  => $status->usts_description,
             'ulog_date_access'  => $userLog->ulog_date_access,
             'iat'               => time(),  // Fecha en que se ha creado el token
-            'exp'               => time() + (7 * 24 * 60 * 60) // Fecha de caducidad del token (aqui caduca en una semana)
+            'exp'               => time() + (1 * 24 * 60 * 60) // Fecha de caducidad del token (aqui caduca en un 3 dias)
+            /*
+                7 -> dias
+                24 -> c/dia 24 horas
+                60 -> c/hora 60 min
+                60 -> c/min 60 seg
+            */
         );
         
         $address = UserShippingAddress::where([

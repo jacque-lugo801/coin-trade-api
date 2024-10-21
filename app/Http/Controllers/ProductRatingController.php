@@ -7,14 +7,25 @@ use App\Models\Product;
 use App\Models\ProductRating;
 // use App\Http\Controllers\ProductController;
 
+use App\Services\ProductService;
+
 use Illuminate\Database\QueryException;
-// use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Str;
 
 
 class ProductRatingController extends Controller
 {
-    // Obtener los productos que ha calificado el usuario(comprador)
+    protected $productService;
+
+    public function __construct (
+        ProductService  $productService,
+    ) {
+        $this->productService   = $productService;
+    }
+
+    // Obtener los productos que ha calificado el usuario(Comprador)
     public function getProductsRatedFmUser(Request $request) {
         $token = $request->header('Authorization');
         $jwtAuth = new \App\Helpers\JwtAuth();
@@ -41,7 +52,6 @@ class ProductRatingController extends Controller
                     'rated' => [],
                 );
             }
-
         } catch (QueryException $e) {
             $data = array(
                 'rated' => [],
@@ -50,36 +60,20 @@ class ProductRatingController extends Controller
         return response()->json($data);
     }
 
-
-
-
-
-
-
+    // Calificar un producto
     public function ratingProduct(Request $request) {
-        // echo 'rating product';
-
-        
         $token = $request->header('Authorization');
         $jwtAuth = new \App\Helpers\JwtAuth();
 
-        
         $user = $jwtAuth->checkToken($token, true);
 
-        
-        // Recoger datos usuarios
         $json = $request->input('json', null);
         $params         = json_decode($json); //objeto
         $paramsArray    = json_decode($json, true);   //array
 
-
-        // var_dump($user);
-        // die();
-
         if(!empty($params) && !empty($paramsArray)) {
             $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
 
-            // var_dump($paramsArray);
             $validate = \Validator::make($paramsArray, [
                 "id"    => 'required',
                 "sku"   => 'required',
@@ -87,185 +81,170 @@ class ProductRatingController extends Controller
                 "rate"  => 'required',
             ]);
 
-
             if($validate->fails()) {
                 $data = array(
                     'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error al agregar la calificación',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error al agregar la calificación.',
                     'errors'    => $validate->errors()
                 );
             }
             else {
-
-                // var_dump($user->usu_idUser);
-                // // var_dump($paramsArray);
-                // var_dump($paramsArray['id']);
-                // die();
                 $productRating = ProductRating::
-                                
                     where([
                         ["usu_idUser", "=", $user->usu_idUser],
                         ["prod_idProducto", "=", $paramsArray['id']],
                         ["prat_isActive", "=", 1],
                     ])
                 ->
-                first()
+                    first()
                 ;
 
-                // var_dump($productRating);
-                if(!$productRating) {
-                    //Si no se ha calificado aun el producto pór el usuario
-                    // echo 'no';
+                if(!empty($productRating)) {
+                    //Si existe una calificacion del producto
+                    $oldRate = ProductRating::
+                        where('prat_idRating', $productRating->prat_idRating)
+                        ->update([
+                            'prat_isActive' => 0
+                        ]);
                     
-                    $this->addRating($user, $paramsArray);
+                    if($oldRate || $oldRate == 1) {
+                        $rating = $this->addRating($user, $paramsArray);
 
-                    $this->updateRateProduct($paramsArray);
-                    // $rate = new ProductRating();
-                    // $rate->usu_idUser        = $user->usu_idUser;
-                    // $rate->prod_idProducto   = $paramsArray['id'];
-                    // $rate->prat_isActive     = 1;
+                        if(!is_object($rating)) {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error al agregar la calificación.',
+                            );
+                        }
+                        else {
+                            $generalRate = $this->updateRateProduct($paramsArray);
 
-                    // $rate->save();
-                    // var_dump($rate);
-
-                    // if(!$rate) {
-                    //     $data = array(
-                    //         'status'    => 'error',
-                    //         'code'      => 402,
-                    //         'message'   => 'Ha ocurrido un error al agregar la calificación',
-                    //         // 'errors'    => $validate->errors()
-                    //     );
-                    // }
-                    // else {
-
-                    // }
-
+                            if($generalRate || $generalRate == 1) {
+                                $data = array(
+                                    'status'    => 'success',
+                                    'code'      => 200,
+                                    'message'   => 'El producto se ha calificado exitosamente',
+                                );
+                            } else {
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 400,
+                                    'message'   => 'Ha ocurrido un error al agregar la calificación.',
+                                );
+                            }
+                        }
+                    } else {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error al agregar la calificación.',
+                        );
+                    }
                 }
                 else {
-                    // si ya se califico el producto
-                    // var_dump($productRating);
-                    // var_dump($productRating->prat_idRating);
-                    // var_dump($productRating->prat_isActive);
-                    // desactiva la anterior calificacion
-                    // $oldRate = new ProductRating();
-                    // $rate->usu_idUser        = $user->usu_idUser;
-                    // $rate->prod_idProducto   = $paramsArray['id'];
-                    // $rate->prat_isActive     = 1;
+                    //Si NO existe una calificacion del producto
+                    echo 'esta vacio, no se ha calificado';
+                    $rating = $this->addRating($user, $paramsArray);
 
-                    // $rate->save();
-                    
-                    $oldRate = ProductRating::where('prat_idRating', $productRating->prat_idRating)
-                    ->update([
-                        'prat_isActive' => 0
-                    ]);
-                    // ->update($paramsUserUpdate);
+                    if(!is_object($rating)) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error al agregar la calificación.',
+                        );
+                    }
+                    else {
+                        $generalRate = $this->updateRateProduct($paramsArray);
 
-                    $this->addRating($user, $paramsArray);
-
-                    $this->updateRateProduct($paramsArray);
+                        if($generalRate || $generalRate == 1) {
+                            $data = array(
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'El producto se ha calificado exitosamente',
+                            );
+                        } else {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error al agregar la calificación.',
+                            );
+                        }
+                    }
                 }
-
-                // die();
-                
-                $data = array(
-                    'status'    => 'success',
-                    'code'      => 200,
-                    'message'   => 'El producto se ha calificado exitosamente',
-                );
             }
         }
-
-        
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
         return response()->json($data, $data['code']);
     }
 
 
-
+    // Agregar una calificacion al producto
     public function addRating($user, $paramsArray) {
+        if(!empty($user || !empty($paramsArray))) {
+            try {
+                $rate = new ProductRating();
+                $rate->usu_idUser           = $user->usu_idUser;
+                $rate->prod_idProducto      = $paramsArray['id'];
+                $rate->prat_rating          = $paramsArray['rate'];
+                $rate->prat_isActive        = 1;
         
-        $rate = new ProductRating();
-        $rate->usu_idUser           = $user->usu_idUser;
-        $rate->prod_idProducto      = $paramsArray['id'];
-        $rate->prat_rating          = $paramsArray['rate'];
-        $rate->prat_isActive        = 1;
-
-        $rate->save();
-    }
-    
-    public function updateRateProduct($paramsArray) {
-        // echo 'change general rate';
-
-
-        $allRates = ProductRating::
-            where([
-                // ["usu_idUser", "=", $user->usu_idUser],
-                ["prod_idProducto", "=", $paramsArray['id']],
-                ["prat_isActive", "=", 1],
-            ])
-        ->
-        get()
-        ;
-
-        $total = 0;
-        $rating = 0;
-        $numCount = count($allRates);
-
-        if($allRates){
-            foreach($allRates as $rate){
-                // echo '--------';
-                // print_r('<pre>');
-                // print_r($rate->prat_rating);
-                // print_r('</pre>');
-                // echo '--------';
-                $total += $rate->prat_rating;
-
+                $rate->save();
+                return $rate;
+            } catch (QueryException $e) {
+                // $errorCode = $e->getCode();
+                // $errorMessage = $e->getMessage();
+                // Log::error("Error on saveSignupAddress. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+                // return response()->json(['error' => 'Ocurrió un error en la consulta.'], 500);
+                return 0;
             }
-
-            $rating = $total / $numCount;
-
-
-            
-            // $product = new Product();
-            // $product->prod_rating   = $rating;
-            // $product->save();
-            
         }
         else {
-
+            return 0;
         }
+    }
+    
+    //Actualizar calificación al producto
+    public function updateRateProduct($paramsArray) {
+        if(!empty($paramsArray)) {
+            $allRates = ProductRating::
+                where([
+                    ["prod_idProducto", "=", $paramsArray['id']],
+                    ["prat_isActive", "=", 1],
+                ])
+            ->
+                get()
+            ;
 
-        // die();
+            $total = 0;
+            $rating = 0;
+            $numCount = count($allRates);
 
+            if($allRates->isEmpty()){
+                return 0;
+            }
+            else {
+                foreach($allRates as $rate){
+                    $total += $rate->prat_rating;
+                }
 
-        // echo 'count. ' . $numCount;
-        // echo '<br>total. ' . $total;
-        // echo '<br>rating. ' . $rating;
+                $rating = $total / $numCount;
 
+                $productRate = $this->productService->updateProductRate($paramsArray, $rating);
 
-        $product = Product::
-            where([
-                ["prod_idProducto", "=", $paramsArray['id']],
-                ["prod_sku", "=", $paramsArray['sku']],
-            
-            ])
-        // ->
-        //     first()
-        ->
-            update([
-                'prod_rating' => $rating
-            ])
-        ;
-            
-        // var_dump($product);
-        // die();
-        
-        // $oldRate = Product::
-        //     where('prat_idRating', $productRating->prat_idRating)
-        // ->update([
-        //     'prod_rating' => 0
-        // ]);
-
-
+                return $productRate;
+            }
+        }
+        else {
+            return 0;
+        }
     }
 }

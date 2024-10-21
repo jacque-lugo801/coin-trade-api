@@ -17,6 +17,7 @@ use App\Mail\ProductApproveByAdmin;
 use App\Mail\ProductRequestUpgradeByAdmin;
 use App\Mail\UserResetPassword;
 use App\Mail\ProductUpload;
+use App\Mail\RequestValuation;
 
 use App\Models\User;
 use App\Http\Controllers\UserController;
@@ -258,18 +259,24 @@ class MailController extends Controller
     // **************************************************
     
     // E-mail para notificación de producto guardado
-    public function productUpload($productInfo, $userInfo) {
+    public function productUpload($productInfo, $userInfo, $certificate) {
         if(!empty($productInfo) || !empty($userInfo)) {
             $product    = $productInfo->first();
             $user       = $userInfo;
-            
+
             $cost       = number_format($product->prod_unit_cost, 2, '.', ',');
             $comission  = number_format($product->prod_commission, 2, '.', ',');
             $total      = number_format($product->prod_total, 2, '.', ',');
 
             $imageFront = storage_path('app/products/' . $product->prod_image_front);
             $imageBack = storage_path('app/products/' . $product->prod_image_back);
-            $imageCertification = storage_path('app/products/' . $product->productCertifications[0]->pcert_image);
+            
+            if(is_null($certificate)) {
+                $imageCertification = null;
+            }
+            else {
+                $imageCertification = storage_path('app/products/' . $product->productCertifications[0]->pcert_image);
+            }
 
             Mail::to($user->usu_email)
                 ->send(new ProductUpload($user, $product, $cost, $comission, $total, $imageFront, $imageBack, $imageCertification, $this->imgLogo));
@@ -290,6 +297,33 @@ class MailController extends Controller
        return $data;
     }
 
+    // VALUATIONS
+    // E-mail para notificación de solicitud del usuario de valuacion a un producto
+    public function requestValuation($valuation, $user, $product) {
+        if(!empty($valuation) || !empty($user) || !empty($product)) {
+            // $val = $valuation->first();
+            $valuationTotal  = number_format($valuation->val_total, 2, '.', ',');
+            $imageFront = storage_path('app/products/' . $product->prod_image_front);
+            $imageBack = storage_path('app/products/' . $product->prod_image_back);
+
+            Mail::to($user->usu_email)
+            ->send(new RequestValuation($user, $product, $valuation, $valuationTotal, $imageFront, $imageBack, $this->imgLogo));
+    
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+                'message'   => 'Se ha enviado el mail de verificación.'
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el mail de configuración de cuenta.'
+            );
+        }
+       return $data;
+    }
 
 
 

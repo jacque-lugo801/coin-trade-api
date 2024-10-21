@@ -60,7 +60,6 @@ class UserService
             $user =  User::
                 where('usu_email', '=', $mail)
                 ->first();
-
             return $user;
         } catch (QueryException $e)  {
             return 0;
@@ -91,6 +90,10 @@ class UserService
     public function deleteShippingAddress($idUser) {
         return $this->shippingController->deleteSignupAddress($idUser);
     }
+    //Obtener las direcciones
+    public function getShippingAddress($idUser) {
+        return $this->shippingController->getShippingAddress($idUser);
+    }
 
 
     // Fiscal
@@ -101,6 +104,14 @@ class UserService
     // Actualizar de los datos fiscales
     public function updatFiscalData($params, $idAddress) {
         return $this->fiscalController->updatFiscalData($params, $idAddress);
+    }
+    //Obtener fiscal
+    public function getFiscalData($idUser) {
+        return $this->fiscalController->getFiscalData($idUser);
+    }
+    // Borrar los datos de informacion fiscal que se han guardado
+    public function deleteFiscalData($idUser) {
+        return $this->fiscalController->deleteSignupFiscal($idUser);
     }
     // END ADDRESS
 

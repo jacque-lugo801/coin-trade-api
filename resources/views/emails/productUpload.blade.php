@@ -333,11 +333,6 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td height="15" style="font-size: 0; line-height: 0">
-                                                            &nbsp;
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
                                                         <td colspan="1"  valign="top" class="talign_left tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
                                                             Tipo:
                                                         </td>
@@ -513,28 +508,30 @@
                                                                                 </tbody>
                                                                             </table>
                                                                         </td>
-                                                                        <td class="space_col_product" width="15"></td>
-                                                                        <td valign="top" class="talign_center">
-                                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                                                                <tbody>
-                                                                                    <tr>
-                                                                                        <td valign="top" class="talign_center tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
-                                                                                            Certificado
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td height="5" style="font-size: 0; line-height: 0">
-                                                                                            &nbsp;
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td valign="top" class="talign_center">
-                                                                                            <img src="{{$message->embed($imageCertification)}}" width="125" alt=""/>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </td>
+                                                                        @if (!is_null($imageCertification))
+                                                                          <td class="space_col_product" width="15"></td>
+                                                                          <td valign="top" class="talign_center">
+                                                                              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                                                  <tbody>
+                                                                                      <tr>
+                                                                                          <td valign="top" class="talign_center tbold fnt_11pt" style="color: #1B243E; font-size: 11pt; line-height: 1.2; padding-bottom: 5px;">
+                                                                                              Certificado
+                                                                                          </td>
+                                                                                      </tr>
+                                                                                      <tr>
+                                                                                          <td height="5" style="font-size: 0; line-height: 0">
+                                                                                              &nbsp;
+                                                                                          </td>
+                                                                                      </tr>
+                                                                                      <tr>
+                                                                                          <td valign="top" class="talign_center">
+                                                                                              <img src="{{$message->embed($imageCertification)}}" width="125" alt=""/>
+                                                                                          </td>
+                                                                                      </tr>
+                                                                                  </tbody>
+                                                                              </table>
+                                                                          </td>
+                                                                        @endif
                                                                     </tr>
                                                                 </tbody>
                                                             </table>    

@@ -92,4 +92,23 @@ class UserShippingAddressController extends Controller
             return 0;
         }
     }
+
+    // Obtener direccion de envio
+    public function getShippingAddress($idUser) {
+        if(!empty($idUser)){
+            $id = trim($idUser); 
+            
+            $address = UserShippingAddress::
+                where('usu_idUser', '=', $id)
+                ->
+                    get()
+                ;
+
+            return $address;
+            
+        }
+        else {
+            return 0;
+        }
+    }
 }

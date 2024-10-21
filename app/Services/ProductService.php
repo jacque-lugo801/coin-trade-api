@@ -115,5 +115,25 @@ class ProductService
         
         return  $product;
     }
+    //Actualizar calificacion global del producto
+    public function updateProductRate($paramsArray, $rating) {
+        try {
+            $product = Product::
+                where([
+                    ["prod_idProducto", "=", $paramsArray['id']],
+                    ["prod_sku", "=", $paramsArray['sku']],
+                
+                ])
+            ->
+                update([
+                    'prod_rating' => $rating
+                ])
+            ;
+
+            return $product;
+        } catch (QueryException $e) {
+            return 0;
+        }
+    }
     // END PRODUCTS
 }

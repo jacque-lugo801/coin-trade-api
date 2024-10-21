@@ -20,6 +20,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ValuationController;
 
 
 // Middlewares
@@ -50,7 +51,7 @@ Route::get('list/routes', function () {
 // Route::get('/view-upload-product', function () {
 //     return view('emails/productUpload');
 // });
-Route::get('api/user/code', [UserController::class, 'code']); // Registrar nueva cuenta de usuario
+// Route::get('api/user/code', [UserController::class, 'code']); // Registrar nueva cuenta de usuario
 // END VIEWS
 
 
@@ -60,6 +61,7 @@ Route::get('/images/{imageName}', [ImageController::class, 'show'])->name('image
 
 // USER
 Route::post('api/user/signup', [UserController::class, 'signup'])->name('user.signup'); // Registrar nueva cuenta de usuario
+Route::delete('api/user/signup-delete', [UserController::class, 'signupDelete'])->name('user.signupDelete'); // Eliminar el usuario guardado en el proceso de registro
 Route::post('api/user/search-mail', [UserController::class, 'searchMail'])->name('user.searchMail'); // Buscar el email cuando se intente recuperar la contraseña
 Route::post('/api/user/validate-code', [UserController::class, 'validateVerificationCode'])->name('user.validateCode'); // Validación del código
 Route::put('/api/user/configure-account', [UserController::class, 'userConfigureAccount'])->name('user.configureAccount'); // Configurar cuenta cuando se valida por URL
@@ -101,7 +103,6 @@ Route::get('/api/settings/valuation-price', [SettingsController::class, 'getValu
 // END SETTINGS
 
 
-
 // Autenticación requerida (todos los usuarios)
 // Route::middleware([ApiAuthMiddleware::class])->group(function () { //Sin alias
 Route::middleware(['api.auth'])->group(function () { //Con alias
@@ -111,21 +112,23 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
 
     // PRODUCTS
     Route::get('/api/products/products-user', [ProductController::class, 'getProductsFmUser'])->name('auth.products.products'); //*
-    Route::put('/api/products/update-product', [ProductController::class, 'updateProduct'])->name('auth.products.updateProduct'); //*
+    // Route::put('/api/products/update-product', [ProductController::class, 'updateProduct'])->name('auth.products.updateProduct'); //*
     Route::get('/api/product/product/{idProduct}', [ProductController::class, 'getProductInfo'])->name('auth.products.productInfo'); //*
     Route::get('/api/products/status', [ProductStatusController::class, 'getStatus'])->name('auth.products.status'); //*
+    Route::post('/api/products/rate-product', [ProductRatingController::class, 'ratingProduct'])->name('auth.product.rate'); //*
     Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsRatedFmUser'])->name('auth.products.userRated'); // *
+    Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct'])->name('auth.product.favorite'); //*
     Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser'])->name('auth.products.userFavorites'); //*
     Route::get('/api/products/product-type', [ProductTypeController::class, 'getProductTypes'])->name('auth.products.types'); //*
-    Route::post('/api/products/upload-image', [ProductController::class, 'uploadImage'])->name('auth.products.uploadImage'); //*
-    Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct'])->name('auth.products.upload'); //*
+    // Route::post('/api/products/upload-image', [ProductController::class, 'uploadImage'])->name('auth.products.uploadImage'); //*
+    // Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct'])->name('auth.products.upload'); //*
     // END PRODUCTS
 
+    // VALUATIONS
+    Route::get('/api/valuation/valuations', [ValuationController::class, 'getValuationsFmUser'])->name('auth.valuation.valuations'); //*
+    Route::post('/api/valuation/request-valuation', [ValuationController::class, 'requestValuation'])->name('auth.valuation.request'); //*
+    // END VALUATIONS
 
-
-    Route::post('/api/products/rate-product', [ProductRatingController::class, 'ratingProduct']);
-    Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct']);
-    
 
     // CART
     Route::get('/api/cart/', [CartController::class, 'getCart']);
@@ -135,8 +138,25 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
     Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
 
 });
+// Autenticacion Comprador
+Route::middleware(['api.auth.buyer'])->group(function () { //Con alias
+    // PRODUCTS
+    // Route::post('/api/products/rate-product', [ProductRatingController::class, 'ratingProduct'])->name('auth.product.rate'); //*
+    // Route::get('/api/products/products-rated-user', [ProductRatingController::class, 'getProductsRatedFmUser'])->name('auth.products.userRated'); // *
+    // Route::post('/api/products/favorite-product', [ProductFavoriteController::class, 'favoriteProduct'])->name('auth.product.favorite'); //*
+    // Route::get('/api/products/products-favorites-user', [ProductFavoriteController::class, 'getProductsFavoriteFmUser'])->name('auth.products.userFavorites'); //*
+    // END PRODUCTS
+});
 
-
+// Autenticacion Vendedor
+Route::middleware(['api.auth.seller'])->group(function () { //Con alias
+    // Route::get('/api/products/test', [ProductFavoriteController::class, 'test'])->name('auth.products.test'); //*
+    // PRODUCTS
+    Route::put('/api/products/update-product', [ProductController::class, 'updateProduct'])->name('auth.products.updateProduct'); //*
+    Route::post('/api/products/upload-image', [ProductController::class, 'uploadImage'])->name('auth.products.uploadImage'); //*
+    Route::post('/api/products/upload-product', [ProductController::class, 'uploadProduct'])->name('auth.products.upload'); //*
+    // END PRODUCTS
+});
 // Autenticación de administrador
 Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     // USER
@@ -149,8 +169,6 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     Route::put('/api/user/delete-user', [UserController::class, 'deleteUser'])->name('admin.user.delete'); // *
     // END USER
 
-    // Route::get('/api/product/{idProduct}', [ProductController::class, 'getProduct']);
-    
     // ROL
     Route::get('/api/rol/all-roles', [UserRolController::class, 'getAllRoles'])->name('admin.rol.allRoles'); // *
     // END ROL
@@ -160,10 +178,8 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     Route::put('/api/products/approve', [ProductController::class, 'approveDisapproveProduct'])->name('admin.products.aprove'); //*
     // END PRODUCTS
 
-
-
     // NOTIFICATIONS
-    Route::post('/api/notifications/request-upgrade', [NotificationController::class, 'sendRequestUpgrade'])->name('admin.notifications.requestUpgrade');
+    Route::post('/api/notifications/request-upgrade', [NotificationController::class, 'sendRequestUpgrade'])->name('admin.notifications.requestUpgrade'); //*
     // END NOTIFICATIONS
     
     // SETTINGS

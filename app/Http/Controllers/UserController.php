@@ -281,6 +281,144 @@ class UserController extends Controller
         return response()->json($data, $data['code']);
     }
 
+    // Eliminar cuenta registrada en el proceso de registro
+    public function signupDelete(Request $request) {
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+
+        $params         = json_decode($json); // Objeto
+        $paramsArray    = json_decode($json, true); // Array
+
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray); // Limpiar datos del array
+            
+            $validate = \Validator::make($paramsArray, [
+                'name'          => 'required',
+                'lastname'      => 'required',
+                'identity'      => 'required',
+                'mail'          => 'required | email',
+                'phone'         => 'required',
+                'phoneLocal'    => 'required',
+                // 'birthDate'     => 'required',
+                // 'country'       => 'required',
+                // 'state'         => 'required',
+                // 'city'          => 'required',
+                // 'address'       => 'required',
+                // 'cp'            => 'required',
+                // 'denomination'  => 'required',
+                // 'rfc'           => 'required',
+                // 'countryFiscal' => 'required',
+                // 'stateFiscal'   => 'required',
+                // 'cityFiscal'    => 'required',
+                // 'addressFiscal' => 'required',
+                // 'cpFiscal'      => 'required',
+                'username'      => 'required | alpha_num',
+                'pwd'           => 'required',
+                'mailAccount'   => 'required | email',
+                // 'rol'           => 'required ',
+                // 'terms'         => 'required ',
+            ]);
+
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en el registro.',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+                $idRol = $this->userService->getRolID($params->rol);
+
+                if($idRol == 0) {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error en el registro.',
+                    );
+                }
+                else {
+                    $code = $this->userService->setCode();
+                    
+                    $pwd =  hash('sha256', $params->pwd); // Cifrado de contraseña
+
+
+                    try {
+                        //Buscar usuario
+                        $user = User::where([
+                            ['usu_name', '=', $params->name],
+                            ['usu_lastname', '=', $params->lastname],
+                            ['usu_identity', '=', $params->identity],
+                            ['usu_email', '=', $params->mail],
+                            ['usu_phone', '=', $params->phone],
+                            ['usu_phone_local', '=', $params->phoneLocal],
+                            // ['usu_birth_date', '=', $params->birthDate],
+                            ['usu_username', '=', $params->username],
+                            ['usu_pswd', '=', $pwd],
+                            ['usu_mail_account', '=', $params->mailAccount],
+                            // ['urol_idRol', '=', $idRol],
+                            // ['usu_isTerms', '=', $params->terms],
+                        ])->first();
+
+                        if(is_null($user)) {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'No se ha podido encontrar información',
+                            );
+                        }
+                        else {
+                            $idUser = $user->usu_idUser;
+                                
+                            if(!isset($idUser) && empty($idUser)) {
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 400,
+                                    'message'   => 'Ha ocurrido un error en el registro.',
+                                );
+                            }
+                            else {
+                                //Borrar la información de envío
+                                $deletedShipping = $this->userService->deleteShippingAddress($idUser);
+                                
+                                //Borrar la información fiscal
+                                $fiscal = $this->userService->deleteFiscalData($idUser);
+
+                                // Borrar el usuario
+                                $deleted = User::where('usu_idUser', '=', $idUser) -> delete();
+
+                                $data = array(
+                                    'status' => 'success',
+                                    'code' => 200,
+                                    'message' => 'El usuario se ha borrado asi como su información fiscal y de envío',
+                                );
+                            }
+                        }
+                    } catch (QueryException $e) {
+                        // $errorCode = $e->getCode();
+                        // $errorMessage = $e->getMessage();
+                        // Log::error("Error on signup. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error en el registro.',
+                        );
+                    }
+                }
+                return response()->json($data, $data['code']);
+            }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
+        return response()->json($data, $data['code']);
+    }
+
     // Buscar email para comprobar el email
     public function searchMail(Request $request) {
         // Recoger datos usuarios

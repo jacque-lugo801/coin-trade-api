@@ -500,7 +500,7 @@ class ProductController extends Controller
                 "total"             => 'required',
                 "imageFront"        => 'required',
                 "imageBack"         => 'required',
-                "imageCertificate"  => 'required',
+                "imageCertificate"  => 'nullable',
                 "terms"             => 'required',
             ]);
 
@@ -640,30 +640,12 @@ class ProductController extends Controller
                             }
                             else {
                                 //Guardar datos certificado
-                                $certificateParams = array(
-                                    'imageCertificate'  => $paramsArray['imageCertificate'],
-                                    'idProduct'         => $idProducto,
-                                );
-
-                                // $certificate = (new ProductCertificationsController)
-                                    // ->saveCertificate($certificateParams);
-                                $certificate = $this->productService->saveProductCertificate($certificateParams);
-                                
-                                if(!is_object($certificate)) {
-                                    // Si no se guarda el certificado, borrar el producto antes guardado
-                                    $deleted = Product::where('prod_idProducto', '=', $idProducto) -> delete();
-
-                                    $data = array(
-                                        'status'    => 'error',
-                                        'code'      => 400,
-                                        'message'   => 'Ha ocurrido un error al guardar el producto.',
-                                    );
-                                }
-                                else {
+                                if(is_null($params->imageCertificate)) {
+                                    // echo 'no hay imagen de certificado';
                                     // $sendMailCode = $this->mailController->productUpload($idProducto, $user);
                                     $productInfo = $this->productService->getProductInfoByID($idProducto);
                                     
-                                    $sendMailCode = $this->mailController->productUpload($productInfo, $user);
+                                    $sendMailCode = $this->mailController->productUpload($productInfo, $user, null);
 
                                      // Procesar la respuesta del MailController
                                     if (isset($sendMailCode['error'])) {
@@ -722,7 +704,91 @@ class ProductController extends Controller
                                         }
                                     }
                                 }
-
+                                else {
+                                    // echo 'hay imagen de certificado';
+                                    $certificateParams = array(
+                                        'imageCertificate'  => $paramsArray['imageCertificate'],
+                                        'idProduct'         => $idProducto,
+                                    );
+    
+                                    // $certificate = (new ProductCertificationsController)
+                                        // ->saveCertificate($certificateParams);
+                                    $certificate = $this->productService->saveProductCertificate($certificateParams);
+                                    
+                                    if(!is_object($certificate)) {
+                                        // Si no se guarda el certificado, borrar el producto antes guardado
+                                        $deleted = Product::where('prod_idProducto', '=', $idProducto) -> delete();
+    
+                                        $data = array(
+                                            'status'    => 'error',
+                                            'code'      => 400,
+                                            'message'   => 'Ha ocurrido un error al guardar el producto.',
+                                        );
+                                    }
+                                    else {
+                                        // $sendMailCode = $this->mailController->productUpload($idProducto, $user);
+                                        $productInfo = $this->productService->getProductInfoByID($idProducto);
+                                        
+                                        $sendMailCode = $this->mailController->productUpload($productInfo, $user, true);
+    
+                                         // Procesar la respuesta del MailController
+                                        if (isset($sendMailCode['error'])) {
+                                            // $data = array(
+                                            //     'status' => 'error',
+                                            //     'code' => 404,
+                                            //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                            // );
+                                            if(isset($idProducto)) {
+                                                $data = array(
+                                                    'status' => 'success',
+                                                    'code' => 200,
+                                                    'message' => 'El producto se ha guardado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                                );
+                                            }
+                                            else {
+                                                $data = array(
+                                                    'status' => 'error',
+                                                    'code' => 400,
+                                                    'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                                );
+                                            }
+                                        }
+                                        elseif ($sendMailCode['status'] === 'success') {
+                                            $data = array(
+                                                // 'status' => 'success',
+                                                // 'code' => 200,
+                                                // 'message' => 'El usuario se ha creado correctamente y se ha enviado el correo de verificación.',
+                                                'status'    => 'success',
+                                                'code'      => 200,
+                                                'message'   => 'El producto se ha guardado correctamente y se ha enviado el correo de verificación.',
+                                            );
+                                            
+                                        }
+                                        else {
+                                            // $data = array(
+                                            //     'status' => 'error',
+                                            //     'code' => 500,
+                                            //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                            // );
+                                            
+                                            if(isset($idProducto)) {
+                                                $data = array(
+                                                    'status' => 'success',
+                                                    'code' => 200,
+                                                    'message' => 'El producto se ha guardado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                                );
+                                            }
+                                            else {
+                                                $data = array(
+                                                    'status' => 'error',
+                                                    // 'code' => 500,
+                                                    'code' => 400,
+                                                    'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         } catch (QueryException $e) {
                             $data = array(

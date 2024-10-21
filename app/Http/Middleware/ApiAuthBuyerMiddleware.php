@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class ApiAuthBuyerMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        //Comprobar si el usuario esta identificado
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+        $checkToken = $jwtAuth->checkToken($token);
+
+        if($checkToken) {
+            $user = $jwtAuth->checkToken($token, true);
+
+            if(
+                strtolower($user->urol_name) === strtolower('Comprador') ||
+                $user->urol_idRol === 3
+            ) {
+                if($user->usts_idStatus == 1 ) {
+                    return $next($request);
+                }
+                else {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 403,
+                        'message'   => 'El usuario no cuenta con permisos suficiente para ejecutar esta acción B',
+                    );
+                }
+            }
+            else {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 403,
+                    'message'   => 'El usuario no cuenta con permisos suficiente para ejecutar esta acción B',
+                );
+            }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 401,
+                // 'message'   => 'Error de identificación',
+                'message'   => 'El usuario no esta identificado MidAdminB',
+            );
+        }
+        return response()->json($data, $data['code']);
+    }
+}
