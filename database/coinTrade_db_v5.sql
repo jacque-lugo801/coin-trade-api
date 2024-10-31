@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`users` (
   `urol_idRol` INT NOT NULL,
   `usu_isVerification` INT NULL DEFAULT 0,
   `usu_isVerificated` INT NULL DEFAULT 0,
+  `usu_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`usu_idUser`, `usts_idStatus`, `urol_idRol`),
   INDEX `fk_users_user_status_idx` (`usts_idStatus` ASC) VISIBLE,
   INDEX `fk_users_user_rol1_idx` (`urol_idRol` ASC) VISIBLE,
@@ -121,14 +122,14 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`products` (
   `prod_name` VARCHAR(250) NULL,
   `prod_description` LONGTEXT NULL,
   `prod_country` VARCHAR(45) NULL,
-  `prod_metal` VARCHAR(45) NULL,
+  `prod_metal` VARCHAR(100) NULL,
   `prod_diameter` VARCHAR(45) NULL,
-  `prod_condition` VARCHAR(45) NULL,
+  `prod_condition` VARCHAR(100) NULL,
   `prod_date` VARCHAR(50) NULL,
   `prod_weight` VARCHAR(45) NULL,
   `prod_minting` VARCHAR(45) NULL,
-  `prod_fineness` VARCHAR(45) NULL,
-  `prod_serie` VARCHAR(45) NULL,
+  `prod_fineness` VARCHAR(150) NULL,
+  `prod_serie` VARCHAR(100) NULL,
   `prod_denomination` VARCHAR(45) NULL,
   `prod_number` VARCHAR(45) NULL,
   `prod_rating` DOUBLE NULL DEFAULT 0,
@@ -182,6 +183,7 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`notifications` (
   `not_updated_date` DATETIME NULL,
   `usu_idUser` INT NOT NULL,
   `not_idUserDestination` INT NULL,
+  `not_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`not_idNotification`, `usu_idUser`),
   INDEX `fk_notifications_users1_idx` (`usu_idUser` ASC) VISIBLE,
   CONSTRAINT `fk_notifications_users1`
@@ -258,6 +260,21 @@ ENGINE = InnoDB;
 SHOW WARNINGS;
 
 -- -----------------------------------------------------
+-- Table `cointrade_db`.`transaction_status`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `cointrade_db`.`transaction_status` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `cointrade_db`.`transaction_status` (
+  `tsta_idStatus` INT NOT NULL AUTO_INCREMENT,
+  `tsta_name` VARCHAR(100) NOT NULL,
+  `tsta_description` TEXT NULL,
+  PRIMARY KEY (`tsta_idStatus`))
+ENGINE = InnoDB;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
 -- Table `cointrade_db`.`transactions`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `cointrade_db`.`transactions` ;
@@ -265,20 +282,35 @@ DROP TABLE IF EXISTS `cointrade_db`.`transactions` ;
 SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `cointrade_db`.`transactions` (
   `tran_idTransaction` INT NOT NULL,
-  `tran_order` LONGTEXT NULL,
-  `tran_description` DATETIME NULL,
+  `tran_solicitud` TEXT NOT NULL,
   `tran_subtotal` DOUBLE NULL,
   `tran_iva` DOUBLE NULL,
   `tran_total` DOUBLE NULL,
   `tran_discount` DOUBLE NULL,
-  `tran_date_order` DATETIME NULL,
-  `tran_json` LONGTEXT NULL,
   `tran_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-  `tran_updated_time` DATETIME NULL,
-  `tran_payment_type` VARCHAR(45) NULL,
-  `tran_idUserSeller` INT NOT NULL,
+  `tran_updated_date` DATETIME NULL,
   `tran_idUserBuyer` INT NOT NULL,
-  PRIMARY KEY (`tran_idTransaction`))
+  `tran_idPaymentStatus` INT NOT NULL,
+  `tsta_idStatus` INT NOT NULL,
+  `tran_isActive` INT NULL DEFAULT 1,
+  `tran_order` LONGTEXT NULL,
+  `tran_description` LONGTEXT NULL,
+  `tran_json` LONGTEXT NULL,
+  `tran_payment_type` VARCHAR(45) NULL,
+  `tran_idShippingAddress` INT NULL,
+  `tran_country` VARCHAR(45) NULL,
+  `tran_state` VARCHAR(45) NULL,
+  `tran_city` VARCHAR(45) NULL,
+  `tran_address` TEXT NULL,
+  `tran_cp` VARCHAR(10) NULL,
+  `tran_type_payment` VARCHAR(250) NULL,
+  PRIMARY KEY (`tran_idTransaction`, `tsta_idStatus`),
+  INDEX `fk_transactions_transaction_status1_idx` (`tsta_idStatus` ASC) VISIBLE,
+  CONSTRAINT `fk_transactions_transaction_status1`
+    FOREIGN KEY (`tsta_idStatus`)
+    REFERENCES `cointrade_db`.`transaction_status` (`tsta_idStatus`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 SHOW WARNINGS;
@@ -306,7 +338,7 @@ DROP TABLE IF EXISTS `cointrade_db`.`shipments` ;
 SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `cointrade_db`.`shipments` (
   `ship_idShipment` INT NOT NULL AUTO_INCREMENT,
-  `ship_tracking_number` VARCHAR(45) NOT NULL,
+  `ship_tracking_number` TEXT NOT NULL,
   `ship_created_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `ship_estimated_date` DATETIME NULL,
   `ship_recibedBy` VARCHAR(45) NULL,
@@ -314,6 +346,7 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`shipments` (
   `ssts_idStatus` INT NOT NULL,
   `ship_weight` VARCHAR(45) NULL,
   `tran_idTransaction` INT NOT NULL,
+  `ship_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`ship_idShipment`, `ssts_idStatus`, `tran_idTransaction`),
   INDEX `fk_shipments_shipment_status1_idx` (`ssts_idStatus` ASC) VISIBLE,
   INDEX `fk_shipments_transactions1_idx` (`tran_idTransaction` ASC) VISIBLE,
@@ -358,6 +391,7 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`users_logs` (
   `ulog_updated_date` DATETIME NULL,
   `ulog_fingerprint` LONGTEXT NULL,
   `usu_idUser` INT NOT NULL,
+  `ulog_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`ulog_idLog`, `usu_idUser`),
   INDEX `fk_users_logs_users1_idx` (`usu_idUser` ASC) VISIBLE,
   CONSTRAINT `fk_users_logs_users1`
@@ -414,6 +448,7 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`returns` (
   `ret_comments` LONGTEXT NULL,
   `ret_isTerms` VARCHAR(45) NULL,
   `tran_idTransaction` INT NOT NULL,
+  `ret_isAcive` VARCHAR(45) NULL DEFAULT '1',
   PRIMARY KEY (`ret_idReturn`, `tran_idTransaction`),
   INDEX `fk_returns_transactions1_idx` (`tran_idTransaction` ASC) VISIBLE,
   CONSTRAINT `fk_returns_transactions1`
@@ -455,6 +490,7 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`product_certifications` (
   `prod_idProducto` INT NOT NULL,
   `pcert_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   `pcert_updated_date` DATETIME NULL,
+  `pcert_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`pcert_idCertification`, `prod_idProducto`),
   INDEX `fk_certifications_products1_idx` (`prod_idProducto` ASC) VISIBLE,
   CONSTRAINT `fk_certifications_products1`
@@ -477,12 +513,13 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`users_shipping_address` (
   `usad_country` VARCHAR(100) NOT NULL,
   `usad_state` VARCHAR(100) NOT NULL,
   `usad_city` VARCHAR(100) NOT NULL,
-  `usad_address` VARCHAR(100) NOT NULL,
+  `usad_address` TEXT NOT NULL,
   `usad_cp` VARCHAR(10) NULL,
   `usad_isDefault` INT NULL,
   `usad_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   `usad_updated_date` DATETIME NULL,
   `usu_idUser` INT NOT NULL,
+  `usad_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`usad_idAddress`, `usu_idUser`),
   INDEX `fk_users_shipment_address_users1_idx` (`usu_idUser` ASC) VISIBLE,
   CONSTRAINT `fk_users_shipment_address_users1`
@@ -550,11 +587,12 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`users_fiscal_data` (
   `ufdt_country` VARCHAR(45) NULL,
   `ufdt_state` VARCHAR(45) NULL,
   `ufdt_city` VARCHAR(45) NULL,
-  `ufdt_address` VARCHAR(45) NULL,
+  `ufdt_address` TEXT NULL,
   `ufdt_cp` VARCHAR(10) NULL,
   `ufdt_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   `ufdt_updated_date` DATETIME NULL,
   `usu_idUser` INT NOT NULL,
+  `ufdt_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`ufdt_idData`, `usu_idUser`),
   INDEX `fk_users_fiscal_data_users1_idx` (`usu_idUser` ASC) VISIBLE,
   CONSTRAINT `fk_users_fiscal_data_users1`
@@ -717,6 +755,7 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`cart` (
   `cart_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   `cart_updated_date` DATETIME NULL,
   `cart_id_session` LONGTEXT NULL,
+  `cart_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`cart_idCart`, `usu_idUser`),
   INDEX `fk_cart_users1_idx` (`usu_idUser` ASC) VISIBLE,
   CONSTRAINT `fk_cart_users1`
@@ -767,7 +806,7 @@ DROP TABLE IF EXISTS `cointrade_db`.`card_type` ;
 SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `cointrade_db`.`card_type` (
   `ctpe_idType` INT NOT NULL AUTO_INCREMENT,
-  `ctpe_name` VARCHAR(100) NULL,
+  `ctpe_name` VARCHAR(100) NOT NULL,
   `ctpe_description` VARCHAR(250) NULL,
   PRIMARY KEY (`ctpe_idType`))
 ENGINE = InnoDB;
@@ -782,19 +821,23 @@ DROP TABLE IF EXISTS `cointrade_db`.`user_finances` ;
 SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `cointrade_db`.`user_finances` (
   `ufin_idFinance` INT NOT NULL AUTO_INCREMENT,
+  `ufin_name` VARCHAR(250) NOT NULL,
   `ufin_clabe` VARCHAR(100) NOT NULL,
   `ctpe_idType` INT NOT NULL,
-  `users_usu_idUser` INT NOT NULL,
-  PRIMARY KEY (`ufin_idFinance`, `ctpe_idType`, `users_usu_idUser`),
+  `usu_idUser` INT NOT NULL,
+  `ufin_isActive` INT NULL DEFAULT 1,
+  `ufin_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `ufin_updated_date` DATETIME NULL,
+  PRIMARY KEY (`ufin_idFinance`, `ctpe_idType`, `usu_idUser`),
   INDEX `fk_user_finances_card_type1_idx` (`ctpe_idType` ASC) VISIBLE,
-  INDEX `fk_user_finances_users1_idx` (`users_usu_idUser` ASC) VISIBLE,
+  INDEX `fk_user_finances_users1_idx` (`usu_idUser` ASC) VISIBLE,
   CONSTRAINT `fk_user_finances_card_type1`
     FOREIGN KEY (`ctpe_idType`)
     REFERENCES `cointrade_db`.`card_type` (`ctpe_idType`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_user_finances_users1`
-    FOREIGN KEY (`users_usu_idUser`)
+    FOREIGN KEY (`usu_idUser`)
     REFERENCES `cointrade_db`.`users` (`usu_idUser`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
@@ -815,7 +858,63 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`settings` (
   `set_value` VARCHAR(100) NOT NULL,
   `set_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   `set_updated_date` DATETIME NULL,
+  `set_isActive` INT NULL DEFAULT 1,
   PRIMARY KEY (`set_idSetting`))
+ENGINE = InnoDB;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `cointrade_db`.`transaction_detail`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `cointrade_db`.`transaction_detail` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `cointrade_db`.`transaction_detail` (
+  `tdet_idDetail` INT NOT NULL AUTO_INCREMENT,
+  `tdet_prod_idProducto` INT NOT NULL,
+  `tdet_prod_info` LONGTEXT NOT NULL,
+  `tdet_quantity` INT NOT NULL,
+  `tdet_subtotal` DOUBLE NOT NULL,
+  `tdet_iva` DOUBLE NULL,
+  `tdet_total` DOUBLE NOT NULL,
+  `tdet_discount` DOUBLE NOT NULL,
+  `tdet_buyer_idUser` INT NOT NULL,
+  `tdet_seller_idUser` INT NOT NULL,
+  `tran_idTransaction` INT NOT NULL,
+  `tdet_isActive` INT NOT NULL DEFAULT 1,
+  `tdet_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `tdet_updated_date` DATETIME NULL,
+  PRIMARY KEY (`tdet_idDetail`, `tran_idTransaction`),
+  INDEX `fk_transaction_detail_transactions1_idx` (`tran_idTransaction` ASC) VISIBLE,
+  CONSTRAINT `fk_transaction_detail_transactions1`
+    FOREIGN KEY (`tran_idTransaction`)
+    REFERENCES `cointrade_db`.`transactions` (`tran_idTransaction`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `cointrade_db`.`coupons`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `cointrade_db`.`coupons` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `cointrade_db`.`coupons` (
+  `coup_idCounpon` INT NOT NULL AUTO_INCREMENT,
+  `coup_name` VARCHAR(250) NOT NULL,
+  `coup_value` VARCHAR(50) NOT NULL,
+  `coup_description` TEXT NULL,
+  `coup_start_date` DATETIME NOT NULL,
+  `coup_end_date` DATETIME NOT NULL,
+  `coup_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `coup_updated_date` DATETIME NULL,
+  `coup_isActive` INT NULL DEFAULT 1,
+  `coup_maxDiscount` DOUBLE NULL,
+  `coup_minTotal` VARCHAR(45) NULL,
+  PRIMARY KEY (`coup_idCounpon`))
 ENGINE = InnoDB;
 
 SHOW WARNINGS;
@@ -856,9 +955,9 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `cointrade_db`;
-INSERT INTO `cointrade_db`.`users` (`usu_idUser`, `usu_name`, `usu_middle_name`, `usu_lastname`, `usu_lastname2`, `usu_identity`, `usu_email`, `usu_email2`, `usu_phone`, `usu_phone_local`, `usu_birth_date`, `usu_username`, `usu_pswd`, `usu_verification_code`, `usu_verification_code_pass`, `usu_mail_account`, `usu_isTerms`, `usu_isAuthorized`, `usu_created_date`, `usu_updated_date`, `usts_idStatus`, `urol_idRol`, `usu_isVerification`, `usu_isVerificated`) VALUES (DEFAULT, 'Jacqueline', NULL, 'Lugo Lopez', NULL, 'LULJ9708324MHGGPC02', 'jacque_lugo801@hotmail.com', NULL, '7721607145', '7721607145', '1997-08-24', 'jlugo', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '343087', NULL, 'jacque_lugo801@hotmail.com', 1, 1, NULL, NULL, 1, 1, NULL, 1);
-INSERT INTO `cointrade_db`.`users` (`usu_idUser`, `usu_name`, `usu_middle_name`, `usu_lastname`, `usu_lastname2`, `usu_identity`, `usu_email`, `usu_email2`, `usu_phone`, `usu_phone_local`, `usu_birth_date`, `usu_username`, `usu_pswd`, `usu_verification_code`, `usu_verification_code_pass`, `usu_mail_account`, `usu_isTerms`, `usu_isAuthorized`, `usu_created_date`, `usu_updated_date`, `usts_idStatus`, `urol_idRol`, `usu_isVerification`, `usu_isVerificated`) VALUES (DEFAULT, 'Jacqueline', NULL, 'Lugo Lopez', NULL, 'LULJ9708324MHGGPC02', 'jacque_lugo801_2@hotmail.com', NULL, '7721607145', '7721607145', '1997-08-24', 'jlugo2', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '343087', NULL, 'jacque_lugo801@hotmail.com', 1, 1, NULL, NULL, 1, 2, NULL, 1);
-INSERT INTO `cointrade_db`.`users` (`usu_idUser`, `usu_name`, `usu_middle_name`, `usu_lastname`, `usu_lastname2`, `usu_identity`, `usu_email`, `usu_email2`, `usu_phone`, `usu_phone_local`, `usu_birth_date`, `usu_username`, `usu_pswd`, `usu_verification_code`, `usu_verification_code_pass`, `usu_mail_account`, `usu_isTerms`, `usu_isAuthorized`, `usu_created_date`, `usu_updated_date`, `usts_idStatus`, `urol_idRol`, `usu_isVerification`, `usu_isVerificated`) VALUES (DEFAULT, 'Jacqueline', NULL, 'Lugo Lopez', NULL, 'LULJ9708324MHGGPC02', 'jacque.lugo801@gmail.com', NULL, '7721607145', '7721607145', '1997-08-24', 'jlugo3', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '343087', NULL, 'jacque_lugo801@hotmail.com', 1, 1, NULL, NULL, 1, 3, NULL, 1);
+INSERT INTO `cointrade_db`.`users` (`usu_idUser`, `usu_name`, `usu_middle_name`, `usu_lastname`, `usu_lastname2`, `usu_identity`, `usu_email`, `usu_email2`, `usu_phone`, `usu_phone_local`, `usu_birth_date`, `usu_username`, `usu_pswd`, `usu_verification_code`, `usu_verification_code_pass`, `usu_mail_account`, `usu_isTerms`, `usu_isAuthorized`, `usu_created_date`, `usu_updated_date`, `usts_idStatus`, `urol_idRol`, `usu_isVerification`, `usu_isVerificated`, `usu_isActive`) VALUES (DEFAULT, 'Jacqueline', NULL, 'Lugo Lopez', NULL, 'LULJ9708324MHGGPC02', 'jacque_lugo801@hotmail.com', NULL, '7721607145', '7721607145', '1997-08-24', 'jlugo', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '343087', NULL, 'jacque_lugo801@hotmail.com', 1, 1, NULL, NULL, 1, 1, NULL, 1, NULL);
+INSERT INTO `cointrade_db`.`users` (`usu_idUser`, `usu_name`, `usu_middle_name`, `usu_lastname`, `usu_lastname2`, `usu_identity`, `usu_email`, `usu_email2`, `usu_phone`, `usu_phone_local`, `usu_birth_date`, `usu_username`, `usu_pswd`, `usu_verification_code`, `usu_verification_code_pass`, `usu_mail_account`, `usu_isTerms`, `usu_isAuthorized`, `usu_created_date`, `usu_updated_date`, `usts_idStatus`, `urol_idRol`, `usu_isVerification`, `usu_isVerificated`, `usu_isActive`) VALUES (DEFAULT, 'Jacqueline', NULL, 'Lugo Lopez', NULL, 'LULJ9708324MHGGPC02', 'jacque_lugo801_2@hotmail.com', NULL, '7721607145', '7721607145', '1997-08-24', 'jlugo2', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '343087', NULL, 'jacque_lugo801@hotmail.com', 1, 1, NULL, NULL, 1, 2, NULL, 1, NULL);
+INSERT INTO `cointrade_db`.`users` (`usu_idUser`, `usu_name`, `usu_middle_name`, `usu_lastname`, `usu_lastname2`, `usu_identity`, `usu_email`, `usu_email2`, `usu_phone`, `usu_phone_local`, `usu_birth_date`, `usu_username`, `usu_pswd`, `usu_verification_code`, `usu_verification_code_pass`, `usu_mail_account`, `usu_isTerms`, `usu_isAuthorized`, `usu_created_date`, `usu_updated_date`, `usts_idStatus`, `urol_idRol`, `usu_isVerification`, `usu_isVerificated`, `usu_isActive`) VALUES (DEFAULT, 'Jacqueline', NULL, 'Lugo Lopez', NULL, 'LULJ9708324MHGGPC02', 'jacque.lugo801@gmail.com', NULL, '7721607145', '7721607145', '1997-08-24', 'jlugo3', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '343087', NULL, 'jacque_lugo801@hotmail.com', 1, 1, NULL, NULL, 1, 3, NULL, 1, NULL);
 
 COMMIT;
 
@@ -906,6 +1005,33 @@ COMMIT;
 
 
 -- -----------------------------------------------------
+-- Data for table `cointrade_db`.`transaction_status`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `cointrade_db`;
+INSERT INTO `cointrade_db`.`transaction_status` (`tsta_idStatus`, `tsta_name`, `tsta_description`) VALUES (DEFAULT, 'Completa', NULL);
+INSERT INTO `cointrade_db`.`transaction_status` (`tsta_idStatus`, `tsta_name`, `tsta_description`) VALUES (DEFAULT, 'En proceso', NULL);
+INSERT INTO `cointrade_db`.`transaction_status` (`tsta_idStatus`, `tsta_name`, `tsta_description`) VALUES (DEFAULT, 'Fallida', NULL);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `cointrade_db`.`shipment_status`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `cointrade_db`;
+INSERT INTO `cointrade_db`.`shipment_status` (`ssts_idStatus`, `ssts_name`, `ssts_description`) VALUES (DEFAULT, 'Entregado', NULL);
+INSERT INTO `cointrade_db`.`shipment_status` (`ssts_idStatus`, `ssts_name`, `ssts_description`) VALUES (DEFAULT, 'En proceso', NULL);
+INSERT INTO `cointrade_db`.`shipment_status` (`ssts_idStatus`, `ssts_name`, `ssts_description`) VALUES (DEFAULT, 'Recolectado', NULL);
+INSERT INTO `cointrade_db`.`shipment_status` (`ssts_idStatus`, `ssts_name`, `ssts_description`) VALUES (DEFAULT, 'Creado', NULL);
+INSERT INTO `cointrade_db`.`shipment_status` (`ssts_idStatus`, `ssts_name`, `ssts_description`) VALUES (DEFAULT, 'Intento de entrega', NULL);
+INSERT INTO `cointrade_db`.`shipment_status` (`ssts_idStatus`, `ssts_name`, `ssts_description`) VALUES (DEFAULT, 'Devuelto', NULL);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
 -- Data for table `cointrade_db`.`product_type`
 -- -----------------------------------------------------
 START TRANSACTION;
@@ -921,13 +1047,13 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `cointrade_db`;
-INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`) VALUES (DEFAULT, NULL, NULL, '1710372463-Moneda-Certificado-De_Mexico-Mexico-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-Plata-1751.jpeg', 1, '2024-03-13 23:27:43', '2024-03-13 23:27:43');
-INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`) VALUES (DEFAULT, NULL, NULL, '1710372791-Billete-Certificado-Del_Mundo-Australia-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 2, '2024-03-13 23:33:11', '2024-03-13 23:33:11');
-INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`) VALUES (DEFAULT, NULL, NULL, '1710372866-Billete-Certificado-Del_Mundo-Chile-Billete_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 3, '2024-03-13 23:34:26', '2024-03-13 23:34:26');
-INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`) VALUES (DEFAULT, NULL, NULL, '1710372942-Moneda-Certificado-Del_Mundo-Estados_Unidos_de_America-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-Plata-1751.jpeg', 4, '2024-03-13 23:35:42', '2024-03-13 23:35:42');
-INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`) VALUES (DEFAULT, NULL, NULL, '1710373018-Moneda-Certificado-Del_Mundo-Chile-Moneda_Chile_8_Escudos_Fernando_VI_1751_J- Bronce-1751.jpeg', 5, '2024-03-13 23:36:59', '2024-03-13 23:36:59');
-INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`) VALUES (DEFAULT, NULL, NULL, '1710373080-Billete-Certificado-De_Mexico-Mexico-Billete_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 6, '2024-03-13 23:38:00', '2024-03-13 23:38:00');
-INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`) VALUES (DEFAULT, NULL, NULL, '1710373144-Billete-Certificado-De_Mexico-Mexico-Billete_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 7, '2024-03-13 23:39:05', '2024-03-13 23:39:05');
+INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`, `pcert_isActive`) VALUES (DEFAULT, NULL, NULL, '1710372463-Moneda-Certificado-De_Mexico-Mexico-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-Plata-1751.jpeg', 1, '2024-03-13 23:27:43', '2024-03-13 23:27:43', NULL);
+INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`, `pcert_isActive`) VALUES (DEFAULT, NULL, NULL, '1710372791-Billete-Certificado-Del_Mundo-Australia-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 2, '2024-03-13 23:33:11', '2024-03-13 23:33:11', NULL);
+INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`, `pcert_isActive`) VALUES (DEFAULT, NULL, NULL, '1710372866-Billete-Certificado-Del_Mundo-Chile-Billete_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 3, '2024-03-13 23:34:26', '2024-03-13 23:34:26', NULL);
+INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`, `pcert_isActive`) VALUES (DEFAULT, NULL, NULL, '1710372942-Moneda-Certificado-Del_Mundo-Estados_Unidos_de_America-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-Plata-1751.jpeg', 4, '2024-03-13 23:35:42', '2024-03-13 23:35:42', NULL);
+INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`, `pcert_isActive`) VALUES (DEFAULT, NULL, NULL, '1710373018-Moneda-Certificado-Del_Mundo-Chile-Moneda_Chile_8_Escudos_Fernando_VI_1751_J- Bronce-1751.jpeg', 5, '2024-03-13 23:36:59', '2024-03-13 23:36:59', NULL);
+INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`, `pcert_isActive`) VALUES (DEFAULT, NULL, NULL, '1710373080-Billete-Certificado-De_Mexico-Mexico-Billete_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 6, '2024-03-13 23:38:00', '2024-03-13 23:38:00', NULL);
+INSERT INTO `cointrade_db`.`product_certifications` (`pcert_idCertification`, `pcert_name`, `pcert_description`, `pcert_image`, `prod_idProducto`, `pcert_created_date`, `pcert_updated_date`, `pcert_isActive`) VALUES (DEFAULT, NULL, NULL, '1710373144-Billete-Certificado-De_Mexico-Mexico-Billete_Chile_8_Escudos_Fernando_VI_1751_J-YN14522558.jpeg', 7, '2024-03-13 23:39:05', '2024-03-13 23:39:05', NULL);
 
 COMMIT;
 
@@ -937,10 +1063,10 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `cointrade_db`;
-INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`) VALUES (DEFAULT, 'MX', 'CH', '014', 'Pozo Grande', '42500', 1, NULL, NULL, 1);
-INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`) VALUES (DEFAULT, 'MX', 'QT', '016', 'Pozo Grande', '42500', 1, NULL, NULL, 2);
-INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`) VALUES (DEFAULT, 'MX', 'QT', '016', 'Pozo Grande', '42500', 0, NULL, NULL, 1);
-INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`) VALUES (DEFAULT, 'MX', 'QT', '016', 'Pozo Grande', '42500', 1, NULL, NULL, 3);
+INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`, `usad_isActive`) VALUES (DEFAULT, 'MX', 'CH', '014', 'Pozo Grande', '42500', 1, NULL, NULL, 1, NULL);
+INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`, `usad_isActive`) VALUES (DEFAULT, 'MX', 'QT', '016', 'Pozo Grande', '42500', 1, NULL, NULL, 2, NULL);
+INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`, `usad_isActive`) VALUES (DEFAULT, 'MX', 'QT', '016', 'Pozo Grande', '42500', 0, NULL, NULL, 1, NULL);
+INSERT INTO `cointrade_db`.`users_shipping_address` (`usad_idAddress`, `usad_country`, `usad_state`, `usad_city`, `usad_address`, `usad_cp`, `usad_isDefault`, `usad_created_date`, `usad_updated_date`, `usu_idUser`, `usad_isActive`) VALUES (DEFAULT, 'MX', 'QT', '016', 'Pozo Grande', '42500', 1, NULL, NULL, 3, NULL);
 
 COMMIT;
 
@@ -1250,9 +1376,9 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `cointrade_db`;
-INSERT INTO `cointrade_db`.`users_fiscal_data` (`ufdt_idData`, `ufdt_denomination`, `ufdt_rfc`, `ufdt_country`, `ufdt_state`, `ufdt_city`, `ufdt_address`, `ufdt_cp`, `ufdt_created_date`, `ufdt_updated_date`, `usu_idUser`) VALUES (DEFAULT, 'Jacqueline Lugo Lopez', 'LULJ970824MD6', 'MX', 'DG', '009', 'Pozo Grande', '42500', NULL, NULL, 1);
-INSERT INTO `cointrade_db`.`users_fiscal_data` (`ufdt_idData`, `ufdt_denomination`, `ufdt_rfc`, `ufdt_country`, `ufdt_state`, `ufdt_city`, `ufdt_address`, `ufdt_cp`, `ufdt_created_date`, `ufdt_updated_date`, `usu_idUser`) VALUES (DEFAULT, 'Jacqueline Lugo Lopez', 'LULJ970824MD6', 'MX', 'TB', '010', 'Pozo Grande', '42500', NULL, NULL, 2);
-INSERT INTO `cointrade_db`.`users_fiscal_data` (`ufdt_idData`, `ufdt_denomination`, `ufdt_rfc`, `ufdt_country`, `ufdt_state`, `ufdt_city`, `ufdt_address`, `ufdt_cp`, `ufdt_created_date`, `ufdt_updated_date`, `usu_idUser`) VALUES (DEFAULT, 'Jacqueline Lugo Lopez', 'LULJ970824MD6', 'MX', 'DG', '009', 'Pozo Grande', '42500', NULL, NULL, 3);
+INSERT INTO `cointrade_db`.`users_fiscal_data` (`ufdt_idData`, `ufdt_denomination`, `ufdt_rfc`, `ufdt_country`, `ufdt_state`, `ufdt_city`, `ufdt_address`, `ufdt_cp`, `ufdt_created_date`, `ufdt_updated_date`, `usu_idUser`, `ufdt_isActive`) VALUES (DEFAULT, 'Jacqueline Lugo Lopez', 'LULJ970824MD6', 'MX', 'DG', '009', 'Pozo Grande', '42500', NULL, NULL, 1, NULL);
+INSERT INTO `cointrade_db`.`users_fiscal_data` (`ufdt_idData`, `ufdt_denomination`, `ufdt_rfc`, `ufdt_country`, `ufdt_state`, `ufdt_city`, `ufdt_address`, `ufdt_cp`, `ufdt_created_date`, `ufdt_updated_date`, `usu_idUser`, `ufdt_isActive`) VALUES (DEFAULT, 'Jacqueline Lugo Lopez', 'LULJ970824MD6', 'MX', 'TB', '010', 'Pozo Grande', '42500', NULL, NULL, 2, NULL);
+INSERT INTO `cointrade_db`.`users_fiscal_data` (`ufdt_idData`, `ufdt_denomination`, `ufdt_rfc`, `ufdt_country`, `ufdt_state`, `ufdt_city`, `ufdt_address`, `ufdt_cp`, `ufdt_created_date`, `ufdt_updated_date`, `usu_idUser`, `ufdt_isActive`) VALUES (DEFAULT, 'Jacqueline Lugo Lopez', 'LULJ970824MD6', 'MX', 'DG', '009', 'Pozo Grande', '42500', NULL, NULL, 3, NULL);
 
 COMMIT;
 
@@ -5252,8 +5378,8 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `cointrade_db`;
-INSERT INTO `cointrade_db`.`settings` (`set_idSetting`, `set_name`, `set_description`, `set_value`, `set_created_date`, `set_updated_date`) VALUES (DEFAULT, 'valuation_cost', NULL, '6000', NULL, NULL);
-INSERT INTO `cointrade_db`.`settings` (`set_idSetting`, `set_name`, `set_description`, `set_value`, `set_created_date`, `set_updated_date`) VALUES (DEFAULT, 'comission_cost', NULL, '10%', NULL, NULL);
+INSERT INTO `cointrade_db`.`settings` (`set_idSetting`, `set_name`, `set_description`, `set_value`, `set_created_date`, `set_updated_date`, `set_isActive`) VALUES (DEFAULT, 'valuation_cost', NULL, '6000', NULL, NULL, NULL);
+INSERT INTO `cointrade_db`.`settings` (`set_idSetting`, `set_name`, `set_description`, `set_value`, `set_created_date`, `set_updated_date`, `set_isActive`) VALUES (DEFAULT, 'comission_cost', NULL, '10%', NULL, NULL, NULL);
 
 COMMIT;
 
