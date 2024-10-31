@@ -18,6 +18,7 @@ use App\Mail\ProductRequestUpgradeByAdmin;
 use App\Mail\UserResetPassword;
 use App\Mail\ProductUpload;
 use App\Mail\RequestValuation;
+use App\Mail\ValuationUpdateStatus;
 
 use App\Models\User;
 use App\Http\Controllers\UserController;
@@ -488,6 +489,33 @@ class MailController extends Controller
                 'status'    => 'error',
                 'code'      => 404,
                 'message'   => 'Ha ocurrido un error al enviar el correo .'
+            );
+        }
+       return $data;
+    }
+
+    // E-mail para notificación de actualizacion de estado de valuacion
+    public function updateValuationStatus($valuation, $user, $product) {
+        if(!empty($valuation) || !empty($user) || !empty($product)) {
+            // $val = $valuation->first();
+            $valuationTotal  = number_format($valuation->val_total, 2, '.', ',');
+            $imageFront = storage_path('app/products/' . $product->prod_image_front);
+            $imageBack = storage_path('app/products/' . $product->prod_image_back);
+
+            Mail::to($user->usu_email)
+            ->send(new ValuationUpdateStatus($user, $product, $valuation, $valuationTotal, $imageFront, $imageBack, $this->imgLogo));
+    
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+                'message'   => 'Se ha enviado el mail de verificación.'
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el mail de configuración de cuenta.'
             );
         }
        return $data;

@@ -6,12 +6,32 @@ use Illuminate\Http\Request;
 use App\Models\CartItem;
 use App\Models\Cart;
 
+use App\Http\Controllers\MailController;
+use App\Services\CartService;
+use App\Services\ProductService;
 
-use App\Http\Controllers\CartController;
+
 class CartItemController extends Controller
 {
+    protected $cartService;
+    protected $productService;
+    protected $mailController;
+
+    public function __construct (
+        CartService     $cartService,
+        ProductService  $productService,
+        MailController  $mailController,
+    ) {
+        $this->cartService      = $cartService;
+        $this->productService   = $productService;
+        $this->mailController   = $mailController;
+    }
     
-    
+    // **************************************************
+    // *                    AUTH                        *
+    // **************************************************
+
+    // Añadir producto al carrito
     public function addItemToCart(Request $request) {
         $token = $request->header('Authorization');
         $jwtAuth = new \App\Helpers\JwtAuth();
@@ -37,186 +57,335 @@ class CartItemController extends Controller
             if($validate->fails()) {
                 $data = array(
                     'status'    => 'error',
-                    'code'      => 402,
+                    'code'      => 400,
                     'message'   => 'Ha ocurrido un error al agregar el producto al carrito',
                     'errors'    => $validate->errors()
                 );
             }
             else {
-                // Verificar que se haya creado antes un carrito para el ususario
-                $cart = Cart::
-                    where(
-                        "usu_idUser", "=", $user->usu_idUser
-                    )
-                    ->first()
-                    ;
+                // Verificar que el producto exista
+                $productCollection = $this->productService->getProductByID($paramsArray['id']);
 
-                    // var_dump($cart);
-                    // die();
-                // if(count($cart) > 0) {
-                if(!empty($cart)) {
-                    // echo 'no vacio o cart declarado antes';
-                    // Si existe un carrito
-                    $idCart = $cart->cart_idCart;
-                    // var_dump($idCart);
-                    // var_dump($paramsArray);
-                    // die();
+                if($productCollection->isEmpty()) {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error al agregar el producto al carrito',
+                    );
+                }
+                else {
+                    $product = $productCollection->first();
 
-                    $cartItem = $this->addItem($idCart, $paramsArray);
-
-                    if($cartItem) {
+                    if(
+                        ($paramsArray['sku'] !== $product->prod_sku) &&  
+                        ($paramsArray['name'] !== $product->prod_country)
+                    ) {
                         $data = array(
-                            'status'    => 'success',
-                            'code'      => 200,
-                            'message'   => 'El producto se ha agregado/actualizado en el carrito',
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error al agregar el producto al carrito',
                         );
                     }
                     else {
+                        // Verificar que se haya creado antes un carrito para el ususario
+                        $cart = $this->cartService->getCartByUserID($user->usu_idUser);
+
+                        // || is_null($cart)
+                        if(!empty($cart) ) {
+                            // Si ya existe algun registro de carrito
+                            $idCart = $cart->cart_idCart;
+        
+                            $cartItem = $this->addItem($idCart, $paramsArray);
+
+                            if(!is_object($cartItem)) {
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 409,
+                                    'message'   => 'El producto ya se encuentra en el carrito',
+                                );
+                            }
+                            else {
+                                $data = array(
+                                    'status'    => 'success',
+                                    'code'      => 200,
+                                    'message'   => 'El producto se ha agregado/actualizado en el carrito',
+                                );
+                            }
+                        }
+                        else {
+                            // Si no existe algun registro de carrito
+                            $cartParams = array(
+                                'idUser'        => $user->usu_idUser,
+                            );
+                            
+                            $cartUser = $this->cartService->saveCartUser($cartParams);
+
+                            if(!is_object($cartUser)) {
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 400,
+                                    'message'   => 'Ha ocurrido un error al agregar el producto al carrito',
+                                );
+                            }
+                            else {
+                                $idCart = $cartUser->cart_idCart;
+    
+                                $cartSessionArr = array(
+                                    'idUser' => $user->usu_idUser,
+                                    'idCart'  => $idCart,
+                                );
+                                $sessionID = $jwtAuth->encode($cartSessionArr);
+
+                                $cartParamsSession = array(
+                                    'cart_id_session'        => $sessionID,
+                                );
+
+                                $cartUserUpdate = $this->cartService->updateCartUserSession($idCart, $cartParamsSession);
+
+                                if($cartUserUpdate || $cartUserUpdate == 1) {
+                                    $cartItem = $this->addItem($idCart, $paramsArray);
+                                            
+                                    if(!is_object($cartItem)) {
+                                        $data = array(
+                                            'status'    => 'error',
+                                            'code'      => 409,
+                                            'message'   => 'El producto ya se encuentra en el carrito',
+                                        );
+                                    }
+                                    else {
+                                        $data = array(
+                                            'status'    => 'success',
+                                            'code'      => 200,
+                                            'message'   => 'El producto se ha agregado/actualizado en el carrito',
+                                        );
+                                    }
+                                }
+                                else {
+                                    $data = array(
+                                        'status'    => 'error',
+                                        'code'      => 400,
+                                        'message'   => 'Ha ocurrido un error al agregar el producto al carrito',
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
+        return response()->json($data, $data['code']);
+    } 
+
+    // Agregar el producto
+    public function addItem($idCart, $paramsArray) {
+        // $itemAdded = false;
+        if(!empty($idCart) || !empty($paramsArray)) {
+            try {
+                $product = CartItem::
+                    where([
+                        ['cart_idCart', '=', $idCart],
+                        ['prod_idProducto', '=', $paramsArray['id']],
+                        ['citm_isActive', '=', 1],
+                    ])
+                ->
+                    first()
+                ;
+                        
+                if(!empty($product)){
+                    // El item se ha agregado al carrito
+                    $idItem = $product->citm_idItem;
+
+                    $paramsItemUpdate = array (
+                        "citm_quantity" => $paramsArray['quantity'],
+                    );
+
+                    $cartItem = CartItem::where('citm_idItem', $product->citm_idItem)
+                        ->update($paramsItemUpdate);
+
+                    if($cartItem || $cartItem == 1) {
+                        return 1;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+                else {
+                    // El item no se ha agregado en el carrito
+                    $cartItem = new CartItem();
+                    $cartItem->cart_idCart      = $idCart;
+                    $cartItem->prod_idProducto  = $paramsArray['id'];
+                    $cartItem->citm_quantity    = $paramsArray['quantity'];
+                    
+                    $cartItem->save();
+
+                    return $cartItem;
+                }
+            } catch (QueryException $e) {
+                // $errorCode = $e->getCode();
+                // $errorMessage = $e->getMessage();
+                // Log::error("Error on saveSignupAddress. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+                // return response()->json(['error' => 'Ocurrió un error en la consulta.'], 500);
+                return 0;
+            }
+        }
+        else {
+            return 0;
+        }
+    }
+    
+    // Actualizar producto del carrito
+    public function updateItemFromCart(Request $request) {
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+
+        $user = $jwtAuth->checkToken($token, true);
+
+        // Recoger datos usuarios
+        $json = $request->input('json', null);
+        
+        $params         = json_decode($json); //objeto
+        $paramsArray    = json_decode($json, true);   //array
+
+        if(!empty($params) && !empty($paramsArray)) {
+            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
+
+            $validate = \Validator::make($paramsArray, [
+                'idItem'    => 'required',
+                'idCart'    => 'required',
+                'idProduct' => 'required',
+                'quantity'  => 'required',
+            ]);
+            if($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error al actualizar el producto del carrito',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+                // Verificar que se haya creado antes un carrito para el ususario
+                $cart = $this->cartService->getCartByUserID($user->usu_idUser);
+                
+                if(!empty($cart)) {
+                    // Si ya existe algun registro de carrito
+                    $idCart = $cart->cart_idCart;
+
+                    $cartItem = $this->cartService->getCartItem($idCart, $paramsArray);
+
+                    if(!is_object($cartItem)) {
                         $data = array(
                             'status'    => 'error',
-                            'code'      => 404,
-                            'message'   => 'El producto ya se encuentra en el carrito',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error al actualizar el producto del carrito',
                         );
+                    }
+                    else {
+                        // Obtener informacion del producto
+                        $productCollection = $this->productService->getProductByID($paramsArray['idProduct']);
+                        
+                        if($productCollection->isEmpty()) {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error al actualizar el producto del carrito',
+                            );
+                        }
+                        else {
+                            $product = $productCollection->first();
+                            $productStock = $product->prod_stock;
 
+                            // if($productStock >= $paramsArray['quantity']) {
+                            if($productStock < $paramsArray['quantity']) {
+                                // echo 'no suficiente stock';
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 409,
+                                    'message'   => 'Ha ocurrido un error al actualizar el producto del carrito',
+                                );
+                            }
+                            else {
+                                // echo 'suficiente stock';
+                                $cartItemUpdate = $this->updateItem($idCart, $cartItem->citm_idItem, $paramsArray);
+                                
+                                if($cartItemUpdate || $cartItemUpdate == 1) {
+                                    $data = array(
+                                        'status'    => 'success',
+                                        'code'      => 200,
+                                        'message'   => 'La cantidad se ha actualizado correctamente',
+                                    );
+                                }
+                                else {
+                                    $data = array(
+                                        'status'    => 'error',
+                                        'code'      => 400,
+                                        'message'   => 'Ha ocurrido un error al actualizar el producto del carrito',
+                                    );
+                                }
+                            }
+                        }
                     }
 
                 }
                 else {
-                    // Si no existe un carrito
-                    $cartParams = array(
-                        'idUser'        => $user->usu_idUser,
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 402,
+                        'message'   => 'Ha ocurrido un error al actualizar el producto del carrito',
                     );
-
-                    $userCart = (new CartController)
-                        ->saveUserCart($cartParams);
-
-                    // var_dump($userCart);
-                    // var_dump($userCart->cart_idCart);
-                    $idCart = $userCart->cart_idCart;
-
-                    
-                    $cartSessionArr = array(
-                        'idUser' => $user->usu_idUser,
-                        'idCart'  => $idCart,
-                    );
-                    // var_dump($cartSessionArr);
-                    // die();
-
-                    $sessionID = $jwtAuth->encode($cartSessionArr);
-                    $cartParamsSession = array(
-                        'cart_id_session'        => $sessionID,
-                    );
-                    
-                    $userCart = (new CartController)
-                        ->updateUserCartSession($idCart, $cartParamsSession);
-
-                    // var_dump($userCart);
-
-                   
-                    $cartItem = $this->addItem($idCart, $paramsArray);
-
-                    if($cartItem) {
-                        $data = array(
-                            'status'    => 'success',
-                            'code'      => 200,
-                            'message'   => 'El producto se ha agregado/actualizado en el carrito',
-                        );
-                    }
-                    else {
-                        $data = array(
-                            'status'    => 'error',
-                            'code'      => 404,
-                            'message'   => 'El producto ya se encuentra en el carrito',
-                        );
-
-                    }
-
-
-                    // $data = array(
-                    //     'status'    => 'success',
-                    //     'code'      => 200,
-                    //     'message'   => 'El producto se ha agregado al carrito exitosamente',
-                    // );
                 }
-
             }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
         }
         return response()->json($data, $data['code']);
     }
 
-    public function addItem($idCart, $paramsArray) {
-        $itemAdded = false;
+    // Actualizar producto
+    public function updateItem($idCart, $idItem, $paramsArray) {
+        if(!empty($idCart) || !empty($idItem) || !empty($paramsArray)) {
+            try {
+                $paramsItemUpdate = array (
+                    "citm_quantity" => $paramsArray['quantity'],
+                );
+                        
+                $cartItem = CartItem::where('citm_idItem', $idItem)
+                    ->update($paramsItemUpdate);
 
-        $product = CartItem::
-
-            // with(
-            //     [
-            //         'itemsCart',
-            //         // 'userAddressShipping.userShippingCountry', 
-            //         // 'userAddressShipping.userShippingCountry.userState'
-            //     ]
-            // )
-
-            // // where(
-            // //     ['cart_idCart', $idCart],
-            // //     // ['prod_idProducto', $paramsArray['id']],
-            // // )
-            // ->
-            where([
-                ['cart_idCart', '=', $idCart],
-                ['prod_idProducto', '=', $paramsArray['id']],
-                ['citm_isActive', '=', 1],
-            ])
-            ->first()
-            ;
-
-            // var_dump($product);
-            // var_dump(empty($product));
-            // die();
-
-            // // if
-
-            // var_dump($product);
-            // print_r($product);
-
-        if(!empty($product)) {
-            // El item se ha agregado al carrito
-            // return false;
-            $idItem = $product->citm_idItem;
-
-            $paramsItemUpdate = array (
-                "citm_quantity" => $paramsArray['quantity'],
-            );
-
-            // var_dump($product->citm_idItem);
-            $cartItem = CartItem::where('citm_idItem', $product->citm_idItem)
-            // ->update([
-            //     'usu_birth_date' => $params->birthdate
-            // ]);
-            ->update($paramsItemUpdate);
-
-            // var_dump($cartItem);
-
+                if($cartItem || $cartItem == 1) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            } catch (QueryException $e) {
+                // $errorCode = $e->getCode();
+                // $errorMessage = $e->getMessage();
+                // Log::error("Error on saveSignupAddress. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+                // return response()->json(['error' => 'Ocurrió un error en la consulta.'], 500);
+                return 0;
+            }
         }
         else {
-            // El item no se ha agregado en el carrito
-            $cartItem = new CartItem();
-            $cartItem->cart_idCart      = $idCart;
-            $cartItem->prod_idProducto  = $paramsArray['id'];
-            $cartItem->citm_quantity    = $paramsArray['quantity'];
-            
-            $cartItem->save();
-        }
-
-        // var_dump($cartItem);
-        if($cartItem || $cartItem == 1){
-            return true;
-        }
-        else {
-            return false;
+            return 0;
         }
     }
-    
+
+    // Eliminar producto del carrito
     public function removeItemFromCart(Request $request) {
         $token = $request->header('Authorization');
         $jwtAuth = new \App\Helpers\JwtAuth();
@@ -241,67 +410,101 @@ class CartItemController extends Controller
             if($validate->fails()) {
                 $data = array(
                     'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error al agregar el producto al carrito',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error al eliminar el producto al carrito',
                     'errors'    => $validate->errors()
                 );
             }
             else {
-                        
-                // var_dump($paramsArray);
-                // echo '<br>';
-                // var_dump($user);
-                // die();
-
                 // Verificar que se haya creado antes un carrito para el ususario
-                $cart = Cart::
-                    where(
-                        "usu_idUser", "=", $user->usu_idUser
-                    )
-                    ->first()
-                    ;
-
-                // if(count($cart) > 0) {
+                $cart = $this->cartService->getCartByUserID($user->usu_idUser);
+            
                 if(!empty($cart)) {
-                    // Si existe un carrito
+                    // Si ya existe algun registro de carrito
                     $idCart = $cart->cart_idCart;
-                    // var_dump($idCart);
-                    // var_dump($paramsArray);
-                    // die();
 
-                    $cartItem = $this->removeItem($idCart, $paramsArray);
+                    $cartItem = $this->cartService->getCartItem($idCart, $paramsArray);
 
-                    if($cartItem) {
+                    if(!is_object($cartItem)) {
                         $data = array(
-                            'status'    => 'success',
-                            'code'      => 200,
-                            'message'   => 'El producto se ha eliminado del carrito.',
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error al eliminar el producto al carrito',
                         );
                     }
                     else {
-                        $data = array(
-                            'status'    => 'error',
-                            'code'      => 405,
-                            'message'   => 'El producto ya se había eliminado del carrito.',
-                        );
+                        $cartItemRemove = $this->removeItem($idCart, $cartItem->citm_idItem);
 
+                        if($cartItemRemove || $cartItemRemove == 1) {
+                            $data = array(
+                                'status'    => 'success',
+                                'code'      => 200,
+                                'message'   => 'El producto se ha eliminado del carrito.',
+                            );
+                        }
+                        else {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error al eliminar el producto al carrito',
+                            );
+                        }
                     }
-
                 }
                 else {
                     $data = array(
                         'status'    => 'error',
-                        'code'      => 403,
-                        'message'   => 'Ha ocurrido un error al intentar eliminar el producto del carrito.',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error al eliminar el producto al carrito',
                     );
                 }
-
             }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
         }
         return response()->json($data, $data['code']);
     }
 
-    public function removeItem($idCart, $paramsArray) {
+    // Eliminar producto
+    public function removeItem($idCart, $idItem) {
+        if(!empty($idCart) || !empty($idItem)) {
+            try {  
+                $cartItem = CartItem::
+                    where([
+                        ['cart_idCart', '=', $idCart],
+                        ['citm_idItem', '=', $idItem],
+                    ])
+                ->
+                    update(
+                        ['citm_isActive' => 0]
+                    )
+                ;
+
+                if($cartItem || $cartItem == 1) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            } catch (QueryException $e) {
+                // $errorCode = $e->getCode();
+                // $errorMessage = $e->getMessage();
+                // Log::error("Error on saveSignupAddress. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+                // return response()->json(['error' => 'Ocurrió un error en la consulta.'], 500);
+                return 0;
+            }
+        }
+        else {
+            return 0;
+        }
+
+        die();
         $itemAdded = false;
 
         $product = CartItem::
@@ -322,319 +525,13 @@ class CartItemController extends Controller
         }
     }
 
+
+
     
     
-    public function updateItemFromCart(Request $request) {
-        
-        $token = $request->header('Authorization');
-        $jwtAuth = new \App\Helpers\JwtAuth();
-
-        $user = $jwtAuth->checkToken($token, true);
-
-        // Recoger datos usuarios
-        $json = $request->input('json', null);
-        
-        $params         = json_decode($json); //objeto
-        $paramsArray    = json_decode($json, true);   //array
-
-
-        if(!empty($params) && !empty($paramsArray)) {
-            $paramsArray = array_map('trim', $paramsArray);   //Limpiar datos del array
-
-            $validate = \Validator::make($paramsArray, [
-                'idItem'    => 'required',
-                'idCart'    => 'required',
-                'idProduct' => 'required',
-                'quantity'  => 'required',
-            ]);
-
-            if($validate->fails()) {
-                $data = array(
-                    'status'    => 'error',
-                    'code'      => 402,
-                    'message'   => 'Ha ocurrido un error al actualizar el producto',
-                    'errors'    => $validate->errors()
-                );
-            }
-            else {
-                // var_dump($paramsArray);
-                // die();
-
-                // Verificar que se haya creado antes un carrito para el ususario
-                $cart = Cart::
-                    where(
-                        "usu_idUser", "=", $user->usu_idUser
-                    )
-                    ->first()
-                    ;
-
-                // var_dump($cart);
-                // die();
-                // if(count($cart) > 0) {
-                if(!empty($cart)) {
-                    // echo 'no vacio o cart declarado antes';
-                    // Si existe un carrito
-                    $idCart = $cart->cart_idCart;
-                    // var_dump($idCart);
-                    // // var_dump($paramsArray);
-                    // die();
-
-                    $item = CartItem::
-
-                    where([
-                        ['cart_idCart', '=', $idCart],
-                        ['prod_idProducto', '=', $paramsArray['idProduct']],
-                        ['citm_idItem', '=', $paramsArray['idItem']],
-                        ['citm_isActive', '=', 1],
-                    ])
-                    ->first()
-                    ;
-
-                    // var_dump($item);
-                    // die();
-
-                    // Aquí asume que $yourJsonResponse es tu objeto JsonResponse
-                    $jsonResponse  = (new ProductController)
-                    ->getProduct($paramsArray['idProduct'])
-                    ;
-
-                    // Obtener el contenido JSON de la respuesta
-                    $jsonProduct =  $jsonResponse->getContent();
-
-                    // Decodificar el JSON a un array asociativo
-                    $arrProduct = json_decode($jsonProduct, true);
-
-                    // Acceder a la propiedad 'prod_stock'
-                    $prodStock = $arrProduct['products'][0]['prod_stock']; // Aquí asumo que hay al menos un producto en la lista
-                    // var_dump($prodStock);
-                    // die();
-
-                    
-                    // // var_dump($product->products->prod_stock);
-                    // // var_dump($product['products']['prod_stock']);
-                    // // // $stock = $product->first()->prod_stock;
-                    // var_dump($product);
-                    // die();
-
-
-                    if($prodStock >= $paramsArray['quantity']) {
-                        // echo 'hay suficiente stock';
-
-                        $cartItem = $this->updateItem($idCart, $paramsArray);
-
-
-                        if($cartItem) {
-                            $data = array(
-                                'status'    => 'success',
-                                'code'      => 200,
-                                'message'   => 'La cantidad se ha actualizado correctamente',
-                            );
-                        }
-                        else {
-                            $data = array(
-                                'status'    => 'error',
-                                'code'      => 402,
-                                'message'   => 'Ha ocurrido un error al actualizar',
-                            );
-
-                        }
-
-
-                    }
-                    else {
-                        // echo 'no hay suficiente stock';
-                        $data = array(
-                            'status'    => 'error',
-                            'code'      => 403,
-                            'message'   => 'No hay suficiente stock para la cantidad deseada',
-                        );
-                    }
-
-
-                    // die();
-
-                    // $cartItem = $this->addItem($idCart, $paramsArray);
-
-                    // if($cartItem) {
-                    //     $data = array(
-                    //         'status'    => 'success',
-                    //         'code'      => 200,
-                    //         'message'   => 'El producto se ha agregado/actualizado en el carrito',
-                    //     );
-                    // }
-                    // else {
-                    //     $data = array(
-                    //         'status'    => 'error',
-                    //         'code'      => 404,
-                    //         'message'   => 'El producto ya se encuentra en el carrito',
-                    //     );
-
-                    // }
-
-                }
-                // else {
-                //     // Si no existe un carrito
-                //     $cartParams = array(
-                //         'idUser'        => $user->usu_idUser,
-                //     );
-
-                //     $userCart = (new CartController)
-                //         ->saveUserCart($cartParams);
-
-                //     // var_dump($userCart);
-                //     // var_dump($userCart->cart_idCart);
-                //     $idCart = $userCart->cart_idCart;
-
-                    
-                //     $cartSessionArr = array(
-                //         'idUser' => $user->usu_idUser,
-                //         'idCart'  => $idCart,
-                //     );
-                //     // var_dump($cartSessionArr);
-                //     // die();
-
-                //     $sessionID = $jwtAuth->encode($cartSessionArr);
-                //     $cartParamsSession = array(
-                //         'cart_id_session'        => $sessionID,
-                //     );
-                    
-                //     $userCart = (new CartController)
-                //         ->updateUserCartSession($idCart, $cartParamsSession);
-
-                //     // var_dump($userCart);
-
-                   
-                //     $cartItem = $this->addItem($idCart, $paramsArray);
-
-                //     if($cartItem) {
-                //         $data = array(
-                //             'status'    => 'success',
-                //             'code'      => 200,
-                //             'message'   => 'El producto se ha agregado/actualizado en el carrito',
-                //         );
-                //     }
-                //     else {
-                //         $data = array(
-                //             'status'    => 'error',
-                //             'code'      => 404,
-                //             'message'   => 'El producto ya se encuentra en el carrito',
-                //         );
-
-                //     }
-
-
-                //     // $data = array(
-                //     //     'status'    => 'success',
-                //     //     'code'      => 200,
-                //     //     'message'   => 'El producto se ha agregado al carrito exitosamente',
-                //     // );
-                // }
-
-            }
-        }
-        return response()->json($data, $data['code']);
-    }
     
-    
-    public function updateItem($idCart, $paramsArray) {
 
-        // // echo 'updating'; 
-        // var_dump($idCart);
-        // echo'|';
-        // var_dump($paramsArray);
-        // die();
-        $itemUpdated = false;
 
-        
-        $paramsItemUpdate = array (
-            "citm_quantity" => $paramsArray['quantity'],
-        );
-
-        // $cartItem = CartItem::where('citm_idItem', $product->citm_idItem)
-        $cartItem = CartItem::where('citm_idItem', $paramsArray['idItem'])
-        // ->update([
-        //     'usu_birth_date' => $params->birthdate
-        // ]);
-        ->update($paramsItemUpdate);
-
-        if($cartItem || $cartItem == 1){
-            return true;
-        }
-        else {
-            return false;
-        }
-
-        die();
-
-        $product = CartItem::
-
-            // with(
-            //     [
-            //         'itemsCart',
-            //         // 'userAddressShipping.userShippingCountry', 
-            //         // 'userAddressShipping.userShippingCountry.userState'
-            //     ]
-            // )
-
-            // // where(
-            // //     ['cart_idCart', $idCart],
-            // //     // ['prod_idProducto', $paramsArray['id']],
-            // // )
-            // ->
-            where([
-                ['cart_idCart', '=', $idCart],
-                ['prod_idProducto', '=', $paramsArray['id']],
-                ['citm_isActive', '=', 1],
-            ])
-            ->first()
-            ;
-
-            // var_dump($product);
-            // var_dump(empty($product));
-            // die();
-
-            // // if
-
-            // var_dump($product);
-            // print_r($product);
-
-        if(!empty($product)) {
-            // El item se ha agregado al carrito
-            // return false;
-            $idItem = $product->citm_idItem;
-
-            $paramsItemUpdate = array (
-                "citm_quantity" => $paramsArray['quantity'],
-            );
-
-            // var_dump($product->citm_idItem);
-            $cartItem = CartItem::where('citm_idItem', $product->citm_idItem)
-            // ->update([
-            //     'usu_birth_date' => $params->birthdate
-            // ]);
-            ->update($paramsItemUpdate);
-
-            // var_dump($cartItem);
-
-        }
-        else {
-            // El item no se ha agregado en el carrito
-            $cartItem = new CartItem();
-            $cartItem->cart_idCart      = $idCart;
-            $cartItem->prod_idProducto  = $paramsArray['id'];
-            $cartItem->citm_quantity    = $paramsArray['quantity'];
-            
-            $cartItem->save();
-        }
-
-        // var_dump($cartItem);
-        if($cartItem || $cartItem == 1){
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
     
 
 }

@@ -157,7 +157,7 @@ class ProductFavoriteController extends Controller
 
     // Agregar producto como favorito
     public function addFavorite($user, $paramsArray) {
-        if(!empty($user || !empty($paramsArray))) {
+        if(!empty($user) || !empty($paramsArray)) {
             try {
                 $favorite = new ProductFavorite();
                 $favorite->usu_idUser       = $user->usu_idUser;

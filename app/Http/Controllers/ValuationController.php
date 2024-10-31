@@ -70,6 +70,7 @@ class ValuationController extends Controller
                     'valuationProduct.productGroup',
                     'valuationProduct.productCategory',
                     'valuationProduct.productStatus',
+                    'valuationProduct.productCertifications',
                     'valuationStatus',
                     'valuationPaymentStatus',
                     // 'valuationUserRequester',
@@ -136,14 +137,23 @@ class ValuationController extends Controller
                 $data = array(
                     'status'    => 'error',
                     'code'      => 400,
-                    'message'   => 'Ha ocurrido un error al solicitar la valuacion.',
+                    'message'   => 'Ha ocurrido un error al solicitar la valuacion .',
                     'errors'    => $validate->errors()
                 );
             }
             else {
                 // Obtener info del producto y verificar que corresponde
-                $productCollection = $this->productService->getProductByID($paramsArray['idProduct']);
-                
+                // $productCollection = $this->productService->getProductByID($paramsArray['idProduct']);
+
+                if( strtolower($user->urol_name) === strtolower('Comprador') || $user->urol_idRol === 3 ) {
+                    $productCollection = $this->productService->getProductByID($paramsArray['idProduct']);
+                }
+                // else if(strtolower($user->urol_name) === strtolower('Vendedor') || $user->urol_idRol === 2)  {
+                //  {
+                else if( strtolower($user->urol_name) !== strtolower('Comprador') || $user->urol_idRol !== 3 )  {
+                    $productCollection = $this->productService->getProductInfoByID($paramsArray['idProduct']);
+                }
+
                 if($productCollection->isEmpty()) {
                     $data = array(
                         'status'    => 'error',
@@ -326,6 +336,261 @@ class ValuationController extends Controller
                     }
                 }
                 
+            }
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                // 'message'   => 'Petición errónea.',
+                'message'   => 'No se encontró el recurso solicitado.',
+            );
+        }
+        return response()->json($data, $data['code']);
+    }
+    
+
+
+    // **************************************************
+    // *                    ADMIN                       *
+    // **************************************************
+
+    //Obtener todas las valuaciones
+    public function getValuationsForVerification(Request $request) {
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+        
+        $user = $jwtAuth->checkToken($token, true);
+        try {
+            $valuations = Valuation::
+                with([
+                    'valuationProduct',
+                    'valuationProduct.productCountry',
+                    'valuationProduct.productType',
+                    'valuationProduct.productGroup',
+                    'valuationProduct.productCategory',
+                    'valuationProduct.productStatus',
+                    'valuationProduct.productCertifications',
+                    'valuationStatus',
+                    'valuationPaymentStatus',
+                    'valuationUserRequester',
+                    'valuationUserRequester.userRol',
+                    'valuationUserRequester.userStatus',
+                ])
+            // ->
+            //     where('val_idUserRequester', $user->usu_idUser)
+            ->
+                get()
+            ;
+            // var_dump($valuations);
+
+            // die();
+            
+            if(!empty($valuations)){
+                $valuations->each(function($valuation) {
+                    $valuation->valuationUserRequester->makeHidden(['usu_username']);
+                });
+
+                $data = array(
+                    'valuations' => $valuations,
+                );
+            }
+            else {
+                $data = array(
+                    'valuations' => [],
+                );
+            }
+
+        } catch (QueryException $e) {
+            $data = array(
+                'valuations' => [],
+            );
+        }
+        return response()->json($data);
+    }
+
+    // Obtener informacion de la valuacion
+    public function getValuationInfo(Request $request, $id) {
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+
+        $user = $jwtAuth->checkToken($token, true);
+
+        if(isset($id)) {
+            $id = str_replace('"', '', $id);
+
+            $valuation = $this->valuationService->getValuationInfoByID($id);
+        }
+        else {
+            $valuation = [];
+        }
+        
+        return response()->json([
+            'valuations' => $valuation
+        ]);
+    }
+    // Actualizar estado de valuacion
+    public function updateValuationStatus(Request $request) {
+        $token = $request->header('Authorization');
+        $jwtAuth = new \App\Helpers\JwtAuth();
+
+        $user = $jwtAuth->checkToken($token, true);
+
+        // Recoger datos por post
+        $json = $request->input('json', null);
+        
+        $params = json_decode($json);
+        $paramsArray = json_decode($json, true);
+
+        if(!empty($params) && !empty($paramsArray)) {
+            $validate = \Validator::make($paramsArray, [
+                "amount"                => 'required',
+                "valuationCost"         => 'required',
+                "idValuation"           => 'required',
+                "idProduct"             => 'required',
+                "skuProduct"            => 'required',
+                "countryProduct"        => 'required',
+                "typeProduct"           => 'required',
+                "userProduct"           => 'required',
+                "valuationStatus"       => 'required',
+                "valuationStatusName"   => 'required',
+            ]);
+
+            if ($validate->fails()) {
+                $data = array(
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Ha ocurrido un error en la actualizacion del status.',
+                    'errors'    => $validate->errors()
+                );
+            }
+            else {
+                $productCollection = $this->productService->getProductInfoByID($paramsArray['idProduct']);
+
+                if($productCollection->isEmpty()) {
+                    $data = array(
+                        'status'    => 'error',
+                        'code'      => 400,
+                        'message'   => 'Ha ocurrido un error en la actualizacion del status.',
+                    );
+                }
+                else {
+                    $product = $productCollection->first();
+
+                    if(
+                        ($paramsArray['skuProduct'] !== $product->prod_sku) &&  
+                        ($paramsArray['countryProduct'] !== $product->prod_country) &&
+                        ($paramsArray['typeProduct'] !== $product->prod_idType_product)
+                    ) {
+                        $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error en la actualizacion del status.',
+                        );
+                    }
+                    else {
+                        $idValStatus = $this->valuationService->getValuationStatusID($paramsArray['valuationStatusName']);
+
+                        $valuation = $this->valuationService->getValuationInfoByID($params->idValuation);
+
+
+                        if(!is_object($valuation)) {
+                            $data = array(
+                                'status'    => 'error',
+                                'code'      => 400,
+                                'message'   => 'Ha ocurrido un error en la actualizacion del status.',
+                            );
+                        }
+                        else {
+                            $userRequester = $valuation->first()->valuationUserRequester;
+
+                            try {
+                                $paramsUpdate = array (
+                                    "vsta_idStatus"         => $idValStatus,
+                                );
+
+                                $valuationtUpdate = Valuation::
+                                    where('val_idValuation', $params->idValuation)
+                                    ->update($paramsUpdate);
+            
+                                if(!isset($valuationtUpdate) && empty($valuationtUpdate)) {
+                                    $data = array(
+                                        'status'    => 'error',
+                                        'code'      => 400,
+                                        'message'   => 'Ha ocurrido un error en la actualizacion del status.',
+                                    );
+                                }
+                                else {
+                                    $sendMailCode = $this->mailController->updateValuationStatus($valuation->first(), $userRequester, $product);
+    
+                                    // Procesar la respuesta del MailController
+                                    if (isset($sendMailCode['error'])) {
+                                        // $data = array(
+                                        //     'status' => 'error',
+                                        //     'code' => 404,
+                                        //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                        // );
+                                        if(isset($valuationtUpdate)) {
+                                            $data = array(
+                                                'status' => 'success',
+                                                'code' => 200,
+                                                'message' => 'El estado de valuación se ha actualizado correctamente , pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                            );
+                                        }
+                                        else {
+                                            $data = array(
+                                                'status' => 'error',
+                                                'code' => 400,
+                                                'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                            );
+                                        }
+                                    }
+                                    elseif ($sendMailCode['status'] === 'success') {
+                                        $data = array(
+                                            // 'status' => 'success',
+                                            // 'code' => 200,
+                                            // 'message' => 'El usuario se ha creado correctamente y se ha enviado el correo de verificación.',
+                                            'status'    => 'success',
+                                            'code'      => 200,
+                                            'message'   => 'El estado de valuación se ha actualizado correctamente y se ha enviado el correo de verificación.',
+                                        );
+                                        
+                                    }
+                                    else {
+                                        // $data = array(
+                                        //     'status' => 'error',
+                                        //     'code' => 500,
+                                        //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                        // );
+                                        
+                                        if(isset($valuationtUpdate)) {
+                                            $data = array(
+                                                'status' => 'success',
+                                                'code' => 200,
+                                                'message' => 'El estado de valuación se ha actualizado correctamente, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                            );
+                                        }
+                                        else {
+                                            $data = array(
+                                                'status' => 'error',
+                                                // 'code' => 500,
+                                                'code' => 400,
+                                                'message'   => 'Ha ocurrido un error en la actualizacion del status.',
+                                            );
+                                        }
+                                    }
+                                }
+                            } catch (QueryException $e) {
+                                $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 400,
+                                    'message'   => 'Ha ocurrido un error en la actualizacion del status.',
+                                );
+                            }
+                        }
+                        return response()->json($data, $data['code']);
+                    }
+                }
             }
         }
         else {

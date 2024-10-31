@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class CartItem extends Model
 {
     use HasFactory;
-    protected $table = "cart_items";
-    protected $primaryKey = 'citm_idItem';
+    protected $table        = "cart_items";
+    protected $primaryKey   = 'citm_idItem';
     
     const CREATED_AT = 'citm_created_date';
     const UPDATED_AT = 'citm_updated_date';

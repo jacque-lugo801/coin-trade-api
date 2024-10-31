@@ -145,7 +145,7 @@ class UserController extends Controller
                                 'idUser'    => $idUser,
                             );
 
-                            $shipping = $this->userService->saveShippingAddress($shippingParams);
+                            $shipping = $this->userService->saveSignupAddress($shippingParams);
 
                             if(!is_object($shipping)) {
                                 // Si no se guardan los datos de envio borrar los datos de usuario

@@ -35,4 +35,9 @@ class UserShippingAddress extends Model
         // return $this->hasOne(Phone::class, 'foreign_key', 'local_key');
         return $this->HasOne(State::class, 'sta_iso_alpha2', 'usad_state');
     }
+    public function userShippingCity() {
+        // Obtiene el usuario relqacionado por la propiedad usu_idUser
+        // Saca el objeto asignado en base al usu_idUser
+        return $this->HasOne(City::class, 'cit_clave', 'usad_city');
+    }
 }

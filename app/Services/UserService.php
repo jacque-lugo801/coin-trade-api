@@ -79,9 +79,15 @@ class UserService
     
     // Shipping
     // Guardar de los datos de dirección de envío
-    public function saveShippingAddress($params) {
+    public function saveSignupAddress($params) {
         return $this->shippingController->saveSignupAddress($params);
     }
+
+    // Guardar de los datos de nueva dirección de envío
+    public function saveShippingAddress($params) {
+        return $this->shippingController->saveShippingAddress($params);
+    }
+    
     // Actualizar de los datos de dirección de envío
     public function updateShippingAddress($params, $idAddress) {
         return $this->shippingController->updateShippingAddress($params, $idAddress);
@@ -93,6 +99,10 @@ class UserService
     //Obtener las direcciones
     public function getShippingAddress($idUser) {
         return $this->shippingController->getShippingAddress($idUser);
+    }
+    //Obtener las direcciones
+    public function getShippingAddressByID($idUser, $id) {
+        return $this->shippingController->getShippingAddressByID($idUser, $id);
     }
 
 

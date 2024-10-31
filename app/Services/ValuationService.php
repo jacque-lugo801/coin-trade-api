@@ -35,5 +35,37 @@ class ValuationService
     public function getValuationStatusID($name) {
         return $this->valuationStatusController->getValuationStatusID($name);
     }
+    
+    // Obtener el producto por ID (APROBADO O NO APROBADO)
+    public function getValuationInfoByID($id) {
+        try {
+            $product = Valuation::
+                with([
+                    'valuationProduct',
+                    'valuationProduct.productCountry',
+                    'valuationProduct.productType',
+                    'valuationProduct.productGroup',
+                    'valuationProduct.productCategory',
+                    'valuationProduct.productStatus',
+                    'valuationProduct.productCertifications',
+                    'valuationStatus',
+                    'valuationPaymentStatus',
+                    'valuationUserRequester',
+                    'valuationUserRequester.userRol',
+                    'valuationUserRequester.userStatus',
+                ])
+            ->
+                where([
+                    ["val_idValuation", "=", $id]
+                ])
+            ->
+                get()
+            ;
+        } catch (QueryException $e) {
+            $product = [];
+        }
+        
+        return  $product;
+    }
     // END VALUATION STATUS
 }

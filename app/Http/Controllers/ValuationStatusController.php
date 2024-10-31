@@ -17,5 +17,21 @@ class ValuationStatusController extends Controller
             return 0;
         }
     }
+
+    
+    // Obtener los estados de productos
+    public function getValuationStatus() {
+        try {
+            $valuationStatus = ValuationStatus::
+                get()
+            ;
+        } catch (QueryException $e) {
+            $valuationStatus = [];
+        }
+
+        return  response()->json([
+            'valuationStatus' => $valuationStatus
+        ]);
+    }
     
 }

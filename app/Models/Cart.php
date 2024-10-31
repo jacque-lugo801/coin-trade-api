@@ -9,8 +9,8 @@ class Cart extends Model
 {
     use HasFactory;
 
-    protected $table = "cart";
-    protected $primaryKey = 'cart_idCart';
+    protected $table        = "cart";
+    protected $primaryKey   = 'cart_idCart';
     
     const CREATED_AT = 'cart_created_date';
     const UPDATED_AT = 'cart_updated_date';
