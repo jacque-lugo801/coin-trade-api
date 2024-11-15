@@ -242,6 +242,8 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`valuations` (
   `vsta_idStatus` INT NOT NULL,
   `val_idPaymentStatus` INT NOT NULL,
   `val_isActive` INT NULL DEFAULT 1,
+  `val_idPaymentType` INT NOT NULL,
+  `val_idPaymentCategory` INT NULL,
   PRIMARY KEY (`val_idValuation`, `prod_idProducto`, `vsta_idStatus`),
   INDEX `fk_valuations_products1_idx` (`prod_idProducto` ASC) VISIBLE,
   INDEX `fk_valuations_valuation_status1_idx` (`vsta_idStatus` ASC) VISIBLE,
@@ -281,7 +283,7 @@ DROP TABLE IF EXISTS `cointrade_db`.`transactions` ;
 
 SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `cointrade_db`.`transactions` (
-  `tran_idTransaction` INT NOT NULL,
+  `tran_idTransaction` INT NOT NULL AUTO_INCREMENT,
   `tran_solicitud` TEXT NOT NULL,
   `tran_subtotal` DOUBLE NULL,
   `tran_iva` DOUBLE NULL,
@@ -293,17 +295,16 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`transactions` (
   `tran_idPaymentStatus` INT NOT NULL,
   `tsta_idStatus` INT NOT NULL,
   `tran_isActive` INT NULL DEFAULT 1,
-  `tran_order` LONGTEXT NULL,
+  `tran_idPaymentType` INT NOT NULL,
+  `tran_idPaymentCategory` INT NULL,
+  `tran_idShippingAddress` INT NOT NULL,
+  `tran_country` VARCHAR(45) NOT NULL,
+  `tran_state` VARCHAR(45) NOT NULL,
+  `tran_city` VARCHAR(45) NOT NULL,
+  `tran_address` TEXT NOT NULL,
+  `tran_cp` VARCHAR(10) NOT NULL,
   `tran_description` LONGTEXT NULL,
-  `tran_json` LONGTEXT NULL,
-  `tran_payment_type` VARCHAR(45) NULL,
-  `tran_idShippingAddress` INT NULL,
-  `tran_country` VARCHAR(45) NULL,
-  `tran_state` VARCHAR(45) NULL,
-  `tran_city` VARCHAR(45) NULL,
-  `tran_address` TEXT NULL,
-  `tran_cp` VARCHAR(10) NULL,
-  `tran_type_payment` VARCHAR(250) NULL,
+  `tran_order` LONGTEXT NULL,
   PRIMARY KEY (`tran_idTransaction`, `tsta_idStatus`),
   INDEX `fk_transactions_transaction_status1_idx` (`tsta_idStatus` ASC) VISIBLE,
   CONSTRAINT `fk_transactions_transaction_status1`
@@ -878,13 +879,19 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`transaction_detail` (
   `tdet_subtotal` DOUBLE NOT NULL,
   `tdet_iva` DOUBLE NULL,
   `tdet_total` DOUBLE NOT NULL,
-  `tdet_discount` DOUBLE NOT NULL,
+  `tdet_discount` DOUBLE NULL,
   `tdet_buyer_idUser` INT NOT NULL,
   `tdet_seller_idUser` INT NOT NULL,
   `tran_idTransaction` INT NOT NULL,
   `tdet_isActive` INT NOT NULL DEFAULT 1,
   `tdet_created_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   `tdet_updated_date` DATETIME NULL,
+  `tdet_seller_name` VARCHAR(150) NULL,
+  `tdet_seller_lastname` VARCHAR(250) NULL,
+  `tdet_seller_rfc` VARCHAR(50) NULL,
+  `tdet_buyer_name` VARCHAR(150) NULL,
+  `tdet_buyer_lastname` VARCHAR(250) NULL,
+  `tdet_buyer_rfc` VARCHAR(50) NULL,
   PRIMARY KEY (`tdet_idDetail`, `tran_idTransaction`),
   INDEX `fk_transaction_detail_transactions1_idx` (`tran_idTransaction` ASC) VISIBLE,
   CONSTRAINT `fk_transaction_detail_transactions1`
@@ -915,6 +922,45 @@ CREATE TABLE IF NOT EXISTS `cointrade_db`.`coupons` (
   `coup_maxDiscount` DOUBLE NULL,
   `coup_minTotal` VARCHAR(45) NULL,
   PRIMARY KEY (`coup_idCounpon`))
+ENGINE = InnoDB;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `cointrade_db`.`payment_type`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `cointrade_db`.`payment_type` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `cointrade_db`.`payment_type` (
+  `pytp_idType` INT NOT NULL AUTO_INCREMENT,
+  `pytp_name` VARCHAR(150) NOT NULL,
+  `pytp_description` VARCHAR(500) NULL,
+  `pytp_cve` VARCHAR(50) NOT NULL,
+  PRIMARY KEY (`pytp_idType`))
+ENGINE = InnoDB;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `cointrade_db`.`payment_category`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `cointrade_db`.`payment_category` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `cointrade_db`.`payment_category` (
+  `pyct_idCategory` INT NOT NULL AUTO_INCREMENT,
+  `pyct_name` VARCHAR(100) NOT NULL,
+  `pyct_description` VARCHAR(500) NULL,
+  `pyct_cve` VARCHAR(50) NOT NULL,
+  `pytp_idType` INT NOT NULL,
+  PRIMARY KEY (`pyct_idCategory`, `pytp_idType`),
+  INDEX `fk_payment_category_payment_type1_idx` (`pytp_idType` ASC) VISIBLE,
+  CONSTRAINT `fk_payment_category_payment_type1`
+    FOREIGN KEY (`pytp_idType`)
+    REFERENCES `cointrade_db`.`payment_type` (`pytp_idType`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 SHOW WARNINGS;
@@ -5380,6 +5426,33 @@ START TRANSACTION;
 USE `cointrade_db`;
 INSERT INTO `cointrade_db`.`settings` (`set_idSetting`, `set_name`, `set_description`, `set_value`, `set_created_date`, `set_updated_date`, `set_isActive`) VALUES (DEFAULT, 'valuation_cost', NULL, '6000', NULL, NULL, NULL);
 INSERT INTO `cointrade_db`.`settings` (`set_idSetting`, `set_name`, `set_description`, `set_value`, `set_created_date`, `set_updated_date`, `set_isActive`) VALUES (DEFAULT, 'comission_cost', NULL, '10%', NULL, NULL, NULL);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `cointrade_db`.`payment_type`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `cointrade_db`;
+INSERT INTO `cointrade_db`.`payment_type` (`pytp_idType`, `pytp_name`, `pytp_description`, `pytp_cve`) VALUES (DEFAULT, 'Billeteras digitales', NULL, 'E-Wallet');
+INSERT INTO `cointrade_db`.`payment_type` (`pytp_idType`, `pytp_name`, `pytp_description`, `pytp_cve`) VALUES (DEFAULT, 'Tarjeta de Crédito', NULL, 'TDC');
+INSERT INTO `cointrade_db`.`payment_type` (`pytp_idType`, `pytp_name`, `pytp_description`, `pytp_cve`) VALUES (DEFAULT, 'Tarjeta de Débito', NULL, 'TDD');
+INSERT INTO `cointrade_db`.`payment_type` (`pytp_idType`, `pytp_name`, `pytp_description`, `pytp_cve`) VALUES (DEFAULT, 'Transferencia bancaria', NULL, 'SPEI');
+INSERT INTO `cointrade_db`.`payment_type` (`pytp_idType`, `pytp_name`, `pytp_description`, `pytp_cve`) VALUES (DEFAULT, 'Pago en efectivo en tiendas de conveniencia', NULL, 'EFE');
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `cointrade_db`.`payment_category`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `cointrade_db`;
+INSERT INTO `cointrade_db`.`payment_category` (`pyct_idCategory`, `pyct_name`, `pyct_description`, `pyct_cve`, `pytp_idType`) VALUES (DEFAULT, 'PayPal', NULL, 'PAYPAL', 1);
+INSERT INTO `cointrade_db`.`payment_category` (`pyct_idCategory`, `pyct_name`, `pyct_description`, `pyct_cve`, `pytp_idType`) VALUES (DEFAULT, 'Mercado Pago\n', NULL, 'MPAGO', 1);
+INSERT INTO `cointrade_db`.`payment_category` (`pyct_idCategory`, `pyct_name`, `pyct_description`, `pyct_cve`, `pytp_idType`) VALUES (DEFAULT, 'Apple Pay', NULL, 'APAY', 1);
+INSERT INTO `cointrade_db`.`payment_category` (`pyct_idCategory`, `pyct_name`, `pyct_description`, `pyct_cve`, `pytp_idType`) VALUES (DEFAULT, 'Google Pay', NULL, 'GPAY', 1);
 
 COMMIT;
 
