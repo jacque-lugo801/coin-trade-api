@@ -185,10 +185,19 @@ class ProductFavoriteController extends Controller
             try {
                 $oldFavorite = ProductFavorite::
                     where('ufav_idFavorite', $productFavorite->ufav_idFavorite)
-                    ->update([
-                        'ufav_isActive' => 0
-                    ]);
-                return $oldFavorite;
+                    // ->update([
+                    //     'ufav_isActive' => 0
+                    // ]);
+                    ->delete();
+
+
+                if($oldFavorite || $oldFavorite == 1) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+                // return $oldFavorite;
             } catch (QueryException $e) {
                 // $errorCode = $e->getCode();
                 // $errorMessage = $e->getMessage();

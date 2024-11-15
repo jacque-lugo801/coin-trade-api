@@ -145,7 +145,7 @@ class ProductRatingController extends Controller
                 }
                 else {
                     //Si NO existe una calificacion del producto
-                    echo 'esta vacio, no se ha calificado';
+                    // echo 'esta vacio, no se ha calificado';
                     $rating = $this->addRating($user, $paramsArray);
 
                     if(!is_object($rating)) {

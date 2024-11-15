@@ -31,6 +31,7 @@ class ValuationController extends Controller
     protected $productService;
     protected $settingService;
     protected $valuationService;
+    protected $paymentService;
     protected $mailController;
 
     public function __construct (
@@ -219,109 +220,126 @@ class ValuationController extends Controller
                                         );
                                     }
                                     else {
-                                        $valuationCost =  $settingValuation->set_value;
-                                        $total = $valuationCost * $paramsArray['amount'];
+                                        $idPaymentType = $this->paymentService->getPaymentTypeID('transferencia bancaria');
+                                        // $idPaymentType = $this->paymentService->getPaymentTypeID('billeteras digitales');
                                         
-                                        try {
-                                            $valuation = new Valuation();
-                            
-                                            $valuation->val_amount          = $paramsArray['amount'];
-                                            $valuation->val_total           = $total;
-                                            $valuation->prod_idProducto     = $paramsArray['idProduct'];
-                                            $valuation->val_idUserRequester = $user->usu_idUser;
-                                            $valuation->vsta_idStatus       = $idValStatus;
-                                            $valuation->val_idPaymentStatus = $idPayStatus;
-                
-                                            $valuation->save();
+                                        if($idPaymentType == 0) {
+                                            return 0;
+                                        }
+                                        else {
+                                            $idPaymentCategory = $this->paymentService->getPaymentCategoryID(null, $idPaymentType);
 
-                                            $idValuation = $valuation->val_idValuation;
-
-                                            if(is_null($idValuation) || !isset($idValuation) || empty($idValuation)) {
-                                                $data = array(
-                                                    'status'    => 'error',
-                                                    'code'      => 400,
-                                                    'message'   => 'Ha ocurrido un error en la solicitud de valuación s',
-                                                );
+                                            if($idPaymentCategory === 0) {
+                                                return 0;
                                             }
                                             else {
-                                                // $data = array(
-                                                //     'status' => 'success',
-                                                //     'code' => 200,
-                                                //     'message' => 'La solicitud de valuación se ha enviado',
-                                                // );
+                                                $valuationCost =  $settingValuation->set_value;
+                                                $total = $valuationCost * $paramsArray['amount'];
+                                                
+                                                try {
+                                                    $valuation = new Valuation();
+                                    
+                                                    $valuation->val_amount              = $paramsArray['amount'];
+                                                    $valuation->val_total               = $total;
+                                                    $valuation->prod_idProducto         = $paramsArray['idProduct'];
+                                                    $valuation->val_idUserRequester     = $user->usu_idUser;
+                                                    $valuation->vsta_idStatus           = $idValStatus;
+                                                    $valuation->val_idPaymentStatus     = $idPayStatus;
+                                                    $valuation->val_idPaymentType       = $idPaymentType;
+                                                    $valuation->val_idPaymentCategory   = $idPaymentCategory;
+                        
+                                                    $valuation->save();
 
-                                                $sendMailCode = $this->mailController->requestValuation($valuation, $user, $product);
+                                                    $idValuation = $valuation->val_idValuation;
 
-                                                    // Procesar la respuesta del MailController
-                                                if (isset($sendMailCode['error'])) {
-                                                    // $data = array(
-                                                    //     'status' => 'error',
-                                                    //     'code' => 404,
-                                                    //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
-                                                    // );
-                                                    if(isset($idValuation)) {
+                                                    if(is_null($idValuation) || !isset($idValuation) || empty($idValuation)) {
                                                         $data = array(
-                                                            'status' => 'success',
-                                                            'code' => 200,
-                                                            'message' => 'La solicitud de valuación se ha enviado, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                                            'status'    => 'error',
+                                                            'code'      => 400,
+                                                            'message'   => 'Ha ocurrido un error en la solicitud de valuación s',
                                                         );
                                                     }
                                                     else {
-                                                        $data = array(
-                                                            'status' => 'error',
-                                                            'code' => 400,
-                                                            'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
-                                                        );
+                                                        // $data = array(
+                                                        //     'status' => 'success',
+                                                        //     'code' => 200,
+                                                        //     'message' => 'La solicitud de valuación se ha enviado',
+                                                        // );
+
+                                                        $sendMailCode = $this->mailController->requestValuation($valuation, $user, $product);
+
+                                                            // Procesar la respuesta del MailController
+                                                        if (isset($sendMailCode['error'])) {
+                                                            // $data = array(
+                                                            //     'status' => 'error',
+                                                            //     'code' => 404,
+                                                            //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                                            // );
+                                                            if(isset($idValuation)) {
+                                                                $data = array(
+                                                                    'status' => 'success',
+                                                                    'code' => 200,
+                                                                    'message' => 'La solicitud de valuación se ha enviado, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                                                );
+                                                            }
+                                                            else {
+                                                                $data = array(
+                                                                    'status' => 'error',
+                                                                    'code' => 400,
+                                                                    'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                                                );
+                                                            }
+                                                        }
+                                                        elseif ($sendMailCode['status'] === 'success') {
+                                                            $data = array(
+                                                                // 'status' => 'success',
+                                                                // 'code' => 200,
+                                                                // 'message' => 'El usuario se ha creado correctamente y se ha enviado el correo de verificación.',
+                                                                'status'    => 'success',
+                                                                'code'      => 200,
+                                                                'message'   => 'La solicitud de valuación se ha enviado y se ha enviado el correo de verificación.',
+                                                            );
+                                                            
+                                                        }
+                                                        else {
+                                                            // $data = array(
+                                                            //     'status' => 'error',
+                                                            //     'code' => 500,
+                                                            //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                                            // );
+                                                            
+                                                            if(isset($idValuation)) {
+                                                                $data = array(
+                                                                    'status' => 'success',
+                                                                    'code' => 200,
+                                                                    'message' => 'La solicitud de valuación se ha enviado, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
+                                                                );
+                                                            }
+                                                            else {
+                                                                $data = array(
+                                                                    'status' => 'error',
+                                                                    // 'code' => 500,
+                                                                    'code' => 400,
+                                                                    'message' => 'Ha ocurrido un error inesperado al enviar el correo con la solicitud.',
+                                                                );
+                                                            }
+                                                        }
                                                     }
-                                                }
-                                                elseif ($sendMailCode['status'] === 'success') {
+                                                } catch (QueryException $e) {
+                                                    $errorCode = $e->getCode();
+                                                    $errorMessage = $e->getMessage();
                                                     $data = array(
-                                                        // 'status' => 'success',
-                                                        // 'code' => 200,
-                                                        // 'message' => 'El usuario se ha creado correctamente y se ha enviado el correo de verificación.',
-                                                        'status'    => 'success',
-                                                        'code'      => 200,
-                                                        'message'   => 'La solicitud de valuación se ha enviado y se ha enviado el correo de verificación.',
+                                                        'status'    => 'error',
+                                                        'code'      => 400,
+                                                        'message'   => 'Ha ocurrido un error al solicitar la valuación.',
+                                                        'description' => 'Code - '. $errorCode .', Mensaje - '.$errorMessage
+
                                                     );
-                                                    
-                                                }
-                                                else {
-                                                    // $data = array(
-                                                    //     'status' => 'error',
-                                                    //     'code' => 500,
-                                                    //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
-                                                    // );
-                                                    
-                                                    if(isset($idValuation)) {
-                                                        $data = array(
-                                                            'status' => 'success',
-                                                            'code' => 200,
-                                                            'message' => 'La solicitud de valuación se ha enviado, pero ha ocurrido un error al enviar el correo: ' . $sendMailCode['error'],
-                                                        );
-                                                    }
-                                                    else {
-                                                        $data = array(
-                                                            'status' => 'error',
-                                                            // 'code' => 500,
-                                                            'code' => 400,
-                                                            'message' => 'Ha ocurrido un error inesperado al enviar el correo con la solicitud.',
-                                                        );
-                                                    }
                                                 }
                                             }
-                                        } catch (QueryException $e) {
-                                            $errorCode = $e->getCode();
-                                            $errorMessage = $e->getMessage();
-                                            $data = array(
-                                                'status'    => 'error',
-                                                'code'      => 400,
-                                                'message'   => 'Ha ocurrido un error al solicitar la valuación.',
-                                                'description' => 'Code - '. $errorCode .', Mensaje - '.$errorMessage
-
-                                            );
                                         }
+                                        return response()->json($data, $data['code']);
                                     }
-                                    return response()->json($data, $data['code']);
 
                                 } else {
                                     // echo 'La colección tiene elementos';
@@ -379,6 +397,7 @@ class ValuationController extends Controller
                 ])
             // ->
             //     where('val_idUserRequester', $user->usu_idUser)
+            ->orderBy('val_idValuation', 'desc')
             ->
                 get()
             ;

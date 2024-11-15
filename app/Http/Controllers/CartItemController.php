@@ -433,7 +433,8 @@ class CartItemController extends Controller
                         );
                     }
                     else {
-                        $cartItemRemove = $this->removeItem($idCart, $cartItem->citm_idItem);
+                        // $cartItemRemove = $this->removeItem($idCart, $cartItem->citm_idItem);
+                        $cartItemRemove = $this->cartService->removeItem($idCart, $cartItem->citm_idItem);
 
                         if($cartItemRemove || $cartItemRemove == 1) {
                             $data = array(
@@ -472,66 +473,38 @@ class CartItemController extends Controller
     }
 
     // Eliminar producto
-    public function removeItem($idCart, $idItem) {
-        if(!empty($idCart) || !empty($idItem)) {
-            try {  
-                $cartItem = CartItem::
-                    where([
-                        ['cart_idCart', '=', $idCart],
-                        ['citm_idItem', '=', $idItem],
-                    ])
-                ->
-                    update(
-                        ['citm_isActive' => 0]
-                    )
-                ;
+    // public function removeItem($idCart, $idItem) {
+    //     if(!empty($idCart) || !empty($idItem)) {
+    //         try {  
+    //             $cartItem = CartItem::
+    //                 where([
+    //                     ['cart_idCart', '=', $idCart],
+    //                     ['citm_idItem', '=', $idItem],
+    //                 ])
+    //             ->
+    //                 update(
+    //                     ['citm_isActive' => 0]
+    //                 )
+    //             ;
 
-                if($cartItem || $cartItem == 1) {
-                    return 1;
-                }
-                else {
-                    return 0;
-                }
-            } catch (QueryException $e) {
-                // $errorCode = $e->getCode();
-                // $errorMessage = $e->getMessage();
-                // Log::error("Error on saveSignupAddress. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
-                // return response()->json(['error' => 'Ocurrió un error en la consulta.'], 500);
-                return 0;
-            }
-        }
-        else {
-            return 0;
-        }
-
-        die();
-        $itemAdded = false;
-
-        $product = CartItem::
-            where([
-                ['cart_idCart', '=', $idCart],
-                ['citm_idItem', '=', $paramsArray['idItem']],
-            ])         
-                ->update(['citm_isActive' => 0]);
-                // ->first()
-            ;
-
-            // var_dump($product);
-        if($product || $product == 1){
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-
-
-    
-    
-    
-
-
+    //             if($cartItem || $cartItem == 1) {
+    //                 return 1;
+    //             }
+    //             else {
+    //                 return 0;
+    //             }
+    //         } catch (QueryException $e) {
+    //             // $errorCode = $e->getCode();
+    //             // $errorMessage = $e->getMessage();
+    //             // Log::error("Error on saveSignupAddress. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+    //             // return response()->json(['error' => 'Ocurrió un error en la consulta.'], 500);
+    //             return 0;
+    //         }
+    //     }
+    //     else {
+    //         return 0;
+    //     }
+    // }
     
 
 }

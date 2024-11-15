@@ -54,6 +54,33 @@ class UserService
         }
     }  
 
+    //Obtener los datos de usuario por id
+    public function getUserDataByID($idUser) {
+        try {
+            $user =  User::
+                with([
+                    // 'userAddressShipping',
+                    // 'userAddressShipping.userShippingCountry', 
+                    // 'userAddressShipping.userShippingState', 
+                    'userFiscalData',
+                    // 'userFiscalData.userFiscalCountry', 
+                    // 'userFiscalData.userFiscalState', 
+                ])
+                ->where('usu_idUser', '=', $idUser)
+                ->first();
+
+            if(!empty($user) || !is_null($user)) {
+                return $user;
+            }
+            else {
+                return 0;
+            }
+            // return $user;
+        } catch (QueryException $e)  {
+            return 0;
+        }
+    }  
+
     // Obtener usuario por mail
     public function getUserByMail($mail) {
         try {

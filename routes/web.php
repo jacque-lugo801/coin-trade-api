@@ -26,6 +26,7 @@ use App\Http\Controllers\ValuationStatusController;
 use App\Http\Controllers\UserFinanceController;
 use App\Http\Controllers\CardTypeController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransactionDetailController;
 
 
 // Middlewares
@@ -149,6 +150,10 @@ Route::middleware(['api.auth'])->group(function () { //Con alias
     // Route::post('/api/cart/remove-item', [CartItemController::class, 'removeItemFromCart']);
     // // Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
     // Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
+    
+    // TRANSACTION
+    Route::get('/api/transactions/sales', [TransactionController::class, 'getSalesFmUser'])->name('auth.transaction.getSales'); //*
+    // END TRANSACTION
 
 
 
@@ -169,12 +174,15 @@ Route::middleware(['api.auth.buyer'])->group(function () { //Con alias
     // CART
     Route::post('/api/cart/add-item', [CartItemController::class, 'addItemToCart'])->name('auth.cart.addItem'); //*
     Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart'])->name('auth.cart.updateItem'); //*
-    Route::post('/api/cart/remove-item', [CartItemController::class, 'removeItemFromCart'])->name('auth.cart.deleteItem'); //*
+    Route::delete('/api/cart/remove-item', [CartItemController::class, 'removeItemFromCart'])->name('auth.cart.deleteItem'); //*
     // Route::put('/api/cart/update-item', [CartItemController::class, 'updateItemFromCart']);
     // END CART
     
     // TRANSACTION
+    Route::get('/api/transactions/purchases', [TransactionController::class, 'getPurchasesFmUser'])->name('auth.transaction.getPurchases'); //*
     Route::post('/api/transactions/create', [TransactionController::class, 'createTransaction'])->name('auth.transaction.createTransaction'); //*
+    Route::get('/api/transactions/transaction/{idTransaction}', [TransactionController::class, 'getTransactionInfoFmUser'])->name('auth.transaction.getTransactionInfo'); //*
+    // Route::get('/api/valuation/valuation/{idValuation}', [ValuationController::class, 'getValuationInfo'])->name('auth.valuation.valuationInfo'); //*
     // END TRANSACTION
 });
 
@@ -220,4 +228,9 @@ Route::middleware(['api.auth.admin'])->group(function () { //Con alias
     Route::get('/api/valuation/valuations-verify', [ValuationController::class, 'getValuationsForVerification'])->name('admin.valuation.all'); //*
     Route::put('/api/valuation/update-status', [ValuationController::class, 'updateValuationStatus'])->name('admin.valuation.updateStatus'); //*
     // END VALUATIONS
+
+    
+    // TRANSACTION
+    Route::get('/api/transactions/transactions', [TransactionController::class, 'getTransactions'])->name('auth.transaction.getTransactions'); //*
+    // END TRANSACTION
 });

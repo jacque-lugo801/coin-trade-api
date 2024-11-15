@@ -135,5 +135,67 @@ class ProductService
             return 0;
         }
     }
+
+    public function reduceStockTransaction($value) {
+        if(!empty($value)) {
+            $productCollection = $this->getProductByID($value['prod_idProducto']);
+
+            if($productCollection->isEmpty()) {
+                // Si no existe el producto
+                return 0;
+            }
+            else {
+                $productFind = $productCollection->first();
+                // [prod_isActive] => 1
+                // [prod_idType_product] => 1
+                // [prod_idGroup_product] => 1
+                // [prod_idCategory_product] => 1
+                // [prod_isAuthorized] => 1
+                // [prod_isTerms] => 1
+                // [psts_idStatus] => 1
+                $newStock = $productFind->prod_stock - $value['citm_quantity'];
+
+                if($newStock < 1) {
+                    // Actualizar stock y cambiar status de producto
+                    $idProductStatus = $this->getProductStatusID('agotado');
+
+                    $paramsUpdate = array(
+                        "prod_stock"    => $newStock,
+                        "psts_idStatus" => $idProductStatus,
+                    );
+                    
+                    $productUpdate = Product::
+                        where('prod_idProducto', $value['prod_idProducto'])
+                        ->update($paramsUpdate);
+
+                    if($productUpdate || $productUpdate == 1) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+                else {
+                    // Solo actualizar stock
+                    $paramsUpdate = array(
+                        "prod_stock"    => $newStock,
+                    );
+
+                    $productUpdate = Product::
+                        where('prod_idProducto', $value['prod_idProducto'])
+                        ->update($paramsUpdate);
+                        
+                    if($productUpdate || $productUpdate == 1) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+            }
+
+        }
+        else {
+            return 0;
+        }
+    }
     // END PRODUCTS
 }

@@ -19,4 +19,25 @@ class TransactionDetail extends Model
         // 'tran_isActive',
         // 'prod_isTerms',
     ];
+
+    
+    public function detailUser() {
+        return $this->HasOne(User::class, 'usu_idUser', 'tdet_seller_idUser');
+    }
+    public function detailProduct() {
+        return $this->HasOne(Product::class, 'prod_idProducto', 'tdet_prod_idProducto');
+    }
+
+
+    
+    // Purchases/Sales
+    public function detailTransaction() {
+        return $this->BelongsTo(Transaction::class, 'tran_idTransaction', 'tran_idTransaction');
+    }
+    public function detailUserSeller() {
+        return $this->HasOne(User::class, 'usu_idUser', 'tdet_seller_idUser');
+    }
+    public function detailUserBuyer() {
+        return $this->HasOne(User::class, 'usu_idUser', 'tdet_buyer_idUser');
+    }
 }

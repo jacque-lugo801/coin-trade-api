@@ -218,7 +218,7 @@ class UserFinanceController extends Controller
                             $data = array(
                                 'status'    => 'success',
                                 'code'      => 200,
-                                'message'   => 'La cuenta se ha registrado exitosamente.',
+                                'message'   => 'La cuenta se ha eliminado exitosamente.',
                             );
                         } catch (QueryException $e) {
                             $data = array(

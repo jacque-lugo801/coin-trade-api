@@ -3,11 +3,8 @@
 namespace App\Services;
 
 use App\Http\Controllers\CartController;
-// use App\Http\Controllers\ProductStatusController;
-// use App\Http\Controllers\ProductCertificationsController;
+// use App\Http\Controllers\CartItemController;
 
-// use App\Models\User;
-// use App\Models\Product;
 use App\Models\Cart;
 use App\Models\CartItem;
 
@@ -23,18 +20,14 @@ use Exception;
 class CartService
 {
     protected $cartController;
-    // protected $productStatusController;
-    // protected $productCertificationsController;
-    // protected $productController;
+    // protected $cartItemController;
 
     public function __construct (
-        CartController               $cartController,
-        // ProductStatusController             $productStatusController,
-        // ProductCertificationsController     $productCertificationsController,
+        CartController      $cartController,
+        // CartItemController  $cartItemController,
     ) {
-        $this->cartController            = $cartController;
-        // $this->productStatusController          = $productStatusController;
-        // $this->productCertificationsController  = $productCertificationsController;
+        $this->cartController       = $cartController;
+        // $this->cartItemController   = $cartItemController;
     }
 
     
@@ -74,12 +67,52 @@ class CartService
             ->
                 first()
             ;
-
+            
         }  catch (QueryException $e) {
+            // $errorCode = $e->getCode();
+            // $errorMessage = $e->getMessage();
+            // Log::error("Error on getCartItem. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+
             $item = [];
         }
-        
+
         return  $item;
     }
     // END CART
+
+    // CART ITEM
+    // Delete cart item
+    public function removeItem($idCart, $idItem){
+        if(!empty($idCart) || !empty($idItem)) {
+            try {  
+                $cartItem = CartItem::
+                    where([
+                        ['cart_idCart', '=', $idCart],
+                        ['citm_idItem', '=', $idItem],
+                    ])
+                ->delete()
+                    // update(
+                    //     ['citm_isActive' => 0]
+                    // )
+                ;
+
+                if($cartItem || $cartItem == 1) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            } catch (QueryException $e) {
+                // $errorCode = $e->getCode();
+                // $errorMessage = $e->getMessage();
+                // Log::error("Error on saveSignupAddress. Code - $errorCode, Mensaje - $errorMessage"); //Registrar el error en los logs
+                // return response()->json(['error' => 'Ocurrió un error en la consulta.'], 500);
+                return 0;
+            }
+        }
+        else {
+            return 0;
+        }
+    }
+    // END CART ITEM
 }

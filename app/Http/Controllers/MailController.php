@@ -20,6 +20,9 @@ use App\Mail\ProductUpload;
 use App\Mail\RequestValuation;
 use App\Mail\ValuationUpdateStatus;
 
+use App\Mail\transactions\TransactionCreated;
+use App\Mail\transactions\TransactionCreatedNotificationSeller;
+
 use App\Models\User;
 use App\Http\Controllers\UserController;
 
@@ -173,7 +176,8 @@ class MailController extends Controller
 
             $code = $user->usu_verification_code;
 
-            Mail::to($mailAccount)
+            // Mail::to($mailAccount)
+            Mail::to($mail)
                 // ->send(new UserRegisterAccountMail($name, $lastname, $this->imgLogo));
                 ->send(new UserRegisterAccountMailv2($name, $lastname, $this->imgLogo)); // Temporal
         
@@ -326,6 +330,73 @@ class MailController extends Controller
        return $data;
     }
 
+    // TRANSACTIONS
+    // E-mail para notificación de transaccion (compra) creada
+    public function transactionCreated($transaction, $user) {
+        if(!empty($transaction) || !empty($user)) {
+            // $transactionTotal  = number_format($transaction->tran_total, 2, '.', ',');
+
+            // var_dump($transactionTotal);
+            // die();
+            // $imageFront = storage_path('app/products/' . '1710372462-Moneda-Anverso-De_Mexico-Mexico-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-Plata-1751.jpeg');
+            // $imageBack = storage_path('app/products/' . $product->prod_image_back);
+
+            // print_r($transaction);
+            // die();
+            Mail::to($user->usu_email)
+                ->send(new TransactionCreated($user, $transaction, $this->imgLogo));
+    
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+                'message'   => 'Se ha enviado el mail de verificación.'
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el mail de configuración de cuenta.'
+            );
+        }
+       return $data;
+    }
+
+    // E-mail para notificación de transaccion (venta) al vendedor
+    public function transactionCreatedNotificationSeller($transaction) {
+        if(!empty($transaction)) {
+            // $transactionTotal  = number_format($transaction->tran_total, 2, '.', ',');
+
+            // var_dump($transaction->transactionDetail->first()->detailUser->usu_email);
+            // die();
+            // $imageFront = storage_path('app/products/' . '1710372462-Moneda-Anverso-De_Mexico-Mexico-Moneda_Chile_8_Escudos_Fernando_VI_1751_J-Plata-1751.jpeg');
+            // $imageBack = storage_path('app/products/' . $product->prod_image_back);
+            // $sellerMail = $transaction->transactionDetail->first()->detailUser->usu_email;
+
+            foreach ($transaction->transactionDetail as $index => $value) {
+                $sellerMail = $value->detailUser->usu_email;
+                
+                Mail::to($sellerMail)
+                    ->send(new TransactionCreatedNotificationSeller($transaction, $value, $this->imgLogo));
+            }
+            // Mail::to($sellerMail)
+            //     ->send(new TransactionCreatedNotificationSeller($transaction, $this->imgLogo, $sellerMail));
+    
+            $data = array(
+                'status'    => 'success',
+                'code'      => 200,
+                'message'   => 'Se ha enviado el mail de verificación.'
+            );
+        }
+        else {
+            $data = array(
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'Ha ocurrido un error al enviar el mail de configuración de cuenta.'
+            );
+        }
+       return $data;
+    }
 
 
     // **************************************************
