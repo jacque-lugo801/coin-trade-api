@@ -99,9 +99,13 @@ class ProductController extends Controller
         $isset =  \Storage::disk('products')->exists($filename);
 
         if($isset) {
-            $file = \Storage::disk('products')->get($filename);
+            // $file = \Storage::disk('products')->get($filename);
+            // return new Response($file, 200);
+            
+            $file = Storage::disk('products')->get($filename);
+            $mimeType = Storage::disk('products')->mimeType($filename);
 
-            return new Response($file, 200);
+            return response($file, 200)->header('Content-Type', $mimeType);
         }
         else {
             $data = array(
@@ -890,16 +894,10 @@ class ProductController extends Controller
             }
             else {
                 try {
-                    $paramsUpdate = array (
-                        "prod_isAuthorized"  => $params->isApprove,
-                    );
+                    $productCollection = $this->productService->getProductInfoByID($params->idProducto);
 
-                    $update = Product::
-                        where('prod_idProducto', $params->idProducto)
-                        ->where('prod_sku', $params->sku)
-                        ->update($paramsUpdate);
 
-                    if(!isset($update) && empty($update)) {
+                    if(!is_object($productCollection)) {
                         $data = array(
                             'status'    => 'error',
                             'code'      => 400,
@@ -907,16 +905,55 @@ class ProductController extends Controller
                         );
                     }
                     else {
-                        $product = Product::
+                        $productInfo = $productCollection->first();
+
+                        $idStatusInfo = $this->productService->getProductStatusID('Pendiente');
+
+                        if($idStatusInfo == 0) {
+                            $data = array(
+                            'status'    => 'error',
+                            'code'      => 400,
+                            'message'   => 'Ha ocurrido un error al aprobar/desaprobar el producto.',
+                            );
+                        }
+                        else {
+                            if($productInfo->psts_idStatus == $idStatusInfo){
+                                $idStatusActive = $this->productService->getProductStatusID('Activo');
+                                
+                                if($idStatusActive == 0) {
+                                    $data = array(
+                                    'status'    => 'error',
+                                    'code'      => 400,
+                                    'message'   => 'Ha ocurrido un error al aprobar/desaprobar el producto.',
+                                    );
+                                }
+                                else {
+                                    if($params->isApprove == 1) {
+                                        $paramsUpdate = array (
+                                            "prod_isAuthorized"  => $params->isApprove,
+                                            "psts_idStatus"     => $idStatusActive,
+                                        );
+                                    }
+                                    else {
+                                        $paramsUpdate = array (
+                                            "prod_isAuthorized"  => $params->isApprove,
+                                        );
+                                    }
+                                }
+                            }
+                            else {
+                                $paramsUpdate = array (
+                                    "prod_isAuthorized"  => $params->isApprove,
+                                );
+                            }
+                        }
+
+                        $update = Product::
                             where('prod_idProducto', $params->idProducto)
                             ->where('prod_sku', $params->sku)
-                            ->first();
+                            ->update($paramsUpdate);
 
-                        // $user = User::where('usu_email', $params->sellerMail)->first();
-                        // $user = User::where('usu_email', $params->sellerMail)->first();
-                        $user = $this->userService->getUserByMail($params->sellerMail);
-
-                        if(!is_object($user)) {
+                        if(!isset($update) && empty($update)) {
                             $data = array(
                                 'status'    => 'error',
                                 'code'      => 400,
@@ -924,73 +961,94 @@ class ProductController extends Controller
                             );
                         }
                         else {
-                            $paramsMail = array(
-                                'name'          => $user->usu_name,
-                                'lastname'      => $user->usu_lastname,
-                                'mail'          => $user->usu_email,
-                                'prodName'      => $product->prod_name,
-                                'prodTotal'     => number_format($product->prod_total, 2, '.', ','),
-                                'isApprove'     => $params->isApprove,
-                            );
+                            $product = Product::
+                                where('prod_idProducto', $params->idProducto)
+                                ->where('prod_sku', $params->sku)
+                                ->first();
 
-                            // Send email that its being authorized/non authorized
-                            // (new MailController)->productAuthorizedByAdmin($paramsMail);
-                            $sendMail = $this->mailController->productAuthorizedByAdmin($paramsMail);
+                            // $user = User::where('usu_email', $params->sellerMail)->first();
+                            // $user = User::where('usu_email', $params->sellerMail)->first();
+                            $user = $this->userService->getUserByMail($params->sellerMail);
 
-                            // Procesar la respuesta del MailController
-                            if (isset($sendMail['error'])) {
-                                // $data = array(
-                                //     'status' => 'error',
-                                //     'code' => 404,
-                                //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
-                                // );
-                                if(isset($update)) {
-                                    $data = array(
-                                        'status' => 'success',
-                                        'code' => 200,
-                                        'message' => 'El producto se ha aprobado/desaprobado, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
-                                    );
-                                }
-                                else {
-                                    $data = array(
-                                        'status' => 'error',
-                                        'code' => 400,
-                                        'message' => 'Error al enviar el correo: ' . $sendMail['error'],
-                                    );
-                                }
-                            }
-                            elseif ($sendMail['status'] === 'success') {
+                            if(!is_object($user)) {
                                 $data = array(
-                                    'status'    => 'success',
-                                    'code'      => 200,
-                                    'message'   => 'El producto se ha aprobado/desaprobado y se ha enviado el correo de verificación.',
+                                    'status'    => 'error',
+                                    'code'      => 400,
+                                    'message'   => 'Ha ocurrido un error al aprobar/desaprobar el producto.',
                                 );
                             }
                             else {
-                                // // $data = array(
-                                // //     'status' => 'error',
-                                // //     'code' => 500,
-                                // //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
-                                // // );
-                                
-                                if(isset($update)) {
+                                $paramsMail = array(
+                                    'name'          => $user->usu_name,
+                                    'lastname'      => $user->usu_lastname,
+                                    'mail'          => $user->usu_email,
+                                    'prodName'      => $product->prod_name,
+                                    'prodTotal'     => number_format($product->prod_total, 2, '.', ','),
+                                    'isApprove'     => $params->isApprove,
+                                );
+
+                                // Send email that its being authorized/non authorized
+                                // (new MailController)->productAuthorizedByAdmin($paramsMail);
+                                $sendMail = $this->mailController->productAuthorizedByAdmin($paramsMail);
+
+                                // Procesar la respuesta del MailController
+                                if (isset($sendMail['error'])) {
+                                    // $data = array(
+                                    //     'status' => 'error',
+                                    //     'code' => 404,
+                                    //     'message' => 'Error al enviar el correo: ' . $sendMailCode['error'],
+                                    // );
+                                    if(isset($update)) {
+                                        $data = array(
+                                            'status' => 'success',
+                                            'code' => 200,
+                                            'message' => 'El producto se ha aprobado/desaprobado, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                        );
+                                    }
+                                    else {
+                                        $data = array(
+                                            'status' => 'error',
+                                            'code' => 400,
+                                            'message' => 'Error al enviar el correo: ' . $sendMail['error'],
+                                        );
+                                    }
+                                }
+                                elseif ($sendMail['status'] === 'success') {
                                     $data = array(
-                                        'status' => 'success',
-                                        'code' => 200,
-                                        'message' => 'El producto se ha aprobado/desaprobado, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                        'status'    => 'success',
+                                        'code'      => 200,
+                                        'message'   => 'El producto se ha aprobado/desaprobado y se ha enviado el correo de verificación.',
                                     );
                                 }
                                 else {
-                                    $data = array(
-                                        'status' => 'error',
-                                        // 'code' => 500,
-                                        'code' => 400,
-                                        'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
-                                    );
+                                    // // $data = array(
+                                    // //     'status' => 'error',
+                                    // //     'code' => 500,
+                                    // //     'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                    // // );
+                                    
+                                    if(isset($update)) {
+                                        $data = array(
+                                            'status' => 'success',
+                                            'code' => 200,
+                                            'message' => 'El producto se ha aprobado/desaprobado, pero ha ocurrido un error al enviar el correo: ' . $sendMail['error'],
+                                        );
+                                    }
+                                    else {
+                                        $data = array(
+                                            'status' => 'error',
+                                            // 'code' => 500,
+                                            'code' => 400,
+                                            'message' => 'Ha ocurrido un error inesperado al enviar el correo de verificación.',
+                                        );
+                                    }
                                 }
                             }
                         }
+                        
+                        
                     }
+
                 } catch (QueryException $e) {
                     $data = array(
                         'status'    => 'error',
