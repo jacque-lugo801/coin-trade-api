@@ -1303,81 +1303,94 @@ class UserController extends Controller
         $jwtAuth = new \App\Helpers\JwtAuth();
         
         $user = $jwtAuth->checkToken($token, true);
-        
-        $users = User::
-            with(
-                [
-                    'userAddressShipping',
-                    'userAddressShipping.userShippingCountry', 
-                    'userAddressShipping.userShippingState', 
-                    'userFiscalData',
-                    'userFiscalData.userFiscalCountry', 
-                    'userFiscalData.userFiscalState', 
-                ]
-            )
-        ->
-            whereNot('usu_idUser', $user->usu_idUser)
-        ->
-            get()
-        ->load('userRol')
-        ->load('userStatus')
-        ->load('userLog')
-        ;
-        if(!empty($users)){
-            foreach ($users as $user) {
-                if($user->usu_middle_name){
-                    $user->usu_fullname = trim($user->usu_name). ' ' . trim($user->usu_middle_name) . ' ' . trim($user->usu_lastname) . ' '. trim($user->usu_lastname2);
-                }
-                else {
-                    $user->usu_fullname = trim($user->usu_name). ' ' . trim($user->usu_lastname) . ' '. trim($user->usu_lastname2);
-                }
 
-                // ADDRESS
-                if(isset($user->userAddressShipping) && !empty($user->userAddressShipping)) {
-                    foreach ($user->userAddressShipping as $address) {
-                        $cveCity = $address->usad_city;
-                        $isoState = $address->usad_state;
-    
-                        $result = State::join('cities', 'cities.sta_iso_alpha2', '=', 'states.sta_iso_alpha2')
-                            ->where('cities.cit_clave', $cveCity)
-                            ->where('states.sta_iso_alpha2', $isoState)
-                            ->first();
-                        
-                        $address['user_shipping_city'] = [
-                            'cit_clave' => $result->cit_clave,
-                            'cit_nombre' => $result->cit_nombre,
-                            'sta_iso_alpha2' => $result->sta_iso_alpha2,
-                        ];
-                    }
-                }
+        $idRol = $this->userService->getRolID('Administrador');
 
-                // FISCAL
-                if(isset($user->userFiscalData) && !empty($user->userFiscalData)) {
-                    foreach ($user->userFiscalData as $fiscal) {
-                        $cveCity = $fiscal->ufdt_city;
-                        $isoState = $fiscal->ufdt_state;
-    
-                        $result = State::join('cities', 'cities.sta_iso_alpha2', '=', 'states.sta_iso_alpha2')
-                            ->where('cities.cit_clave', $cveCity)
-                            ->where('states.sta_iso_alpha2', $isoState)
-                            ->first();
-    
-                        $fiscal['user_fiscal_city'] = [
-                            'cit_clave' => $result->cit_clave,
-                            'cit_nombre' => $result->cit_nombre,
-                            'sta_iso_alpha2' => $result->sta_iso_alpha2,
-                        ];
-                    }
-                }
-            }
+        if($idRol == 0) {
             $data = array(
-                'users' => $users,
+                'status'    => 'error',
+                'code'      => 400,
+                'message'   => 'Ha ocurrido un error en el registro.',
             );
         }
         else {
-            $data = array(
-                'users' => [],
-            );
+            $users = User::
+                with(
+                    [
+                        'userAddressShipping',
+                        'userAddressShipping.userShippingCountry', 
+                        'userAddressShipping.userShippingState', 
+                        'userFiscalData',
+                        'userFiscalData.userFiscalCountry', 
+                        'userFiscalData.userFiscalState', 
+                    ]
+                )
+            ->
+                whereNot('usu_idUser', $user->usu_idUser)
+            ->
+                whereNot('urol_idRol', $idRol)
+            ->
+                get()
+            ->load('userRol')
+            ->load('userStatus')
+            ->load('userLog')
+            ;
+            if(!empty($users)){
+                foreach ($users as $user) {
+                    if($user->usu_middle_name){
+                        $user->usu_fullname = trim($user->usu_name). ' ' . trim($user->usu_middle_name) . ' ' . trim($user->usu_lastname) . ' '. trim($user->usu_lastname2);
+                    }
+                    else {
+                        $user->usu_fullname = trim($user->usu_name). ' ' . trim($user->usu_lastname) . ' '. trim($user->usu_lastname2);
+                    }
+
+                    // ADDRESS
+                    if(isset($user->userAddressShipping) && !empty($user->userAddressShipping)) {
+                        foreach ($user->userAddressShipping as $address) {
+                            $cveCity = $address->usad_city;
+                            $isoState = $address->usad_state;
+
+                            $result = State::join('cities', 'cities.sta_iso_alpha2', '=', 'states.sta_iso_alpha2')
+                                ->where('cities.cit_clave', $cveCity)
+                                ->where('states.sta_iso_alpha2', $isoState)
+                                ->first();
+                            
+                            $address['user_shipping_city'] = [
+                                'cit_clave' => $result->cit_clave,
+                                'cit_nombre' => $result->cit_nombre,
+                                'sta_iso_alpha2' => $result->sta_iso_alpha2,
+                            ];
+                        }
+                    }
+
+                    // FISCAL
+                    if(isset($user->userFiscalData) && !empty($user->userFiscalData)) {
+                        foreach ($user->userFiscalData as $fiscal) {
+                            $cveCity = $fiscal->ufdt_city;
+                            $isoState = $fiscal->ufdt_state;
+
+                            $result = State::join('cities', 'cities.sta_iso_alpha2', '=', 'states.sta_iso_alpha2')
+                                ->where('cities.cit_clave', $cveCity)
+                                ->where('states.sta_iso_alpha2', $isoState)
+                                ->first();
+
+                            $fiscal['user_fiscal_city'] = [
+                                'cit_clave' => $result->cit_clave,
+                                'cit_nombre' => $result->cit_nombre,
+                                'sta_iso_alpha2' => $result->sta_iso_alpha2,
+                            ];
+                        }
+                    }
+                }
+                $data = array(
+                    'users' => $users,
+                );
+            }
+            else {
+                $data = array(
+                    'users' => [],
+                );
+            }
         }
         return response()->json($data);
     }
