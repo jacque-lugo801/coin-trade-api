@@ -279,10 +279,14 @@ class ProductController extends Controller
             else {
                 if($params->isBill == 1) {
                     $validateBill = \Validator::make($paramsArray, [
-                        "serie"             => 'required',
-                        "condition"         => 'required',
-                        "date"              => 'required',
-                        "number"            => 'required',
+                        // "serie"             => 'required',
+                        // "condition"         => 'required',
+                        // "date"              => 'required',
+                        // "number"            => 'required',
+                        "serie"             => 'nullable',
+                        "condition"         => 'nullable',
+                        "date"              => 'nullable',
+                        "number"            => 'nullable',
                     ]);
 
                     if($validateBill->fails()) {
@@ -343,13 +347,21 @@ class ProductController extends Controller
                 }
                 else {
                     $validateCoin = \Validator::make($paramsArray, [
-                        "weight"            => 'required',
+                        // "weight"            => 'required',
+                        // "metal"             => 'required',
+                        // "minting"           => 'required',
+                        // "productGroup"      => 'required',
+                        // "fineness"          => 'required',
+                        // "diameter"          => 'required',
+                        // "denomination"      => 'required',
+                        // "productCategory"   => 'required',
+                        "weight"            => 'nullable',
                         "metal"             => 'required',
-                        "minting"           => 'required',
+                        "minting"           => 'nullable',
                         "productGroup"      => 'required',
-                        "fineness"          => 'required',
-                        "diameter"          => 'required',
-                        "denomination"      => 'required',
+                        "fineness"          => 'nullable',
+                        "diameter"          => 'nullable',
+                        "denomination"      => 'nullable',
                         "productCategory"   => 'required',
                     ]);
 
